@@ -62,6 +62,8 @@ export default async function RootLayout({ children }: RootLayoutProps) {
         <title>{pageTitle}</title>
         <meta name="description" content={pageDescription} />
         <ApplyThemeScript />
+        {/* Live2D Cubism Core ライブラリを読み込み */}
+        <script src="/live2d/core/live2dcubismcore.js" defer></script>
       </head>
       <body className="overflow-x-hidden">
         {children}
