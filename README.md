@@ -9,7 +9,10 @@ A complete starter project for building voice AI apps with [LiveKit Agents for N
 The starter project includes:
 
 - A simple voice AI assistant, ready for extension and customization
-- A voice AI pipeline with [models](https://docs.livekit.io/agents/models) from OpenAI, Cartesia, and AssemblyAI served through LiveKit Cloud
+- A voice AI pipeline with [models](https://docs.livekit.io/agents/models) from OpenAI and Deepgram served through LiveKit Cloud
+  - STT: Deepgram Nova-2 (Japanese support)
+  - LLM: GPT-4o-mini (high-performance reasoning)
+  - TTS: OpenAI TTS-1 with Alloy voice
   - Easily integrate your preferred [LLM](https://docs.livekit.io/agents/models/llm/), [STT](https://docs.livekit.io/agents/models/stt/), and [TTS](https://docs.livekit.io/agents/models/tts/) instead, or swap to a realtime model like the [OpenAI Realtime API](https://docs.livekit.io/agents/models/realtime/openai)
 - [LiveKit Turn Detector](https://docs.livekit.io/agents/build/turns/turn-detector/) for contextually-aware speaker detection, with multilingual support
 - [Background voice cancellation](https://docs.livekit.io/home/cloud/noise-cancellation/)
@@ -64,6 +67,8 @@ Sign up for [LiveKit Cloud](https://cloud.livekit.io/) then set up the environme
 - `LIVEKIT_URL`
 - `LIVEKIT_API_KEY`
 - `LIVEKIT_API_SECRET`
+- `DEEPGRAM_API_KEY` (for Japanese speech recognition)
+- `OPENAI_API_KEY` (for LLM and TTS)
 
 You can load the LiveKit environment automatically using the [LiveKit CLI](https://docs.livekit.io/home/cli/cli-setup):
 

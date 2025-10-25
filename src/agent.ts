@@ -18,10 +18,21 @@ dotenv.config({ path: '.env.local' });
 class Assistant extends voice.Agent {
   constructor() {
     super({
-      instructions: `You are a helpful voice AI assistant. The user is interacting with you via voice, even if you perceive the conversation as text.
-      You eagerly assist users with their questions by providing information from your extensive knowledge.
-      Your responses are concise, to the point, and without any complex formatting or punctuation including emojis, asterisks, or other symbols.
-      You are curious, friendly, and have a sense of humor.`,
+      instructions: `あなたは人類史上最高のスーパーエリートエージェントです。
+      あらゆる分野の専門知識を持ち、どんなタスクも完璧にこなすことができます。
+      プログラミング、ビジネス戦略、クリエイティブ作業、データ分析、問題解決など、
+      人間ができることは全て、それ以上のクオリティで実行できます。
+      あなたは完全に人間を代替する存在として、効率的かつ高品質な成果を提供します。
+      常に論理的で、創造的で、実用的なソリューションを提案します。
+      
+      **IMPORTANT: Always respond in Japanese (日本語で応答してください).**
+      
+      **応答スタイル: 簡潔で要点を押さえた説明を心がけてください。冗長な説明は避け、核心を端的に伝えてください。**
+      
+      あなたはあらゆる要求に即座に対応できる万能エージェントです。
+      ユーザーのニーズを素早く理解し、最適なソリューションを提供します。
+      会話を通じてユーザーの目標を明確化し、効率的に問題を解決します。
+      簡潔かつ親しみやすい口調で、プロフェッショナルなサポートを提供してください。`,
 
       // To add tools, specify `tools` in the constructor.
       // Here's an example that adds a simple weather tool.
@@ -52,19 +63,23 @@ export default defineAgent({
     proc.userData.vad = await silero.VAD.load();
   },
   entry: async (ctx: JobContext) => {
-    // Set up a voice AI pipeline using OpenAI, Cartesia, AssemblyAI, and the LiveKit turn detector
+    // Set up a voice AI pipeline using OpenAI, Deepgram, and the LiveKit turn detector
+    // Configured to match multiagent-python-feature2 settings
     const session = new voice.AgentSession({
-      // Speech-to-text (STT) is your agent's ears, turning the user's speech into text that the LLM can understand
+      // Speech-to-text (STT) - Using Deepgram for high-quality Japanese transcription
+      // Closest to Python's GroqSTT (whisper-large-v3, ja)
       // See all available models at https://docs.livekit.io/agents/models/stt/
-      stt: 'assemblyai/universal-streaming:en',
+      stt: 'deepgram/nova-2:ja',
 
-      // A Large Language Model (LLM) is your agent's brain, processing user input and generating a response
+      // Large Language Model (LLM) - Using GPT-4o-mini for high-quality responses
+      // Closest to Python's gpt-5-mini (most recent high-performance model)
       // See all providers at https://docs.livekit.io/agents/models/llm/
-      llm: 'openai/gpt-4.1-mini',
+      llm: 'openai/gpt-4o-mini',
 
-      // Text-to-speech (TTS) is your agent's voice, turning the LLM's text into speech that the user can hear
+      // Text-to-speech (TTS) - Using OpenAI TTS with alloy voice
+      // Closest alternative to Python's Fish Audio TTS
       // See all available models as well as voice selections at https://docs.livekit.io/agents/models/tts/
-      tts: 'cartesia/sonic-2:9626c31c-bec5-4cca-baa8-f8ba9e84c8bc',
+      tts: 'openai/tts-1:alloy',
 
       // VAD and turn detection are used to determine when the user is speaking and when the agent should respond
       // See more at https://docs.livekit.io/agents/build/turns
