@@ -65,29 +65,31 @@ export function ChatInput({
       inert={!chatOpen}
       {...MOTION_PROPS}
       animate={chatOpen ? 'visible' : 'hidden'}
-      className="border-input/50 flex w-full items-start overflow-hidden border-b"
+      className="border-white/20 flex w-full items-start overflow-hidden border-b"
     >
       <form
         onSubmit={handleSubmit}
-        className="mb-3 flex grow items-end gap-2 rounded-md pl-1 text-sm"
+        className="mb-3 flex grow items-end gap-2 text-sm"
       >
-        <input
-          autoFocus
-          ref={inputRef}
-          type="text"
-          value={message}
-          disabled={!chatOpen}
-          placeholder="Type something..."
-          onChange={(e) => setMessage(e.target.value)}
-          className="h-8 flex-1 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-        />
+        <div className="flex-1 flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 px-5 py-2.5 shadow-[0_8px_32px_rgba(0,0,0,0.2)]">
+          <input
+            autoFocus
+            ref={inputRef}
+            type="text"
+            value={message}
+            disabled={!chatOpen}
+            placeholder="なんでも聞いてみて。"
+            onChange={(e) => setMessage(e.target.value)}
+            className="flex-1 bg-transparent text-white placeholder:text-white/40 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+          />
+        </div>
         <Button
           size="icon"
           type="submit"
           disabled={isDisabled}
           variant={isDisabled ? 'secondary' : 'primary'}
           title={isSending ? 'Sending...' : 'Send'}
-          className="self-start"
+          className="flex-shrink-0"
         >
           {isSending ? (
             <SpinnerIcon className="animate-spin" weight="bold" />
