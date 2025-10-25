@@ -20,6 +20,7 @@ export interface ControlBarControls {
   microphone?: boolean;
   screenShare?: boolean;
   chat?: boolean;
+  live2d?: boolean;
 }
 
 export interface AgentControlBarProps extends UseInputControlsProps {
@@ -27,6 +28,8 @@ export interface AgentControlBarProps extends UseInputControlsProps {
   onDisconnect?: () => void;
   onChatOpenChange?: (open: boolean) => void;
   onDeviceError?: (error: { source: Track.Source; error: Error }) => void;
+  showLive2D?: boolean;
+  onLive2DToggle?: (show: boolean) => void;
 }
 
 /**
@@ -39,6 +42,8 @@ export function AgentControlBar({
   onDisconnect,
   onDeviceError,
   onChatOpenChange,
+  showLive2D = false,
+  onLive2DToggle,
   ...props
 }: AgentControlBarProps & HTMLAttributes<HTMLDivElement>) {
   const { send } = useChat();
@@ -81,6 +86,7 @@ export function AgentControlBar({
     screenShare: controls?.screenShare ?? publishPermissions.screenShare,
     camera: controls?.camera ?? publishPermissions.camera,
     chat: controls?.chat ?? publishPermissions.data,
+    live2d: controls?.live2d ?? true,
   };
 
   const isAgentAvailable = participants.some((p) => p.isAgent);
@@ -149,15 +155,38 @@ export function AgentControlBar({
           )}
 
           {/* Toggle Transcript */}
-          <Toggle
-            size="icon"
-            variant="secondary"
-            aria-label="Toggle transcript"
-            pressed={chatOpen}
-            onPressedChange={handleToggleTranscript}
-          >
-            <ChatTextIcon weight="bold" />
-          </Toggle>
+          {visibleControls.chat && (
+            <Toggle
+              size="icon"
+              variant="secondary"
+              aria-label="Toggle transcript"
+              pressed={chatOpen}
+              onPressedChange={handleToggleTranscript}
+            >
+              <ChatTextIcon weight="bold" />
+            </Toggle>
+          )}
+
+          {/* Toggle Live2D */}
+          {visibleControls.live2d && (
+            <Toggle
+              size="icon"
+              variant="secondary"
+              aria-label="Toggle Live2D character"
+              pressed={showLive2D}
+              onPressedChange={(pressed) => {
+                console.log('[AgentControlBar] Live2D toggle clicked, new state:', pressed);
+                onLive2DToggle?.(pressed);
+              }}
+              title={showLive2D ? 'Hide Live2D character' : 'Show Live2D character'}
+            >
+              {showLive2D ? (
+                <span className="text-lg">👤</span>
+              ) : (
+                <span className="text-lg">📊</span>
+              )}
+            </Toggle>
+          )}
         </div>
 
         {/* Disconnect */}

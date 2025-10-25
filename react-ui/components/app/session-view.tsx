@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
+import dynamic from 'next/dynamic';
 import { motion } from 'motion/react';
+import { useVoiceAssistant } from '@livekit/components-react';
 import type { AppConfig } from '@/app-config';
 import { ChatTranscript } from '@/components/app/chat-transcript';
 import { PreConnectMessage } from '@/components/app/preconnect-message';
@@ -10,11 +12,18 @@ import {
   AgentControlBar,
   type ControlBarControls,
 } from '@/components/livekit/agent-control-bar/agent-control-bar';
+import { MediaTiles } from '@/components/livekit/media-tiles';
 import { useChatMessages } from '@/hooks/useChatMessages';
 import { useConnectionTimeout } from '@/hooks/useConnectionTimout';
 import { useDebugMode } from '@/hooks/useDebug';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '../livekit/scroll-area/scroll-area';
+
+// Live2DBackgroundをクライアントサイドのみで読み込む
+const Live2DBackground = dynamic(
+  () => import('@/components/livekit/live2d-background').then(mod => ({ default: mod.Live2DBackground })),
+  { ssr: false }
+);
 
 const MotionBottom = motion.create('div');
 
@@ -69,8 +78,10 @@ export const SessionView = ({
   useConnectionTimeout(200_000);
   useDebugMode({ enabled: IN_DEVELOPMENT });
 
+  const { state: agentState } = useVoiceAssistant();
   const messages = useChatMessages();
   const [chatOpen, setChatOpen] = useState(false);
+  const [showLive2D, setShowLive2D] = useState(false);
 
   const controls: ControlBarControls = {
     leave: true,
@@ -78,10 +89,14 @@ export const SessionView = ({
     chat: appConfig.supportsChatInput,
     camera: appConfig.supportsVideoInput,
     screenShare: appConfig.supportsVideoInput,
+    live2d: true,
   };
 
   return (
     <section className="bg-background relative z-10 h-full w-full overflow-hidden" {...props}>
+      {/* Live2D背景レイヤー */}
+      {showLive2D && <Live2DBackground agentState={agentState} />}
+
       {/* Chat Transcript */}
       <div
         className={cn(
@@ -99,8 +114,8 @@ export const SessionView = ({
         </ScrollArea>
       </div>
 
-      {/* Tile Layout */}
-      <TileLayout chatOpen={chatOpen} />
+      {/* Media Tiles */}
+      <MediaTiles chatOpen={chatOpen} showLive2D={showLive2D} />
 
       {/* Bottom */}
       <MotionBottom
@@ -112,7 +127,12 @@ export const SessionView = ({
         )}
         <div className="bg-background relative mx-auto max-w-2xl pb-3 md:pb-12">
           <Fade bottom className="absolute inset-x-0 top-0 h-4 -translate-y-full" />
-          <AgentControlBar controls={controls} onChatOpenChange={setChatOpen} />
+          <AgentControlBar
+            controls={controls}
+            onChatOpenChange={setChatOpen}
+            showLive2D={showLive2D}
+            onLive2DToggle={setShowLive2D}
+          />
         </div>
       </MotionBottom>
     </section>
