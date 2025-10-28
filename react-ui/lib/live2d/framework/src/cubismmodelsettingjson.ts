@@ -38,52 +38,51 @@ export class CubismModelSettingJson extends ICubismModelSetting {
   public constructor(buffer: ArrayBuffer, size: number) {
     super();
     this._json = CubismJson.create(buffer, size);
+    this._jsonValue = new csmVector<Value>();
 
-    if (this.getJson()) {
-      this._jsonValue = new csmVector<Value>();
-
+    if (this._json) {
       // 順番はenum FrequestNodeと一致させる
       this._jsonValue.pushBack(
-        this.getJson().getRoot().getValueByString(this.groups)
+        this._json.getRoot().getValueByString(this.groups)
       );
       this._jsonValue.pushBack(
-        this.getJson()
+        this._json
           .getRoot()
           .getValueByString(this.fileReferences)
           .getValueByString(this.moc)
       );
       this._jsonValue.pushBack(
-        this.getJson()
+        this._json
           .getRoot()
           .getValueByString(this.fileReferences)
           .getValueByString(this.motions)
       );
       this._jsonValue.pushBack(
-        this.getJson()
+        this._json
           .getRoot()
           .getValueByString(this.fileReferences)
           .getValueByString(this.expressions)
       );
       this._jsonValue.pushBack(
-        this.getJson()
+        this._json
           .getRoot()
           .getValueByString(this.fileReferences)
           .getValueByString(this.textures)
       );
       this._jsonValue.pushBack(
-        this.getJson()
+        this._json
           .getRoot()
           .getValueByString(this.fileReferences)
           .getValueByString(this.physics)
       );
       this._jsonValue.pushBack(
-        this.getJson()
+        this._json
           .getRoot()
           .getValueByString(this.fileReferences)
           .getValueByString(this.pose)
       );
       this._jsonValue.pushBack(
-        this.getJson().getRoot().getValueByString(this.hitAreas)
+        this._json.getRoot().getValueByString(this.hitAreas)
       );
     }
   }
@@ -92,9 +91,9 @@ export class CubismModelSettingJson extends ICubismModelSetting {
    * デストラクタ相当の処理
    */
   public release(): void {
-    CubismJson.delete(this._json);
-
-    this._jsonValue = null;
+    if (this._json) {
+      CubismJson.delete(this._json);
+    }
   }
 
   /**
@@ -102,7 +101,7 @@ export class CubismModelSettingJson extends ICubismModelSetting {
    *
    * @return CubismJson
    */
-  public getJson(): CubismJson {
+  public getJson(): CubismJson | null {
     return this._json;
   }
 
@@ -292,7 +291,7 @@ export class CubismModelSettingJson extends ICubismModelSetting {
    */
   public getMotionGroupName(index: number): string {
     if (!this.isExistMotionGroups()) {
-      return null;
+      return '';
     }
 
     return this._jsonValue
@@ -402,7 +401,12 @@ export class CubismModelSettingJson extends ICubismModelSetting {
       return '';
     }
 
-    return this.getJson()
+    const json = this.getJson();
+    if (!json) {
+      return '';
+    }
+
+    return json
       .getRoot()
       .getValueByString(this.fileReferences)
       .getValueByString(this.userData)
@@ -416,8 +420,13 @@ export class CubismModelSettingJson extends ICubismModelSetting {
    * @return false レイアウト情報が存在しない
    */
   public getLayoutMap(outLayoutMap: csmMap<string, number>): boolean {
+    const json = this.getJson();
+    if (!json) {
+      return false;
+    }
+
     // 存在しない要素にアクセスするとエラーになるためValueがnullの場合はnullを代入する
-    const map: csmMap<string, Value> = this.getJson()
+    const map: csmMap<string, Value> = json
       .getRoot()
       .getValueByString(this.layout)
       .getMap();
@@ -476,7 +485,7 @@ export class CubismModelSettingJson extends ICubismModelSetting {
    * @param index 配列のインデックス値
    * @return パラメータID
    */
-  public getEyeBlinkParameterId(index: number): CubismIdHandle {
+  public getEyeBlinkParameterId(index: number): CubismIdHandle | null {
     if (!this.isExistEyeBlinkParameters()) {
       return null;
     }
@@ -538,7 +547,7 @@ export class CubismModelSettingJson extends ICubismModelSetting {
    * @param index 配列のインデックス値
    * @return パラメータID
    */
-  public getLipSyncParameterId(index: number): CubismIdHandle {
+  public getLipSyncParameterId(index: number): CubismIdHandle | null {
     if (!this.isExistLipSyncParameters()) {
       return null;
     }
@@ -703,7 +712,11 @@ export class CubismModelSettingJson extends ICubismModelSetting {
    * @return false キーが存在しない
    */
   protected isExistUserDataFile(): boolean {
-    const node: Value = this.getJson()
+    const json = this.getJson();
+    if (!json) {
+      return false;
+    }
+    const node: Value = json
       .getRoot()
       .getValueByString(this.fileReferences)
       .getValueByString(this.userData);
@@ -772,7 +785,7 @@ export class CubismModelSettingJson extends ICubismModelSetting {
     return false;
   }
 
-  protected _json: CubismJson;
+  protected _json: CubismJson | null;
   protected _jsonValue: csmVector<Value>;
 
   /**

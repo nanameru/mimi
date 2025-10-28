@@ -178,7 +178,7 @@ export abstract class ICubismModelSetting {
    * @param index 配列のインデックス値
    * @return パラメータID
    */
-  public abstract getEyeBlinkParameterId(index: number): CubismIdHandle;
+  public abstract getEyeBlinkParameterId(index: number): CubismIdHandle | null;
 
   /**
    * リップシンクに関連付けられたパラメータの数を取得する
@@ -191,7 +191,7 @@ export abstract class ICubismModelSetting {
    * @param index 配列のインデックス値
    * @return パラメータID
    */
-  public abstract getLipSyncParameterId(index: number): CubismIdHandle;
+  public abstract getLipSyncParameterId(index: number): CubismIdHandle | null;
 }
 
 // Namespace definition for compatibility.
