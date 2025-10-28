@@ -29,7 +29,6 @@ export abstract class ACubismMotion {
    */
   public static delete(motion: ACubismMotion): void {
     motion.release();
-    motion = null;
   }
 
   /**
@@ -388,7 +387,7 @@ export abstract class ACubismMotion {
    * @param index モーションカーブのインデックス
    * @return success:透明度のId
    */
-  public getModelOpacityId(index: number): CubismIdHandle {
+  public getModelOpacityId(index: number): CubismIdHandle | null {
     return null;
   }
 
