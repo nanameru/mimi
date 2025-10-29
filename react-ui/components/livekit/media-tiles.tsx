@@ -213,4 +213,3 @@ export function MediaTiles({ chatOpen, showLive2D = false }: MediaTilesProps) {
     </div>
   );
 }
-

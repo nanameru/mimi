@@ -15,7 +15,8 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: 'bg-white/10 backdrop-blur-xl border border-white/20 text-white hover:bg-white/15 focus:bg-white/15 shadow-[0_8px_32px_rgba(0,0,0,0.2)]',
+        default:
+          'bg-white/10 backdrop-blur-xl border border-white/20 text-white hover:bg-white/15 focus:bg-white/15 shadow-[0_8px_32px_rgba(0,0,0,0.2)]',
         destructive: [
           'bg-rose-500/25 backdrop-blur-xl border border-rose-400/30 text-rose-100 shadow-[0_8px_32px_rgba(251,113,133,0.25)]',
           'hover:bg-rose-500/35 focus:bg-rose-500/35 focus-visible:ring-rose-400/20',
@@ -26,8 +27,10 @@ const buttonVariants = cva(
           'hover:bg-white/10 hover:text-white',
           'dark:bg-white/5 dark:border-white/20 dark:hover:bg-white/10',
         ],
-        primary: 'bg-cyan-500/25 backdrop-blur-xl border border-cyan-400/30 text-cyan-50 hover:bg-cyan-500/35 focus:bg-cyan-500/35 shadow-[0_8px_32px_rgba(34,211,238,0.25)]',
-        secondary: 'bg-slate-500/15 backdrop-blur-xl border border-slate-400/25 text-slate-100 hover:bg-slate-500/25 shadow-[0_8px_32px_rgba(100,116,139,0.2)]',
+        primary:
+          'bg-cyan-500/25 backdrop-blur-xl border border-cyan-400/30 text-cyan-50 hover:bg-cyan-500/35 focus:bg-cyan-500/35 shadow-[0_8px_32px_rgba(34,211,238,0.25)]',
+        secondary:
+          'bg-slate-500/15 backdrop-blur-xl border border-slate-400/25 text-slate-100 hover:bg-slate-500/25 shadow-[0_8px_32px_rgba(100,116,139,0.2)]',
         ghost: 'hover:bg-white/10 hover:text-white dark:hover:bg-white/10',
         link: 'text-blue-300 underline-offset-4 hover:underline',
       },

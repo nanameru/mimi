@@ -7,7 +7,6 @@ import { useVoiceAssistant } from '@livekit/components-react';
 import type { AppConfig } from '@/app-config';
 import { ChatTranscript } from '@/components/app/chat-transcript';
 import { PreConnectMessage } from '@/components/app/preconnect-message';
-import { TileLayout } from '@/components/app/tile-layout';
 import {
   AgentControlBar,
   type ControlBarControls,
@@ -21,7 +20,10 @@ import { ScrollArea } from '../livekit/scroll-area/scroll-area';
 
 // Live2DBackgroundをクライアントサイドのみで読み込む
 const Live2DBackground = dynamic(
-  () => import('@/components/livekit/live2d-background').then(mod => ({ default: mod.Live2DBackground })),
+  () =>
+    import('@/components/livekit/live2d-background').then((mod) => ({
+      default: mod.Live2DBackground,
+    })),
   { ssr: false }
 );
 

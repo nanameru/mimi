@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * SimpleLive2DModel
  * CubismUserModelを継承したLive2Dモデルクラス

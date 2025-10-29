@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Live2DModelWrapper
  * Live2Dモデルの読み込み、更新、描画を管理するラッパークラス

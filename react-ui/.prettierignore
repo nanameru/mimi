@@ -4,6 +4,6 @@ node_modules/
 pnpm-lock.yaml
 .next/
 .env*
-
-
+lib/live2d/**
+public/live2d/**
 

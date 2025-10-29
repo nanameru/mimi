@@ -65,13 +65,10 @@ export function ChatInput({
       inert={!chatOpen}
       {...MOTION_PROPS}
       animate={chatOpen ? 'visible' : 'hidden'}
-      className="border-white/20 flex w-full items-start overflow-hidden border-b"
+      className="flex w-full items-start overflow-hidden border-b border-white/20"
     >
-      <form
-        onSubmit={handleSubmit}
-        className="mb-3 flex grow items-end gap-2 text-sm"
-      >
-        <div className="flex-1 flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 px-5 py-2.5 shadow-[0_8px_32px_rgba(0,0,0,0.2)]">
+      <form onSubmit={handleSubmit} className="mb-3 flex grow items-end gap-2 text-sm">
+        <div className="flex flex-1 items-center gap-2 rounded-full border border-white/20 bg-white/10 px-5 py-2.5 shadow-[0_8px_32px_rgba(0,0,0,0.2)] backdrop-blur-xl">
           <input
             autoFocus
             ref={inputRef}

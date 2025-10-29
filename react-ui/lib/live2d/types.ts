@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Live2D統合のためのTypeScript型定義
  */

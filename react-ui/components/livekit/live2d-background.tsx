@@ -2,8 +2,8 @@
 
 import { useEffect, useRef } from 'react';
 import type { AgentState } from '@livekit/components-react';
-import { Live2DModelWrapper } from '@/lib/live2d/Live2DModelWrapper';
 import { useLive2DMotionControl } from '@/hooks/useLive2DMotionControl';
+import { Live2DModelWrapper } from '@/lib/live2d/Live2DModelWrapper';
 import { cn } from '@/lib/utils';
 
 interface Live2DBackgroundProps {
@@ -31,11 +31,11 @@ export function Live2DBackground({ agentState, className }: Live2DBackgroundProp
 
       try {
         console.log('[Live2DBackground] Initializing Live2D model...');
-        
+
         const model = new Live2DModelWrapper();
         await model.loadModel('/live2d/models/Haru/Haru.model3.json');
         await model.startRendering(canvasRef.current);
-        
+
         modelRef.current = model;
         console.log('[Live2DBackground] Live2D model initialized');
       } catch (error) {
@@ -99,4 +99,3 @@ export function Live2DBackground({ agentState, className }: Live2DBackgroundProp
     </div>
   );
 }
-

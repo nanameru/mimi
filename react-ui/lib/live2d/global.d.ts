@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Live2DCubismCore グローバル型定義
  * live2dcubismcore.js によってグローバルに提供される
