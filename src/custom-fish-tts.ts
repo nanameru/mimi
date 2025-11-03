@@ -185,6 +185,7 @@ class FishAudioSynthesizeStream extends tts.SynthesizeStream {
       let segmentId = 0;
       let firstChunkReceived = false;
       let totalChunks = 0;
+      console.log(`[FishAudioTTS] Starting TTS with backend: ${this.ttsInstance.backend}, voiceId: ${this.ttsInstance.voiceId || 'not set'}`);
       for await (const audioChunk of this.ttsInstance.wsSession.tts(
         request,
         textStream,
@@ -228,6 +229,21 @@ class FishAudioSynthesizeStream extends tts.SynthesizeStream {
       console.log('[FishAudioTTS] Streaming synthesis session completed');
     } catch (error) {
       console.error('[FishAudioTTS] Streaming error:', error);
+      // エラーの詳細をログに出力
+      if (error instanceof Error) {
+        console.error('[FishAudioTTS] Error name:', error.name);
+        console.error('[FishAudioTTS] Error message:', error.message);
+        console.error('[FishAudioTTS] Error stack:', error.stack);
+        // WebSocketErrorの場合は追加情報を出力
+        if ('code' in error) {
+          console.error('[FishAudioTTS] Error code:', (error as any).code);
+        }
+        if ('details' in error) {
+          console.error('[FishAudioTTS] Error details:', (error as any).details);
+        }
+      }
+      console.error('[FishAudioTTS] Backend used:', this.ttsInstance.backend);
+      console.error('[FishAudioTTS] Voice ID:', this.ttsInstance.voiceId);
       throw error;
     }
   }
