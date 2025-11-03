@@ -247,7 +247,7 @@ class FishAudioSynthesizeStream extends tts.SynthesizeStream {
       
       // データ形式判定用の変数
       let allChunksForAnalysis: Buffer[] = [];
-      const MAX_CHUNKS_FOR_ANALYSIS = 10; // 最初の10チャンクを保存して分析
+      const MAX_CHUNKS_FOR_ANALYSIS = 50; // 最初の50チャンクを保存して分析（正常な音声データを含む）
       
       console.log(`[FishAudioTTS] Starting HTTP API TTS with backend: ${this.ttsInstance.backend}, voiceId: ${this.ttsInstance.voiceId || 'not set'}`);
       
@@ -341,7 +341,7 @@ class FishAudioSynthesizeStream extends tts.SynthesizeStream {
       })) {
         totalChunks++;
         
-        // 最初の数チャンクを保存して分析
+        // 最初の数チャンクを保存して分析（正常な音声データを含む）
         if (totalChunks <= MAX_CHUNKS_FOR_ANALYSIS) {
           allChunksForAnalysis.push(Buffer.from(audioChunk));
         }
@@ -437,11 +437,41 @@ class FishAudioSynthesizeStream extends tts.SynthesizeStream {
         
         // チャンクの振幅を計算
         let chunkAbsMax = 0;
+        let minSample = 0;
+        let maxSample = 0;
         if (allSamples.length > 0) {
           const samplesArray = Array.from(allSamples);
-          const minSample = Math.min(...samplesArray);
-          const maxSample = Math.max(...samplesArray);
+          minSample = Math.min(...samplesArray);
+          maxSample = Math.max(...samplesArray);
           chunkAbsMax = Math.max(Math.abs(minSample), Math.abs(maxSample));
+        }
+        
+        // 正常な振幅のチャンクを特定して保存（デバッグ用）
+        if (chunkAbsMax > 1000 && totalChunks > 15 && totalChunks <= 30) {
+          // Chunk 15-30で正常な振幅のチャンクを保存
+          const fs = require('fs');
+          const path = require('path');
+          const debugDir = path.join(process.cwd(), 'debug-audio');
+          if (!fs.existsSync(debugDir)) {
+            fs.mkdirSync(debugDir, { recursive: true });
+          }
+          const debugFile = path.join(debugDir, `chunk-${totalChunks}-normal-amplitude.bin`);
+          fs.writeFileSync(debugFile, Buffer.from(audioChunk));
+          console.log(`[FishAudioTTS] 💾 Saved normal amplitude chunk ${totalChunks} (absMax=${chunkAbsMax}, range=[${minSample}, ${maxSample}]) to: ${debugFile}`);
+          
+          // データ形式を詳細に分析
+          const detectedFormat = detectAudioFormat(audioChunk);
+          console.log(`[FishAudioTTS] 🔍 Normal chunk ${totalChunks} format: ${detectedFormat}`);
+          console.log(`[FishAudioTTS] 🔍 Normal chunk ${totalChunks} hex preview: ${audioChunk.slice(0, Math.min(32, audioChunk.length)).toString('hex')}`);
+        }
+        
+        // 異常な振幅のチャンクも記録（デバッグ用）
+        if (chunkAbsMax > 0 && chunkAbsMax < 100 && totalChunks <= 20) {
+          console.log(`[FishAudioTTS] ⚠️ Low amplitude chunk ${totalChunks}: absMax=${chunkAbsMax}, range=[${minSample}, ${maxSample}]`);
+          // データ形式を詳細に分析
+          const detectedFormat = detectAudioFormat(audioChunk);
+          console.log(`[FishAudioTTS] 🔍 Low amplitude chunk ${totalChunks} format: ${detectedFormat}`);
+          console.log(`[FishAudioTTS] 🔍 Low amplitude chunk ${totalChunks} hex preview: ${audioChunk.slice(0, Math.min(32, audioChunk.length)).toString('hex')}`);
         }
         
         // 音声開始の検出（振幅が閾値以上の場合、音声が開始されたとみなす）
