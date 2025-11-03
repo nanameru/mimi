@@ -317,12 +317,53 @@ class FishAudioSynthesizeStream extends tts.SynthesizeStream {
           firstChunkReceived = true;
         }
         // Buffer を Int16Array (PCM) に変換
-        const pcmData = new Int16Array(
+        const allSamples = new Int16Array(
           audioChunk.buffer,
           audioChunk.byteOffset,
           audioChunk.length / 2,
         );
-        // LiveKit AudioFrame に変換
+        
+        // サンプル範囲を確認して、データ形式を判定
+        if (allSamples.length > 0) {
+          const samplesArray = Array.from(allSamples);
+          const minSample = Math.min(...samplesArray);
+          const maxSample = Math.max(...samplesArray);
+          const absMax = Math.max(Math.abs(minSample), Math.abs(maxSample));
+          
+          // サンプル範囲が非常に狭い場合（例：[-10, 10]）、データを増幅する必要がある
+          // 正常な音声データは通常数百〜数千の範囲になる
+          if (absMax < 128 && absMax > 0) {
+            // データを増幅（gainをかける）
+            // 例：absMax=3の場合、32767/3 ≈ 10922倍に増幅
+            const gainFactor = Math.floor(32767 / Math.max(absMax, 1));
+            console.log(`[FishAudioTTS] ⚠️ Low amplitude detected (range: [${minSample}, ${maxSample}]). Applying gain: ${gainFactor}x`);
+            const scaledSamples = new Int16Array(allSamples.length);
+            for (let i = 0; i < allSamples.length; i++) {
+              const scaled = allSamples[i]! * gainFactor;
+              // クリッピングを防止
+              scaledSamples[i] = Math.max(-32767, Math.min(32767, scaled));
+            }
+            const pcmData = scaledSamples;
+            const samplesPerChannel = pcmData.length / this.ttsInstance.numChannels;
+            const audioFrame = new AudioFrame(
+              pcmData,
+              this.ttsInstance.sampleRate,
+              this.ttsInstance.numChannels,
+              samplesPerChannel,
+            );
+            const audio = {
+              requestId: '',
+              segmentId: `segment-${segmentId++}`,
+              frame: audioFrame,
+              final: false,
+            };
+            this.queue.put(audio);
+            continue;
+          }
+        }
+        
+        // 通常の16ビットPCMとして処理
+        const pcmData = allSamples;
         const samplesPerChannel = pcmData.length / this.ttsInstance.numChannels;
         const audioFrame = new AudioFrame(
           pcmData,
