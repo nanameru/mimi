@@ -564,26 +564,14 @@ class FishAudioSynthesizeStream extends tts.SynthesizeStream {
           chunkAbsMax = Math.max(Math.abs(minSample), Math.abs(maxSample));
         }
         
-        // 正常な振幅のチャンクを特定して保存（デバッグ用）
+        // 正常な振幅のチャンクをログに記録（ファイル保存は行わない）
         if (chunkAbsMax > 1000 && totalChunks > 15 && totalChunks <= 30) {
-          // Chunk 15-30で正常な振幅のチャンクを保存
-          const debugFile = path.join(debugDateDir, `chunk-${totalChunks}-normal-amplitude.bin`);
-          fs.writeFileSync(debugFile, Buffer.from(audioChunk));
-          console.log(`[FishAudioTTS] 💾 Saved normal amplitude chunk ${totalChunks} (absMax=${chunkAbsMax}, range=[${minSample}, ${maxSample}]) to: ${debugFile}`);
-          
-          // データ形式を詳細に分析
-          const detectedFormat = detectAudioFormat(audioChunk);
-          console.log(`[FishAudioTTS] 🔍 Normal chunk ${totalChunks} format: ${detectedFormat}`);
-          console.log(`[FishAudioTTS] 🔍 Normal chunk ${totalChunks} hex preview: ${audioChunk.slice(0, Math.min(32, audioChunk.length)).toString('hex')}`);
+          console.log(`[FishAudioTTS] 🔍 Normal amplitude chunk ${totalChunks} (absMax=${chunkAbsMax}, range=[${minSample}, ${maxSample}])`);
         }
         
-        // 異常な振幅のチャンクも記録（デバッグ用）
+        // 異常な振幅のチャンクもログに記録（ファイル保存は行わない）
         if (chunkAbsMax > 0 && chunkAbsMax < 100 && totalChunks <= 20) {
           console.log(`[FishAudioTTS] ⚠️ Low amplitude chunk ${totalChunks}: absMax=${chunkAbsMax}, range=[${minSample}, ${maxSample}]`);
-          // データ形式を詳細に分析
-          const detectedFormat = detectAudioFormat(audioChunk);
-          console.log(`[FishAudioTTS] 🔍 Low amplitude chunk ${totalChunks} format: ${detectedFormat}`);
-          console.log(`[FishAudioTTS] 🔍 Low amplitude chunk ${totalChunks} hex preview: ${audioChunk.slice(0, Math.min(32, audioChunk.length)).toString('hex')}`);
         }
         
         // 音声開始の検出（振幅が閾値以上の場合、音声が開始されたとみなす）
@@ -690,14 +678,10 @@ class FishAudioSynthesizeStream extends tts.SynthesizeStream {
             samplesPerChannel,
           );
           
-          // LiveKitに送信する前に、実際に送信されるデータを保存（デバッグ用）
+          // LiveKitに送信する前に、ログに記録（ファイル保存は行わない）
           framesSent++;
           if (framesSent <= 10 || (framesSent > 15 && framesSent <= 30)) {
-            // 最初の10フレームと正常な振幅のフレーム（15-30）を保存
-            const debugFrameFile = path.join(debugDateDir, `livekit-frame-${framesSent}.bin`);
-            // AudioFrameのデータを直接保存（Int16Array形式）
-            fs.writeFileSync(debugFrameFile, Buffer.from(pcmData.buffer, pcmData.byteOffset, pcmData.length * 2));
-            console.log(`[FishAudioTTS] 🔍 Saved LiveKit frame ${framesSent}: ${pcmData.length} samples, samplesPerChannel=${samplesPerChannel}, absMax=${frameAbsMax}`);
+            console.log(`[FishAudioTTS] 🔍 LiveKit frame ${framesSent}: ${pcmData.length} samples, samplesPerChannel=${samplesPerChannel}, absMax=${frameAbsMax}`);
           }
           
           const audio = {
@@ -796,15 +780,12 @@ class FishAudioSynthesizeStream extends tts.SynthesizeStream {
       
       const totalTime = Date.now() - sessionStartTime;
       
-      // 全てのチャンクを結合して保存（ログ用）
+      // 全てのチャンクを結合してWAVファイルとして保存
       if (allChunksForLogging.length > 0) {
         const allChunksCombined = Buffer.concat(allChunksForLogging);
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-        const fullAudioFile = path.join(debugDateDir, `full-audio-${timestamp}-${totalChunks}chunks.bin`);
-        fs.writeFileSync(fullAudioFile, allChunksCombined);
-        console.log(`[FishAudioTTS] 💾 Saved all ${allChunksForLogging.length} chunks (${allChunksCombined.length} bytes) to: ${fullAudioFile}`);
         
-        // WAVファイルとしても保存（再生可能な形式）
+        // WAVファイルとして保存（再生可能な形式）
         const samples = new Int16Array(allChunksCombined.buffer, allChunksCombined.byteOffset, allChunksCombined.length / 2);
         const sampleRate = this.ttsInstance.sampleRate;
         const numChannels = this.ttsInstance.numChannels;
@@ -833,35 +814,14 @@ class FishAudioSynthesizeStream extends tts.SynthesizeStream {
         console.log(`[FishAudioTTS] 💾 Saved full audio as WAV (${(samples.length / sampleRate).toFixed(3)}s) to: ${wavFile}`);
       }
       
-      // 保存したチャンクを結合して詳細分析
+      // 分析用のチャンクはログに記録のみ（ファイル保存は行わない）
       if (allChunksForAnalysis.length > 0) {
         const combinedData = Buffer.concat(allChunksForAnalysis);
-        console.log(`[FishAudioTTS] 🔍 Analyzing ${allChunksForAnalysis.length} chunks (${combinedData.length} bytes total)`);
+        console.log(`[FishAudioTTS] 🔍 Analyzed ${allChunksForAnalysis.length} chunks (${combinedData.length} bytes total)`);
         
         // 結合したデータの形式を判定
         const combinedFormat = detectAudioFormat(combinedData);
         console.log(`[FishAudioTTS] 🔍 Combined data format: ${combinedFormat}`);
-        
-        // バイナリデータをファイルに保存（デバッグ用）
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-        const debugFile = path.join(debugDateDir, `fish-audio-${timestamp}-${totalChunks}chunks.bin`);
-        fs.writeFileSync(debugFile, combinedData);
-        console.log(`[FishAudioTTS] 💾 Saved first ${allChunksForAnalysis.length} chunks to: ${debugFile}`);
-        console.log(`[FishAudioTTS] 💾 File size: ${combinedData.length} bytes`);
-        console.log(`[FishAudioTTS] 💾 To analyze: file ${debugFile} | xxd | head -20`);
-        
-        // データの統計情報を出力
-        const byteCounts = new Array(256).fill(0);
-        const sampleSize = Math.min(1000, combinedData.length);
-        for (let i = 0; i < sampleSize; i++) {
-          byteCounts[combinedData[i]!]++;
-        }
-        const mostCommonBytes = byteCounts
-          .map((count, byte) => ({ byte, count }))
-          .sort((a, b) => b.count - a.count)
-          .slice(0, 5);
-        console.log(`[FishAudioTTS] 📊 Most common bytes in first ${sampleSize} bytes:`, 
-          mostCommonBytes.map(({ byte, count }) => `0x${byte.toString(16).padStart(2, '0').toUpperCase()}:${count}`).join(', '));
       }
       
       console.log('[FishAudioTTS] HTTP API streaming synthesis session completed');

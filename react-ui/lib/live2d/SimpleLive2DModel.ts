@@ -54,6 +54,9 @@ export class SimpleLive2DModel extends CubismUserModel {
   // まばたき・リップシンク用パラメータID
   private _eyeBlinkIds: csmVector<CubismIdHandle> = new csmVector();
   private _lipSyncIds: csmVector<CubismIdHandle> = new csmVector();
+  
+  // リップシンク用RMS値（0.0〜1.0の範囲）
+  private _lipSyncValue: number = 0.0;
 
   // パラメータID
   private _idParamAngleX: CubismIdHandle | null = null;
@@ -479,6 +482,15 @@ export class SimpleLive2DModel extends CubismUserModel {
       this._pose.updateParameters(this._model, deltaTimeSeconds);
     }
 
+    // リップシンク
+    if (this._lipSyncIds.getSize() > 0 && this._lipSyncValue > 0.0) {
+      // RMS値を0.0〜1.0の範囲でリップシンクパラメータに適用
+      // CubismNativeSamplesと同様に、0.8の重みで適用
+      for (let i = 0; i < this._lipSyncIds.getSize(); ++i) {
+        this._model.addParameterValueById(this._lipSyncIds.at(i), this._lipSyncValue, 0.8);
+      }
+    }
+
     // モデルを更新
     this._model.update();
   }
@@ -612,6 +624,23 @@ export class SimpleLive2DModel extends CubismUserModel {
     }
 
     this._textures = [];
+  }
+
+  /**
+   * リップシンク用のRMS値を設定
+   * @param value RMS値（0.0〜1.0の範囲）
+   */
+  public setLipSyncValue(value: number): void {
+    // 値を0.0〜1.0の範囲にクランプ
+    this._lipSyncValue = Math.max(0.0, Math.min(1.0, value));
+  }
+
+  /**
+   * 現在のリップシンクRMS値を取得
+   * @returns RMS値（0.0〜1.0の範囲）
+   */
+  public getLipSyncValue(): number {
+    return this._lipSyncValue;
   }
 
   /**

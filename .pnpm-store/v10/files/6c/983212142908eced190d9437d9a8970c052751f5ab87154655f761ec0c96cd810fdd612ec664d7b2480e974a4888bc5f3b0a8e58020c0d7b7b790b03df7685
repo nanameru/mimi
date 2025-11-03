@@ -1,0 +1,452 @@
+# Fish Audio JavaScript SDK
+
+A comprehensive JavaScript/TypeScript SDK for the [Fish Audio](https://fish.audio) platform, supporting both HTTP APIs and WebSocket streaming for high-performance text-to-speech synthesis.
+
+## Features
+
+- 🎯 **Complete API Coverage**: TTS, ASR, model management, and user account operations
+- ⚡ **WebSocket Streaming**: Real-time TTS with low latency
+- 🔄 **Dual API Support**: Both HTTP and WebSocket protocols
+- 📦 **TypeScript Ready**: Full type definitions included
+- 🧪 **Well Tested**: Comprehensive test suite
+- 🔧 **Easy Integration**: Simple, intuitive API design
+
+## Installation
+
+```bash
+npm install fish-audio-sdk
+```
+
+## Quick Start
+
+### Basic HTTP TTS
+
+```javascript
+import { Session, TTSRequest } from 'fish-audio-sdk';
+
+const session = new Session("your_api_key");
+
+// Simple TTS
+const request = new TTSRequest("Hello, world!", {
+  format: 'mp3' 
+});
+
+const audioChunks = [];
+for await (const chunk of session.tts(request)) {
+  audioChunks.push(chunk);
+}
+
+const audioBuffer = Buffer.concat(audioChunks);
+// Save or play the audio buffer
+```
+
+### WebSocket Streaming TTS
+
+```javascript
+import { WebSocketSession, TTSRequest } from 'fish-audio-sdk';
+
+const ws = new WebSocketSession("your_api_key");
+
+// Stream text for real-time TTS
+  async function* textStream() {
+  yield "Hello there!";
+  yield "This is streaming text-to-speech.";
+  yield "Each line is sent separately for low latency.";
+  }
+
+  const request = new TTSRequest("", {
+  format: 'mp3',
+  latency: 'balanced' 
+  });
+
+// Get audio chunks in real-time
+  for await (const audioChunk of ws.tts(request, textStream())) {
+  // Process audio chunk immediately (e.g., play, save, stream)
+  console.log(`Received ${audioChunk.length} bytes`);
+  }
+
+  await ws.close();
+```
+
+## API Reference
+
+### Session (HTTP APIs)
+
+The `Session` class provides access to all Fish Audio HTTP APIs.
+
+#### Constructor
+
+```javascript
+const session = new Session(apiKey, baseUrl?)
+```
+
+- `apiKey` (string): Your Fish Audio API key
+- `baseUrl` (string, optional): Custom API endpoint (default: "https://api.fish.audio")
+
+#### Text-to-Speech
+
+```javascript
+async *tts(request: TTSRequest, headers?: Record<string, string>): AsyncGenerator<Buffer>
+```
+
+Convert text to speech and return audio chunks.
+
+```javascript
+const request = new TTSRequest("Hello world", {
+  format: 'mp3',           // 'mp3' | 'wav' | 'pcm' | 'opus'
+  mp3Bitrate: 128,         // 64 | 128 | 192
+  chunkLength: 200,        // Chunk size for streaming
+  normalize: true,         // Audio normalization
+  latency: 'balanced',     // 'normal' | 'balanced'
+  referenceId: 'model_id', // Use specific voice model
+  prosody: {               // Voice characteristics
+    speed: 1.0,
+    volume: 1.0
+  }
+});
+```
+
+#### Automatic Speech Recognition
+
+```javascript
+async asr(request: ASRRequest): Promise<ASRResponse>
+```
+
+Convert audio to text.
+
+```javascript
+import { ASRRequest } from 'fish-audio-sdk';
+import fs from 'fs';
+
+  const audioBuffer = fs.readFileSync('audio.wav');
+const request = new ASRRequest(audioBuffer, 'en', false);
+const result = await session.asr(request);
+
+console.log(result.text);     // Transcribed text
+console.log(result.segments); // Timestamp segments
+```
+
+#### Model Management
+
+```javascript
+// List available models
+const models = await session.listModels({
+  pageSize: 20,
+  pageNumber: 1,
+  self: true,        // Only your models
+  language: 'en'     // Filter by language
+});
+
+// Get specific model
+const model = await session.getModel('model_id');
+
+// Create new model
+const newModel = await session.createModel({
+    title: "My Voice Model",
+    description: "Custom voice model",
+  type: 'tts',
+  voices: [audioBuffer1, audioBuffer2], // Training audio files
+  texts: ["Training text 1", "Training text 2"],
+  trainMode: 'fast'
+});
+
+// Update model
+await session.updateModel('model_id', {
+  title: "Updated Title",
+  visibility: 'public'
+});
+
+// Delete model
+await session.deleteModel('model_id');
+```
+
+#### Account Management
+
+```javascript
+// Get API credits
+const credits = await session.getApiCredit();
+console.log(`Credits: ${credits.credit}`);
+
+// Get package info
+const package = await session.getPackage();
+console.log(`Package type: ${package.type}`);
+```
+
+#### Cleanup
+
+```javascript
+// Always close the session when done
+  session.close();
+```
+
+### WebSocketSession (Streaming APIs)
+
+The `WebSocketSession` class provides real-time streaming capabilities.
+
+#### Constructor
+
+```javascript
+const ws = new WebSocketSession(apiKey, baseUrl?)
+```
+
+#### Streaming TTS
+
+```javascript
+async *tts(
+  request: TTSRequest, 
+  textStream: AsyncIterable<string>, 
+  backend?: 'speech-1.5' | 'speech-1.6'
+): AsyncGenerator<Buffer>
+```
+
+Stream text and receive audio in real-time:
+
+```javascript
+// Example: Stream from array
+async function* streamFromArray(texts) {
+  for (const text of texts) {
+    yield text;
+    await new Promise(resolve => setTimeout(resolve, 100)); // Optional delay
+  }
+}
+
+// Example: Stream from user input
+async function* streamFromInput() {
+  const readline = require('readline');
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+  
+  while (true) {
+    const line = await new Promise(resolve => {
+      rl.question('Enter text (or "quit"): ', resolve);
+    });
+    
+    if (line === 'quit') break;
+    yield line;
+  }
+  
+  rl.close();
+}
+
+// Use the streams
+const audioChunks = [];
+for await (const chunk of ws.tts(request, streamFromArray(texts))) {
+  audioChunks.push(chunk);
+}
+```
+
+#### Persistent Sessions
+
+WebSocket sessions can be reused for multiple TTS calls:
+
+```javascript
+const ws = new WebSocketSession("your_api_key");
+
+// First TTS call
+for await (const chunk of ws.tts(request1, textStream1())) {
+  // Process first audio stream
+}
+
+// Second TTS call (reuses connection)
+for await (const chunk of ws.tts(request2, textStream2())) {
+  // Process second audio stream  
+}
+
+// Close when completely done
+await ws.close();
+```
+
+## Advanced Usage
+
+### Custom Audio Processing
+
+```javascript
+import fs from 'fs';
+
+const outputPath = 'output.mp3';
+const writeStream = fs.createWriteStream(outputPath);
+
+for await (const chunk of session.tts(request)) {
+  writeStream.write(chunk);
+  
+  // Real-time processing
+  console.log(`Received ${chunk.length} bytes`);
+  
+  // Could also stream to speakers, websocket, etc.
+}
+
+writeStream.end();
+```
+
+### Error Handling
+
+```javascript
+import { WebSocketError, HttpCodeError } from 'fish-audio-sdk';
+
+try {
+  for await (const chunk of ws.tts(request, textStream())) {
+    // Process chunk
+  }
+} catch (error) {
+  if (error instanceof WebSocketError) {
+    console.error('WebSocket error:', error.message);
+  } else if (error instanceof HttpCodeError) {
+    console.error(`HTTP ${error.status}:`, error.message);
+  }
+}
+```
+
+### Configuration Examples
+
+```javascript
+// High-quality MP3
+const highQualityRequest = new TTSRequest("Hello world", {
+  format: 'mp3',
+  mp3Bitrate: 192,
+  normalize: true,
+  prosody: {
+    speed: 0.9,    // Slightly slower
+    volume: 1.1    // Slightly louder
+  }
+});
+
+// Low-latency streaming
+const streamingRequest = new TTSRequest("", {
+  format: 'pcm',
+  chunkLength: 100,  // Smaller chunks for lower latency
+  latency: 'balanced'
+});
+
+// Custom voice model
+const customVoiceRequest = new TTSRequest("Hello world", {
+  referenceId: "your_model_id_here",
+  format: 'wav'
+});
+```
+
+## Environment Variables
+
+Create a `.env` file in your project root:
+
+```env
+FISHAUDIO_KEY=your_api_key_here
+```
+
+The SDK will automatically use this key if no key is provided to the constructor.
+
+## TypeScript Support
+
+The SDK is written in TypeScript and includes full type definitions:
+
+```typescript
+import { 
+  Session, 
+  WebSocketSession,
+  TTSRequest, 
+  ASRRequest,
+  ModelEntity,
+  TTSRequestOptions 
+} from 'fish-audio-sdk';
+
+// All types are available and auto-completing
+const options: TTSRequestOptions = {
+  format: 'mp3',
+  latency: 'balanced'
+};
+
+const request: TTSRequest = new TTSRequest("Hello", options);
+```
+
+## Examples
+
+### Save TTS to File
+
+```javascript
+import fs from 'fs';
+import { Session, TTSRequest } from 'fish-audio-sdk';
+
+async function saveTextToSpeech(text, filename) {
+  const session = new Session(process.env.FISHAUDIO_KEY);
+  const request = new TTSRequest(text, { format: 'mp3' });
+  
+  const chunks = [];
+  for await (const chunk of session.tts(request)) {
+    chunks.push(chunk);
+  }
+  
+  fs.writeFileSync(filename, Buffer.concat(chunks));
+  session.close();
+  
+  console.log(`Audio saved to ${filename}`);
+}
+
+await saveTextToSpeech("Hello world!", "hello.mp3");
+```
+
+### Real-time Streaming Server
+
+```javascript
+import express from 'express';
+import { WebSocketSession, TTSRequest } from 'fish-audio-sdk';
+
+const app = express();
+const ws = new WebSocketSession(process.env.FISHAUDIO_KEY);
+
+app.get('/stream-tts', async (req, res) => {
+  const text = req.query.text;
+  const request = new TTSRequest("", { format: 'mp3' });
+  
+  async function* textStream() {
+    // Split text into sentences for streaming
+    const sentences = text.split('.').filter(s => s.trim());
+    for (const sentence of sentences) {
+      yield sentence.trim() + '.';
+    }
+  }
+  
+  res.setHeader('Content-Type', 'audio/mpeg');
+  
+  try {
+    for await (const chunk of ws.tts(request, textStream())) {
+      res.write(chunk);
+    }
+    res.end();
+  } catch (error) {
+    res.status(500).send('TTS Error: ' + error.message);
+  }
+});
+
+app.listen(3000, () => {
+  console.log('TTS streaming server running on port 3000');
+});
+```
+
+## Testing
+
+Run the test suite:
+
+```bash
+npm test
+```
+
+Note: Tests require a valid API key in the `FISHAUDIO_KEY` environment variable.
+
+## Contributing
+
+Contributions are welcome! Please read our contributing guidelines and submit pull requests to our repository.
+
+## License
+
+MIT License. See [LICENSE](LICENSE) file for details.
+
+## Support
+
+- 📖 [Fish Audio Documentation](https://docs.fish.audio)
+- 💬 [Community Discord](https://discord.gg/fishaudio)
+- 🐛 [Report Issues](https://github.com/your-repo/fishaudio-js/issues)
+
+---
+
+Built with ❤️ for the Fish Audio community.

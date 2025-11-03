@@ -1,0 +1,12 @@
+'use strict';
+
+var chunk34WQUECJ_cjs = require('../chunk-34WQUECJ.cjs');
+
+
+
+Object.defineProperty(exports, "loop", {
+  enumerable: true,
+  get: function () { return chunk34WQUECJ_cjs.loop; }
+});
+//# sourceMappingURL=index.cjs.map
+//# sourceMappingURL=index.cjs.map

@@ -34,16 +34,18 @@
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.53",
-    "@livekit/agents": "^1.0.11",
-    "@livekit/agents-plugin-livekit": "^1.0.11",
-    "@livekit/agents-plugin-silero": "^1.0.11",
+    "@livekit/agents": "^1.0.15",
+    "@livekit/agents-plugin-livekit": "^1.0.15",
+    "@livekit/agents-plugin-openai": "^1.0.15",
+    "@livekit/agents-plugin-silero": "^1.0.15",
     "@livekit/noise-cancellation-node": "^0.1.9",
+    "@livekit/rtc-node": "^0.13.20",
     "@mastra/core": "^0.23.1",
     "@mastra/libsql": "^0.16.1",
     "@mastra/loggers": "^0.10.18",
     "@mastra/memory": "^0.15.9",
     "dotenv": "^17.2.3",
-    "fish-audio-sdk": "^1.0.0",
+    "fish-audio-sdk": "2025.9.11",
     "zod": "^3.25.76"
   },
   "packageManager": "pnpm@10.13.1+sha512.37ebf1a5c7a30d5fabe0c5df44ee8da4c965ca0c5af3dbab28c3a1681b70a256218d05c81c9c0dcf767ef6b8551eb5b960042b9ed4300c59242336377e01cfad"

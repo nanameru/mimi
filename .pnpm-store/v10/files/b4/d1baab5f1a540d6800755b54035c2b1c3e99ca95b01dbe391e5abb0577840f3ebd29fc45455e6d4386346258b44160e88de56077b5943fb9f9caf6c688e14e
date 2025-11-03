@@ -1,0 +1,27 @@
+import { TTSRequest, ASRRequest, ModelEntity, PaginatedResponse, APICreditEntity, PackageEntity, ASRResponse, ModelListParams, ModelCreateParams, ModelUpdateParams, ApiCreditParams } from './schemas';
+export declare class Session {
+    private client;
+    private httpAgent;
+    private httpsAgent;
+    constructor(apiKey: string, baseUrl?: string);
+    /**
+     * Close all HTTP connections.
+     * Call this method when you're done using the Session to prevent memory leaks.
+     */
+    close(): void;
+    /**
+     * Perform text-to-speech synthesis
+     * @param request TTSRequest object with text and options
+     * @param additionalHeaders Optional additional headers to include in the request
+     * @returns AsyncGenerator yielding audio buffer chunks
+     */
+    tts(request: TTSRequest, additionalHeaders?: Record<string, string>): AsyncGenerator<Buffer>;
+    asr(request: ASRRequest): Promise<ASRResponse>;
+    listModels(params?: ModelListParams): Promise<PaginatedResponse<ModelEntity>>;
+    getModel(modelId: string): Promise<ModelEntity>;
+    createModel(params: ModelCreateParams): Promise<ModelEntity>;
+    deleteModel(modelId: string): Promise<void>;
+    updateModel(modelId: string, params: ModelUpdateParams): Promise<void>;
+    getApiCredit(params?: ApiCreditParams): Promise<APICreditEntity>;
+    getPackage(): Promise<PackageEntity>;
+}

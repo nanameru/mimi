@@ -1,0 +1,193 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.WebSocketSession = void 0;
+const ws_1 = __importDefault(require("ws"));
+const exceptions_1 = require("./exceptions");
+const msgpack_lite_1 = __importDefault(require("msgpack-lite"));
+class WebSocketSession {
+    constructor(apiKey, baseUrl = 'https://api.fish.audio') {
+        this.apiKey = apiKey;
+        this.baseUrl = baseUrl;
+        this.activeConnections = new Set();
+        this.cleanupTimeouts = new Set();
+    }
+    async close() {
+        // Clear all timeouts first
+        this.cleanupTimeouts.forEach(timeout => clearTimeout(timeout));
+        this.cleanupTimeouts.clear();
+        // Close all active connections
+        const promises = Array.from(this.activeConnections).map(ws => new Promise(resolve => {
+            if (ws.readyState === ws_1.default.CLOSED) {
+                resolve();
+                return;
+            }
+            const closeTimeout = setTimeout(() => {
+                // Force resolve if close doesn't fire
+                resolve();
+            }, 1000);
+            ws.once('close', () => {
+                clearTimeout(closeTimeout);
+                resolve();
+            });
+            if (ws.readyState === ws_1.default.OPEN || ws.readyState === ws_1.default.CONNECTING) {
+                ws.close();
+            }
+        }));
+        await Promise.all(promises);
+        this.activeConnections.clear();
+    }
+    async *tts(request, textStream, backend = 'speech-1.5') {
+        // Collect all text lines first
+        const textLines = [];
+        for await (const text of textStream) {
+            textLines.push(text);
+        }
+        const wsUrl = `${this.baseUrl.replace('https://', 'wss://').replace('http://', 'ws://')}/v1/tts/live`;
+        // Create WebSocket EXACTLY like test-ws-simple.js
+        const ws = new ws_1.default(wsUrl, {
+            headers: {
+                'Authorization': `Bearer ${this.apiKey}`,
+                'model': backend
+            }
+        });
+        this.activeConnections.add(ws);
+        // Collect audio chunks exactly like test-ws-simple.js
+        const audioBuffer = [];
+        let finished = false;
+        try {
+            await new Promise((resolve, reject) => {
+                // Set up message handler FIRST (like test-ws-simple.js)
+                ws.on('message', (data) => {
+                    try {
+                        const message = msgpack_lite_1.default.decode(Buffer.from(data));
+                        if (message.event === 'audio') {
+                            const audioChunk = message.audio;
+                            audioBuffer.push(audioChunk);
+                        }
+                        else if (message.event === 'finish') {
+                            if (message.reason === 'stop') {
+                                finished = true;
+                                resolve();
+                            }
+                            else if (message.reason === 'error') {
+                                finished = true;
+                                reject(new exceptions_1.WebSocketError(message.message || 'Server error'));
+                            }
+                        }
+                    }
+                    catch (err) {
+                        console.error('Error processing message:', err);
+                    }
+                });
+                ws.on('error', (err) => {
+                    finished = true;
+                    reject(new exceptions_1.WebSocketError(err.message));
+                });
+                ws.on('close', (code, reason) => {
+                    if (!finished) {
+                        finished = true;
+                        // If we got audio, consider it successful
+                        if (audioBuffer.length > 0) {
+                            resolve();
+                        }
+                        else {
+                            reject(new exceptions_1.WebSocketError(`WebSocket closed: ${code} ${reason || ''}`));
+                        }
+                    }
+                });
+                // Send messages on open EXACTLY like test-ws-simple.js
+                ws.on('open', () => {
+                    // Build request object with only necessary fields
+                    const requestData = {
+                        text: request.text || '',
+                        chunk_length: request.chunkLength,
+                        format: request.format,
+                        normalize: request.normalize,
+                        latency: request.latency
+                    };
+                    // Only add optional fields if they're defined
+                    if (request.format === 'mp3' && request.mp3Bitrate) {
+                        requestData.mp3_bitrate = request.mp3Bitrate;
+                    }
+                    if (request.format === 'opus' && request.opusBitrate) {
+                        requestData.opus_bitrate = request.opusBitrate;
+                    }
+                    if (request.sampleRate) {
+                        requestData.sample_rate = request.sampleRate;
+                    }
+                    if (request.references && request.references.length > 0) {
+                        requestData.references = request.references;
+                    }
+                    if (request.referenceId) {
+                        requestData.reference_id = request.referenceId;
+                    }
+                    if (request.modelId) {
+                        requestData.model_id = request.modelId;
+                    }
+                    if (request.prosody) {
+                        requestData.prosody = request.prosody;
+                    }
+                    // Send start event
+                    const startEvent = {
+                        event: 'start',
+                        request: requestData
+                    };
+                    ws.send(msgpack_lite_1.default.encode(startEvent));
+                    // Send text events for each line
+                    textLines.forEach((line) => {
+                        const textEvent = {
+                            event: 'text',
+                            text: line
+                        };
+                        ws.send(msgpack_lite_1.default.encode(textEvent));
+                    });
+                    // Send stop event
+                    const stopEvent = {
+                        event: 'stop'
+                    };
+                    ws.send(msgpack_lite_1.default.encode(stopEvent));
+                });
+                // Timeout after 30 seconds
+                const timeout = setTimeout(() => {
+                    if (!finished) {
+                        finished = true;
+                        reject(new exceptions_1.WebSocketError('Timeout waiting for response'));
+                    }
+                }, 30000);
+                // Track timeout for cleanup
+                this.cleanupTimeouts.add(timeout);
+                // Ensure timeout is cleared on resolution
+                const originalResolve = resolve;
+                const originalReject = reject;
+                resolve = (...args) => {
+                    clearTimeout(timeout);
+                    this.cleanupTimeouts.delete(timeout);
+                    originalResolve(...args);
+                };
+                reject = (...args) => {
+                    clearTimeout(timeout);
+                    this.cleanupTimeouts.delete(timeout);
+                    originalReject(...args);
+                };
+            });
+            // Yield all audio chunks
+            for (const chunk of audioBuffer) {
+                yield chunk;
+            }
+        }
+        finally {
+            // Ensure WebSocket is properly closed
+            if (ws.readyState === ws_1.default.OPEN || ws.readyState === ws_1.default.CONNECTING) {
+                ws.close();
+            }
+            // Remove all listeners to prevent memory leaks
+            ws.removeAllListeners();
+            // Remove from active connections
+            this.activeConnections.delete(ws);
+        }
+    }
+}
+exports.WebSocketSession = WebSocketSession;

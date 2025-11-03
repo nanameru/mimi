@@ -1,0 +1,21 @@
+export declare class HttpCodeError extends Error {
+    status: number;
+    constructor(status: number, message: string);
+}
+export declare class WebSocketError extends Error {
+    constructor(message: string);
+}
+export declare class ApiError extends Error {
+    code: string;
+    details?: Record<string, any> | undefined;
+    constructor(code: string, message: string, details?: Record<string, any> | undefined);
+}
+export declare class AuthenticationError extends HttpCodeError {
+    constructor(message?: string);
+}
+export declare class PaymentRequiredError extends HttpCodeError {
+    constructor(message?: string);
+}
+export declare class NotFoundError extends HttpCodeError {
+    constructor(message?: string);
+}

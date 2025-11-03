@@ -1,0 +1,236 @@
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Session = void 0;
+const axios_1 = __importStar(require("axios"));
+const schemas_1 = require("./schemas");
+const exceptions_1 = require("./exceptions");
+const msgpack_lite_1 = __importDefault(require("msgpack-lite"));
+const http_1 = require("http");
+const https_1 = require("https");
+class Session {
+    constructor(apiKey, baseUrl = 'https://api.fish.audio') {
+        // Create custom agents that can be destroyed later
+        this.httpAgent = new http_1.Agent({ keepAlive: true });
+        this.httpsAgent = new https_1.Agent({ keepAlive: true });
+        this.client = axios_1.default.create({
+            baseURL: baseUrl,
+            headers: {
+                Authorization: `Bearer ${apiKey}`
+            },
+            timeout: 0,
+            httpAgent: this.httpAgent,
+            httpsAgent: this.httpsAgent
+        });
+        // Add response interceptor for error handling
+        this.client.interceptors.response.use(response => response, error => {
+            if (error instanceof axios_1.AxiosError && error.response) {
+                // Extract more detailed error information if available
+                const errorData = error.response.data;
+                let errorDetail = error.response.statusText;
+                if (typeof errorData === 'string') {
+                    errorDetail = errorData;
+                }
+                else if (errorData && typeof errorData === 'object') {
+                    errorDetail = errorData.detail || errorData.message || error.response.statusText;
+                }
+                throw new exceptions_1.HttpCodeError(error.response.status, errorDetail);
+            }
+            throw error;
+        });
+    }
+    /**
+     * Close all HTTP connections.
+     * Call this method when you're done using the Session to prevent memory leaks.
+     */
+    close() {
+        this.httpAgent.destroy();
+        this.httpsAgent.destroy();
+    }
+    /**
+     * Perform text-to-speech synthesis
+     * @param request TTSRequest object with text and options
+     * @param additionalHeaders Optional additional headers to include in the request
+     * @returns AsyncGenerator yielding audio buffer chunks
+     */
+    async *tts(request, additionalHeaders = {}) {
+        try {
+            // Log request details for debugging
+            const requestPayload = request.toJSON();
+            console.log('TTS Request:', JSON.stringify(requestPayload, null, 2));
+            console.log('TTS Headers:', JSON.stringify(additionalHeaders, null, 2));
+            // Use JSON format instead of MessagePack
+            const response = await this.client.post('/v1/tts', requestPayload, // Send as JSON
+            {
+                responseType: 'stream',
+                headers: {
+                    'Content-Type': 'application/json', // Changed from msgpack to json
+                    ...additionalHeaders
+                }
+            });
+            for await (const chunk of response.data) {
+                yield Buffer.from(chunk);
+            }
+        }
+        catch (error) {
+            if (error instanceof exceptions_1.HttpCodeError) {
+                console.error(`TTS Error: ${error.status}: ${error.message}`);
+            }
+            else {
+                console.error('TTS Error:', error instanceof Error ? error.message : error);
+            }
+            throw error;
+        }
+    }
+    async asr(request) {
+        try {
+            const response = await this.client.post('/v1/asr', msgpack_lite_1.default.encode(request.toJSON()), {
+                headers: {
+                    'Content-Type': 'application/msgpack'
+                }
+            });
+            return schemas_1.ASRResponse.fromJSON(response.data);
+        }
+        catch (error) {
+            if (error instanceof exceptions_1.HttpCodeError) {
+                console.error(`ASR Error: ${error.status}: ${error.message}`);
+            }
+            else {
+                console.error('ASR Error:', error instanceof Error ? error.message : error);
+            }
+            throw error;
+        }
+    }
+    async listModels(params = {}) {
+        // Transform parameters to match API naming convention
+        const apiParams = {};
+        if (params.pageSize !== undefined)
+            apiParams.page_size = params.pageSize;
+        if (params.pageNumber !== undefined)
+            apiParams.page_number = params.pageNumber;
+        if (params.title !== undefined)
+            apiParams.title = params.title;
+        if (params.tag !== undefined)
+            apiParams.tag = params.tag;
+        if (params.self !== undefined)
+            apiParams.self = params.self;
+        if (params.authorId !== undefined)
+            apiParams.author_id = params.authorId;
+        if (params.language !== undefined)
+            apiParams.language = params.language;
+        if (params.titleLanguage !== undefined)
+            apiParams.title_language = params.titleLanguage;
+        if (params.sortBy !== undefined)
+            apiParams.sort_by = params.sortBy;
+        const response = await this.client.get('/model', { params: apiParams });
+        // Transform response items to ensure consistent ID field
+        const items = response.data.items.map((item) => ({
+            ...item,
+            id: item._id || item.id
+        }));
+        return {
+            total: response.data.total,
+            items
+        };
+    }
+    async getModel(modelId) {
+        const response = await this.client.get(`/model/${modelId}`);
+        return {
+            ...response.data,
+            id: response.data._id || response.data.id
+        };
+    }
+    async createModel(params) {
+        const formData = new FormData();
+        // Add file data
+        params.voices.forEach((voice, i) => {
+            formData.append('voices', new Blob([voice]));
+        });
+        if (params.coverImage) {
+            formData.append('cover_image', new Blob([params.coverImage]));
+        }
+        // Add other fields
+        formData.append('visibility', params.visibility || 'private');
+        formData.append('type', params.type || 'tts');
+        formData.append('title', params.title);
+        if (params.description)
+            formData.append('description', params.description);
+        formData.append('train_mode', params.trainMode || 'fast');
+        if (params.texts)
+            params.texts.forEach(text => formData.append('texts', text));
+        if (params.tags)
+            params.tags.forEach(tag => formData.append('tags', tag));
+        formData.append('enhance_audio_quality', String(params.enhanceAudioQuality ?? true));
+        const response = await this.client.post('/model', formData);
+        return {
+            ...response.data,
+            id: response.data._id || response.data.id
+        };
+    }
+    async deleteModel(modelId) {
+        await this.client.delete(`/model/${modelId}`);
+    }
+    async updateModel(modelId, params) {
+        const formData = new FormData();
+        if (params.coverImage) {
+            formData.append('cover_image', new Blob([params.coverImage]));
+        }
+        if (params.title)
+            formData.append('title', params.title);
+        if (params.description)
+            formData.append('description', params.description);
+        if (params.visibility)
+            formData.append('visibility', params.visibility);
+        if (params.tags)
+            params.tags.forEach(tag => formData.append('tags', tag));
+        await this.client.patch(`/model/${modelId}`, formData);
+    }
+    async getApiCredit(params = {}) {
+        const apiParams = {};
+        if (params.checkFreeCredit !== undefined) {
+            apiParams.check_free_credit = params.checkFreeCredit;
+        }
+        const response = await this.client.get('/wallet/self/api-credit', { params: apiParams });
+        return response.data;
+    }
+    async getPackage() {
+        const response = await this.client.get('/wallet/self/package');
+        return response.data;
+    }
+}
+exports.Session = Session;

@@ -1,0 +1,76 @@
+/**
+ * Model Span Tracing
+ *
+ * Provides span tracking for Model generations, including:
+ * - MODEL_STEP spans (one per Model API call)
+ * - MODEL_CHUNK spans (individual streaming chunks within a step)
+ *
+ * Hierarchy: MODEL_GENERATION -> MODEL_STEP -> MODEL_CHUNK
+ */
+import type { ToolSet } from 'ai-v5';
+import type { OutputSchema } from '../stream/base/schema.js';
+import type { StepStartPayload, StepFinishPayload } from '../stream/types.js';
+import { AISpanType } from './types.js';
+import type { AISpan } from './types.js';
+/**
+ * Manages MODEL_STEP and MODEL_CHUNK span tracking for streaming Model responses.
+ *
+ * Should be instantiated once per MODEL_GENERATION span and shared across
+ * all streaming steps (including after tool calls).
+ */
+export declare class ModelSpanTracker {
+    private modelSpan?;
+    private currentStepSpan?;
+    private currentChunkSpan?;
+    private accumulator;
+    private stepIndex;
+    private chunkSequence;
+    constructor(modelSpan?: AISpan<AISpanType.MODEL_GENERATION>);
+    /**
+     * Start a new Model execution step
+     */
+    startStepSpan(payload?: StepStartPayload): void;
+    /**
+     * End the current Model execution step with token usage, finish reason, output, and metadata
+     */
+    endStepSpan<OUTPUT extends OutputSchema>(payload: StepFinishPayload<ToolSet, OUTPUT>): void;
+    /**
+     * Create a new chunk span (for multi-part chunks like text-start/delta/end)
+     */
+    startChunkSpan(chunkType: string, initialData?: Record<string, any>): void;
+    /**
+     * Append string content to a specific field in the accumulator
+     */
+    appendToAccumulator(field: string, text: string): void;
+    /**
+     * End the current chunk span.
+     * Safe to call multiple times - will no-op if span already ended.
+     */
+    endChunkSpan(output?: any): void;
+    /**
+     * Create an event span (for single chunks like tool-call)
+     */
+    createEventSpan(chunkType: string, output: any): void;
+    /**
+     * Check if there is currently an active chunk span
+     */
+    hasActiveChunkSpan(): boolean;
+    /**
+     * Get the current accumulator value
+     */
+    getAccumulator(): Record<string, any>;
+    /**
+     * Get the current step span (for making tool calls children of steps)
+     */
+    getCurrentStepSpan(): AISpan<AISpanType.MODEL_STEP> | undefined;
+    /**
+     * Wraps a stream with model tracing transform to track MODEL_STEP and MODEL_CHUNK spans.
+     *
+     * This should be added to the stream pipeline to automatically
+     * create MODEL_STEP and MODEL_CHUNK spans for each semantic unit in the stream.
+     */
+    wrapStream<T extends {
+        pipeThrough: Function;
+    }>(stream: T): T;
+}
+//# sourceMappingURL=chunk-tracing.d.ts.map

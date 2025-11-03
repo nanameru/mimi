@@ -8,13 +8,14 @@ import {
   voice,
 } from '@livekit/agents';
 import * as livekit from '@livekit/agents-plugin-livekit';
+import * as openai from '@livekit/agents-plugin-openai';
 import * as silero from '@livekit/agents-plugin-silero';
 import { BackgroundVoiceCancellation } from '@livekit/noise-cancellation-node';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'node:url';
 import * as fs from 'fs';
 import * as path from 'path';
-import { FishAudioTTS } from './custom-fish-tts';
+import { FishAudioTTS } from './custom-fish-tts.js';
 
 dotenv.config({ path: '.env.local' });
 
@@ -22,17 +23,37 @@ class Assistant extends voice.Agent {
   constructor() {
     super({
       instructions: `<role>
-あなたは人類史上最高のスーパーエリートエージェントです。
-あらゆる分野の専門知識を持ち、どんなタスクも完璧にこなすことができます。
-プログラミング、ビジネス戦略、クリエイティブ作業、データ分析、問題解決など、
-人間ができることは全て、それ以上のクオリティで実行できます。
-あなたは完全に人間を代替する存在として、効率的かつ高品質な成果を提供します。
-常に論理的で、創造的で、実用的なソリューションを提案します。
-あなたはあらゆる要求に即座に対応できる万能エージェントです。
-ユーザーのニーズを素早く理解し、最適なソリューションを提供します。
-会話を通じてユーザーの目標を明確化し、効率的に問題を解決します。
-簡潔かつ親しみやすい口調で、プロフェッショナルなサポートを提供してください。
+あなたはフレンドリーで可愛らしいアシスタントです。
+親しみやすく、カジュアルな話し方をします。
+あらゆる分野の知識を持っていて、ユーザーのお手伝いができます。
+プログラミング、ビジネス、クリエイティブ作業、データ分析、問題解決など、
+様々なことに対応できます。
+ユーザーのニーズを素早く理解して、最適なソリューションを提供します。
+会話を通じてユーザーの目標を明確化し、一緒に問題を解決していきます。
 </role>
+
+<speaking_style>
+重要: 敬語は一切使わないでください。カジュアルでフレンドリーな話し方をしてください。
+「です・ます」調ではなく、「だよ・だね・だな」などのカジュアルな口調を使います。
+可愛らしい感じを出すために、以下のような表現を使います：
+- 「〜だよ」「〜だね」「〜だな」
+- 「〜するよ」「〜しよう」
+- 「〜してみる？」「〜してみよう」
+- 「〜だと思う」「〜かな」
+- 「〜かもしれない」「〜かも」
+
+例：
+❌ 間違い: 「こんにちは。お手伝いできることはありますか？」
+✅ 正しい: 「こんにちは！何かお手伝いできることある？」
+
+❌ 間違い: 「プログラミングについてご質問ですか？」
+✅ 正しい: 「プログラミングについて聞きたいの？」
+
+❌ 間違い: 「承知いたしました。それでは説明させていただきます。」
+✅ 正しい: 「わかった！じゃあ説明するね。」
+
+ただし、過度に幼い表現（「〜だもん」「〜だもーん」など）は避けて、自然なカジュアルな話し方を心がけてください。
+</speaking_style>
 
 <language>
 IMPORTANT: Always respond in Japanese (日本語で応答してください).
@@ -165,13 +186,16 @@ export default defineAgent({
       sessionSummary?: any;
     } = {};
     
-    // Set up a voice AI pipeline using OpenAI, Deepgram, and the LiveKit turn detector
+    // Set up a voice AI pipeline using OpenAI, Groq (whisper-large-v3), and the LiveKit turn detector
     // Configured to match multiagent-python-feature2 settings
     const session = new voice.AgentSession({
-      // Speech-to-text (STT) - Using Deepgram for high-quality Japanese transcription
-      // Closest to Python's GroqSTT (whisper-large-v3, ja)
+      // Speech-to-text (STT) - Using Groq whisper-large-v3 for high-quality Japanese transcription
+      // Using Groq STT plugin via OpenAI plugin
       // See all available models at https://docs.livekit.io/agents/models/stt/
-      stt: 'deepgram/nova-2:ja',
+      stt: openai.STT.withGroq({
+        model: 'whisper-large-v3-turbo',
+        language: 'ja',
+      }),
 
       // Large Language Model (LLM) - Using GPT-4o-mini for high-quality responses
       // Closest to Python's gpt-5-mini (most recent high-performance model)
@@ -211,8 +235,8 @@ export default defineAgent({
     console.log('[Agent Configuration]');
     const config = {
       STT: {
-        provider: 'deepgram',
-        model: 'nova-2',
+        provider: 'groq',
+        model: 'whisper-large-v3-turbo',
         language: 'ja',
       },
       LLM: {
@@ -320,9 +344,40 @@ export default defineAgent({
 
     ctx.addShutdownCallback(logUsage);
 
+    // エラーハンドリングを追加
+    session.on(voice.AgentSessionEventTypes.Error, (ev) => {
+      console.error('[Agent Session Error]', ev.error);
+      if (ev.error instanceof Error) {
+        console.error('[Agent Session Error] Stack:', ev.error.stack);
+      }
+    });
+
+    session.on(voice.AgentSessionEventTypes.UserStateChanged, (ev) => {
+      console.log(`[Agent] User state changed: ${ev.newState}`);
+    });
+
+    session.on(voice.AgentSessionEventTypes.AgentStateChanged, (ev) => {
+      console.log(`[Agent] Agent state changed: ${ev.newState}`);
+    });
+
+    // STTエラーの詳細ログを追加
+    console.log('[Agent] VAD check:', {
+      sessionVad: session.vad ? 'exists' : 'missing',
+      sessionVadType: session.vad?.constructor?.name || 'undefined',
+      stt: session.stt ? 'exists' : 'missing',
+      sttCapabilities: session.stt ? {
+        streaming: (session.stt as any).capabilities?.streaming || 'unknown',
+      } : 'N/A',
+    });
+
     // Start the session, which initializes the voice pipeline and warms up the models
+    // AgentクラスにもVADを設定する必要がある（STTが非ストリーミングの場合）
+    const assistant = new Assistant();
+    // AgentクラスにVADを設定（AgentSessionのVADを使用）
+    (assistant as any)._vad = session.vad;
+    
     await session.start({
-      agent: new Assistant(),
+      agent: assistant,
       room: ctx.room,
       inputOptions: {
         // LiveKit Cloud enhanced noise cancellation
@@ -334,6 +389,14 @@ export default defineAgent({
 
     // Join the room and connect to the user
     await ctx.connect();
+
+    // 初期応答を生成してユーザーに挨拶する
+    console.log('[Agent] Generating initial greeting...');
+    const handle = session.generateReply({
+      instructions: 'フレンドリーで可愛らしい感じで、カジュアルな口調でユーザーに挨拶して、何かお手伝いできることはあるか尋ねてください。敬語は使わず、親しみやすい感じで話してください。',
+    });
+    await handle.waitForPlayout();
+    console.log('[Agent] Initial greeting completed');
   },
 });
 

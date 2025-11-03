@@ -1,0 +1,10 @@
+import { TTSRequest, Backends } from './schemas';
+export declare class WebSocketSession {
+    private apiKey;
+    private baseUrl;
+    private activeConnections;
+    private cleanupTimeouts;
+    constructor(apiKey: string, baseUrl?: string);
+    close(): Promise<void>;
+    tts(request: TTSRequest, textStream: AsyncIterable<string>, backend?: Backends): AsyncGenerator<Buffer>;
+}

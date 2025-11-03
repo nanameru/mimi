@@ -1,0 +1,127 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.CloseEvent = exports.TextEvent = exports.StartEvent = exports.PaginatedResponse = exports.ASRResponse = exports.ASRRequest = exports.TTSRequest = exports.ReferenceAudio = void 0;
+class ReferenceAudio {
+    constructor(audio, text) {
+        this.audio = audio;
+        this.text = text;
+    }
+    toJSON() {
+        return {
+            audio: this.audio,
+            text: this.text
+        };
+    }
+}
+exports.ReferenceAudio = ReferenceAudio;
+class TTSRequest {
+    constructor(text, options = {}) {
+        this.text = text;
+        this.chunkLength = options.chunkLength ?? 200;
+        this.format = options.format ?? 'mp3';
+        this.mp3Bitrate = options.mp3Bitrate ?? 128;
+        this.opusBitrate = options.opusBitrate;
+        this.sampleRate = options.sampleRate;
+        this.references = options.references ?? [];
+        this.referenceId = options.referenceId;
+        this.modelId = options.modelId;
+        this.normalize = options.normalize ?? true;
+        this.latency = options.latency ?? 'balanced';
+        this.prosody = options.prosody;
+    }
+    toJSON() {
+        return {
+            text: this.text,
+            chunk_length: this.chunkLength,
+            format: this.format,
+            mp3_bitrate: this.mp3Bitrate,
+            opus_bitrate: this.opusBitrate,
+            sample_rate: this.sampleRate,
+            references: this.references,
+            reference_id: this.referenceId,
+            model_id: this.modelId,
+            normalize: this.normalize,
+            latency: this.latency,
+            prosody: this.prosody
+        };
+    }
+}
+exports.TTSRequest = TTSRequest;
+class ASRRequest {
+    constructor(audio, language, ignoreTimestamps) {
+        this.audio = audio;
+        this.language = language;
+        this.ignoreTimestamps = ignoreTimestamps;
+    }
+    toJSON() {
+        return {
+            audio: this.audio,
+            language: this.language,
+            ignore_timestamps: this.ignoreTimestamps
+        };
+    }
+}
+exports.ASRRequest = ASRRequest;
+class ASRResponse {
+    constructor(text, duration, segments) {
+        this.text = text;
+        this.duration = duration;
+        this.segments = segments;
+    }
+    static fromJSON(data) {
+        return new ASRResponse(data.text, data.duration, data.segments.map((s) => ({
+            text: s.text,
+            start: s.start,
+            end: s.end
+        })));
+    }
+}
+exports.ASRResponse = ASRResponse;
+class PaginatedResponse {
+    constructor(total, items) {
+        this.total = total;
+        this.items = items;
+    }
+    static fromJSON(data) {
+        return new PaginatedResponse(data.total, data.items);
+    }
+}
+exports.PaginatedResponse = PaginatedResponse;
+// WebSocket Event Classes (matching Python implementation)
+class StartEvent {
+    constructor(request) {
+        this.request = request;
+        this.event = 'start';
+    }
+    toJSON() {
+        return {
+            event: this.event,
+            request: this.request.toJSON()
+        };
+    }
+}
+exports.StartEvent = StartEvent;
+class TextEvent {
+    constructor(text) {
+        this.text = text;
+        this.event = 'text';
+    }
+    toJSON() {
+        return {
+            event: this.event,
+            text: this.text
+        };
+    }
+}
+exports.TextEvent = TextEvent;
+class CloseEvent {
+    constructor() {
+        this.event = 'stop';
+    }
+    toJSON() {
+        return {
+            event: this.event
+        };
+    }
+}
+exports.CloseEvent = CloseEvent;

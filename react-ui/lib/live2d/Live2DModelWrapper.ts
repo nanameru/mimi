@@ -247,6 +247,16 @@ export class Live2DModelWrapper {
   }
 
   /**
+   * リップシンク用のRMS値を設定
+   * @param value RMS値（0.0〜1.0の範囲）
+   */
+  setLipSyncValue(value: number): void {
+    if (this._model) {
+      this._model.setLipSyncValue(value);
+    }
+  }
+
+  /**
    * リソースを解放
    */
   destroy(): void {
