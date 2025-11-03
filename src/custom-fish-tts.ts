@@ -449,8 +449,6 @@ class FishAudioSynthesizeStream extends tts.SynthesizeStream {
         // 正常な振幅のチャンクを特定して保存（デバッグ用）
         if (chunkAbsMax > 1000 && totalChunks > 15 && totalChunks <= 30) {
           // Chunk 15-30で正常な振幅のチャンクを保存
-          const fs = require('fs');
-          const path = require('path');
           const debugDir = path.join(process.cwd(), 'debug-audio');
           if (!fs.existsSync(debugDir)) {
             fs.mkdirSync(debugDir, { recursive: true });
