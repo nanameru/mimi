@@ -226,7 +226,7 @@ class FishAudioSynthesizeStream extends tts.SynthesizeStream {
         sampleRate: this.ttsInstance.sampleRate,
         chunkLength: this.ttsInstance.chunkLength,
         latency: this.ttsInstance.latency,
-        normalize: true,
+        normalize: false, // falseに変更: 正規化されたデータはInt16Arrayとして解釈できない
       });
       
       let segmentId = 0;
