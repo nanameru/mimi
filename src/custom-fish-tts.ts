@@ -117,9 +117,35 @@ class FishAudioChunkedStream extends tts.ChunkedStream {
       // HTTP APIで音声生成（ストリーミングレスポンス）
       // ドキュメントに基づいてmodelヘッダーを追加
       const audioChunks: Buffer[] = [];
+      let firstChunkForSynthesize = true;
       for await (const chunk of this.ttsInstance.httpSession.tts(request, {
         model: this.ttsInstance.backend,
       })) {
+        // 最初のチャンクの先頭バイトを確認（データ形式の判定用）
+        if (firstChunkForSynthesize) {
+          const firstChunkPreview = chunk.slice(0, Math.min(32, chunk.length));
+          console.log(`[FishAudioTTS] 🔍 First chunk preview (hex): ${firstChunkPreview.toString('hex')}`);
+          console.log(`[FishAudioTTS] 🔍 First chunk length: ${chunk.length} bytes`);
+          
+          // MP3のマジックナンバーを確認
+          const firstBytes = chunk.slice(0, 4);
+          const hexString = firstBytes.toString('hex').toUpperCase();
+          if (hexString.startsWith('FF')) {
+            console.log(`[FishAudioTTS] ⚠️ WARNING: First bytes suggest MP3 format (${hexString}), but PCM format was requested!`);
+            console.log(`[FishAudioTTS] ⚠️ This may cause audio quality issues. MP3 decoding may be required.`);
+          } else {
+            console.log(`[FishAudioTTS] ✓ First bytes suggest PCM format (${hexString})`);
+            
+            // PCMデータの詳細確認
+            if (chunk.length >= 2) {
+              const firstSampleLE = chunk.readInt16LE(0);
+              const firstSampleBE = chunk.readInt16BE(0);
+              console.log(`[FishAudioTTS] 📊 First sample (Little Endian): ${firstSampleLE}`);
+              console.log(`[FishAudioTTS] 📊 First sample (Big Endian): ${firstSampleBE}`);
+            }
+          }
+          firstChunkForSynthesize = false;
+        }
         audioChunks.push(chunk);
       }
       // 音声データを結合
@@ -219,6 +245,75 @@ class FishAudioSynthesizeStream extends tts.SynthesizeStream {
           console.log(
             `[FishAudioTTS] ⏱️ First audio chunk received after ${firstChunkTime}ms`,
           );
+          // 最初のチャンクの先頭バイトを確認（データ形式の判定用）
+          const firstChunkPreview = audioChunk.slice(0, Math.min(32, audioChunk.length));
+          console.log(`[FishAudioTTS] 🔍 First chunk preview (hex): ${firstChunkPreview.toString('hex')}`);
+          console.log(`[FishAudioTTS] 🔍 First chunk preview (decimal): ${Array.from(firstChunkPreview).join(', ')}`);
+          console.log(`[FishAudioTTS] 🔍 First chunk length: ${audioChunk.length} bytes`);
+          
+          // MP3のマジックナンバーを確認（FF FB, FF F3, FF F2, FF FAなど）
+          const firstBytes = audioChunk.slice(0, 4);
+          const hexString = firstBytes.toString('hex').toUpperCase();
+          if (hexString.startsWith('FF')) {
+            console.log(`[FishAudioTTS] ⚠️ WARNING: First bytes suggest MP3 format (${hexString}), but PCM format was requested!`);
+            console.log(`[FishAudioTTS] ⚠️ This may cause audio quality issues. MP3 decoding may be required.`);
+          } else {
+            console.log(`[FishAudioTTS] ✓ First bytes suggest PCM format (${hexString})`);
+          }
+          
+          // PCMデータの統計情報を確認
+          if (audioChunk.length >= 2) {
+            const sampleCount = audioChunk.length / 2;
+            console.log(`[FishAudioTTS] 📊 Estimated sample count: ${sampleCount} (assuming 16-bit PCM)`);
+            console.log(`[FishAudioTTS] 📊 Estimated duration: ${(sampleCount / this.ttsInstance.sampleRate * 1000).toFixed(2)}ms`);
+            
+            // 実際のPCMデータの値を確認（最初の10サンプル）
+            const pcmSamples = new Int16Array(
+              audioChunk.buffer,
+              audioChunk.byteOffset,
+              Math.min(10, audioChunk.length / 2),
+            );
+            console.log(`[FishAudioTTS] 📊 First 10 PCM samples (Int16): [${Array.from(pcmSamples).join(', ')}]`);
+            
+            // リトルエンディアンとビッグエンディアンの両方を確認
+            const firstSampleLE = audioChunk.readInt16LE(0);
+            const firstSampleBE = audioChunk.readInt16BE(0);
+            console.log(`[FishAudioTTS] 📊 First sample (Little Endian): ${firstSampleLE}`);
+            console.log(`[FishAudioTTS] 📊 First sample (Big Endian): ${firstSampleBE}`);
+            
+            // データの範囲を確認（クリッピングの可能性をチェック）
+            const allSamples = new Int16Array(
+              audioChunk.buffer,
+              audioChunk.byteOffset,
+              audioChunk.length / 2,
+            );
+            if (allSamples.length > 0) {
+              const samplesArray = Array.from(allSamples);
+              const minSample = Math.min(...samplesArray);
+              const maxSample = Math.max(...samplesArray);
+              console.log(`[FishAudioTTS] 📊 Sample range: [${minSample}, ${maxSample}] (Int16 range: [-32768, 32767])`);
+              
+              // ゼロクロッシングの頻度を確認（正常な音声データなら適度なゼロクロッシングがある）
+              let zeroCrossings = 0;
+              for (let i = 1; i < allSamples.length; i++) {
+                const prevSample = allSamples[i - 1]!;
+                const currSample = allSamples[i]!;
+                if ((prevSample >= 0 && currSample < 0) || (prevSample < 0 && currSample >= 0)) {
+                  zeroCrossings++;
+                }
+              }
+              console.log(`[FishAudioTTS] 📊 Zero crossings: ${zeroCrossings} (${((zeroCrossings / allSamples.length) * 100).toFixed(2)}%)`);
+              
+              // 異常なデータパターンを検出
+              if (Math.abs(minSample) > 32767 || Math.abs(maxSample) > 32767) {
+                console.log(`[FishAudioTTS] ⚠️ WARNING: Sample values exceed Int16 range!`);
+              }
+              if (zeroCrossings === 0) {
+                console.log(`[FishAudioTTS] ⚠️ WARNING: No zero crossings detected - data may be corrupted or DC offset`);
+              }
+            }
+          }
+          
           firstChunkReceived = true;
         }
         // Buffer を Int16Array (PCM) に変換
