@@ -338,11 +338,13 @@ class FishAudioSynthesizeStream extends tts.SynthesizeStream {
           const absMax = Math.max(Math.abs(minSample), Math.abs(maxSample));
           if (absMax > globalMaxAmplitude) {
             globalMaxAmplitude = absMax;
+            console.log(`[FishAudioTTS] 📊 Calibration chunk ${totalChunks}: range=[${minSample}, ${maxSample}], absMax=${absMax}, globalMax=${globalMaxAmplitude}`);
           }
         }
         
         // ゲインファクターを決定（最初の数チャンクをスキップ後）
         if (totalChunks === GAIN_CALIBRATION_CHUNKS && gainFactor === null) {
+          console.log(`[FishAudioTTS] 🔍 Calibration complete: globalMaxAmplitude=${globalMaxAmplitude}, MIN_AMPLITUDE_THRESHOLD=${MIN_AMPLITUDE_THRESHOLD}`);
           if (globalMaxAmplitude > 0 && globalMaxAmplitude < MIN_AMPLITUDE_THRESHOLD) {
             // 低振幅が検出された場合、統一的なゲインを計算
             gainFactor = Math.min(
