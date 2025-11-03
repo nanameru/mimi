@@ -430,6 +430,23 @@ class FishAudioSynthesizeStream extends tts.SynthesizeStream {
           audioChunk.length / 2,
         );
         
+        // チャンクの振幅を計算
+        let chunkAbsMax = 0;
+        if (allSamples.length > 0) {
+          const samplesArray = Array.from(allSamples);
+          const minSample = Math.min(...samplesArray);
+          const maxSample = Math.max(...samplesArray);
+          chunkAbsMax = Math.max(Math.abs(minSample), Math.abs(maxSample));
+        }
+        
+        // 無音チャンクをスキップ（振幅が閾値未満の場合は送信しない）
+        const SILENCE_THRESHOLD = 100; // この値未満は無音とみなす
+        if (chunkAbsMax < SILENCE_THRESHOLD && totalChunks <= 20) {
+          // 最初の20チャンクで無音の場合はスキップ
+          console.log(`[FishAudioTTS] ⏭️ Skipping silent chunk ${totalChunks} (absMax=${chunkAbsMax})`);
+          continue; // このチャンクをスキップして次のチャンクへ
+        }
+        
         // ゲイン調整のための最大振幅を追跡（最初の数チャンクをスキップ）
         if (allSamples.length > 0 && totalChunks > 5 && totalChunks <= GAIN_CALIBRATION_CHUNKS) {
           const samplesArray = Array.from(allSamples);
