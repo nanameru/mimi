@@ -232,6 +232,12 @@ class FishAudioSynthesizeStream extends tts.SynthesizeStream {
       let segmentId = 0;
       let firstChunkReceived = false;
       let totalChunks = 0;
+      let globalMaxAmplitude = 0;
+      let gainFactor: number | null = null;
+      const GAIN_CALIBRATION_CHUNKS = 20; // 最初の20チャンクでゲインを決定
+      const MAX_GAIN_FACTOR = 100; // 最大ゲイン倍率（極端な増幅を防ぐ）
+      const MIN_AMPLITUDE_THRESHOLD = 100; // この値未満の場合、増幅が必要
+      
       console.log(`[FishAudioTTS] Starting HTTP API TTS with backend: ${this.ttsInstance.backend}, voiceId: ${this.ttsInstance.voiceId || 'not set'}`);
       
       // HTTP APIはストリーミングレスポンスを返す
@@ -316,6 +322,7 @@ class FishAudioSynthesizeStream extends tts.SynthesizeStream {
           
           firstChunkReceived = true;
         }
+        
         // Buffer を Int16Array (PCM) に変換
         const allSamples = new Int16Array(
           audioChunk.buffer,
@@ -323,47 +330,49 @@ class FishAudioSynthesizeStream extends tts.SynthesizeStream {
           audioChunk.length / 2,
         );
         
-        // サンプル範囲を確認して、データ形式を判定
-        if (allSamples.length > 0) {
+        // ゲイン調整のための最大振幅を追跡（最初の数チャンクをスキップ）
+        if (allSamples.length > 0 && totalChunks > 5 && totalChunks <= GAIN_CALIBRATION_CHUNKS) {
           const samplesArray = Array.from(allSamples);
           const minSample = Math.min(...samplesArray);
           const maxSample = Math.max(...samplesArray);
           const absMax = Math.max(Math.abs(minSample), Math.abs(maxSample));
-          
-          // サンプル範囲が非常に狭い場合（例：[-10, 10]）、データを増幅する必要がある
-          // 正常な音声データは通常数百〜数千の範囲になる
-          if (absMax < 128 && absMax > 0) {
-            // データを増幅（gainをかける）
-            // 例：absMax=3の場合、32767/3 ≈ 10922倍に増幅
-            const gainFactor = Math.floor(32767 / Math.max(absMax, 1));
-            console.log(`[FishAudioTTS] ⚠️ Low amplitude detected (range: [${minSample}, ${maxSample}]). Applying gain: ${gainFactor}x`);
-            const scaledSamples = new Int16Array(allSamples.length);
-            for (let i = 0; i < allSamples.length; i++) {
-              const scaled = allSamples[i]! * gainFactor;
-              // クリッピングを防止
-              scaledSamples[i] = Math.max(-32767, Math.min(32767, scaled));
-            }
-            const pcmData = scaledSamples;
-            const samplesPerChannel = pcmData.length / this.ttsInstance.numChannels;
-            const audioFrame = new AudioFrame(
-              pcmData,
-              this.ttsInstance.sampleRate,
-              this.ttsInstance.numChannels,
-              samplesPerChannel,
-            );
-            const audio = {
-              requestId: '',
-              segmentId: `segment-${segmentId++}`,
-              frame: audioFrame,
-              final: false,
-            };
-            this.queue.put(audio);
-            continue;
+          if (absMax > globalMaxAmplitude) {
+            globalMaxAmplitude = absMax;
           }
         }
         
-        // 通常の16ビットPCMとして処理
-        const pcmData = allSamples;
+        // ゲインファクターを決定（最初の数チャンクをスキップ後）
+        if (totalChunks === GAIN_CALIBRATION_CHUNKS && gainFactor === null) {
+          if (globalMaxAmplitude > 0 && globalMaxAmplitude < MIN_AMPLITUDE_THRESHOLD) {
+            // 低振幅が検出された場合、統一的なゲインを計算
+            gainFactor = Math.min(
+              MAX_GAIN_FACTOR,
+              Math.floor((MIN_AMPLITUDE_THRESHOLD * 10) / globalMaxAmplitude)
+            );
+            console.log(`[FishAudioTTS] 🔊 Global max amplitude: ${globalMaxAmplitude}, applying unified gain: ${gainFactor}x`);
+          } else {
+            // 正常な振幅範囲の場合、ゲインは不要
+            gainFactor = 1;
+            console.log(`[FishAudioTTS] ✓ Normal amplitude detected (max: ${globalMaxAmplitude}), no gain needed`);
+          }
+        }
+        
+        // ゲインを適用（ゲインが決定されている場合）
+        let pcmData: Int16Array;
+        if (gainFactor !== null && gainFactor > 1) {
+          const scaledSamples = new Int16Array(allSamples.length);
+          for (let i = 0; i < allSamples.length; i++) {
+            const scaled = allSamples[i]! * gainFactor;
+            // クリッピングを防止
+            scaledSamples[i] = Math.max(-32767, Math.min(32767, scaled));
+          }
+          pcmData = scaledSamples;
+        } else {
+          // ゲインがまだ決定されていない場合、または不要な場合
+          pcmData = allSamples;
+        }
+        
+        // LiveKit AudioFrame に変換
         const samplesPerChannel = pcmData.length / this.ttsInstance.numChannels;
         const audioFrame = new AudioFrame(
           pcmData,
