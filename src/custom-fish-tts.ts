@@ -225,6 +225,7 @@ class FishAudioSynthesizeStream extends tts.SynthesizeStream {
       );
       
       // LLMからのテキストストリームを完全に受信
+      const textReceiveStartTime = Date.now();
       const textBuffer: string[] = [];
       for await (const text of this.input) {
         if (text === FishAudioSynthesizeStream.FLUSH_SENTINEL) {
@@ -239,6 +240,10 @@ class FishAudioSynthesizeStream extends tts.SynthesizeStream {
       
       // テキストを結合
       let fullText = textBuffer.join('');
+      const textReceiveEndTime = Date.now();
+      const textReceiveDuration = textReceiveEndTime - textReceiveStartTime;
+      
+      console.log(`[FishAudioTTS] ⏱️ Text receive duration: ${textReceiveDuration}ms (${fullText.length} chars)`);
       
       // エモーションタグを検出してログに記録
       const emotionTags = fullText.match(/\([^)]+\)/g) || [];
@@ -301,6 +306,7 @@ class FishAudioSynthesizeStream extends tts.SynthesizeStream {
       
       let segmentId = 0;
       let firstChunkReceived = false;
+      let firstChunkTimeFromHttpRequest = 0;
       let totalChunks = 0;
       let globalMaxAmplitude = 0;
       let gainFactor: number | null = null;
@@ -341,6 +347,9 @@ class FishAudioSynthesizeStream extends tts.SynthesizeStream {
       
       console.log(`[FishAudioTTS] Starting HTTP API TTS with backend: ${this.ttsInstance.backend}, voiceId: ${this.ttsInstance.voiceId || 'not set'}`);
       console.log(`[FishAudioTTS] 📋 Request payload: ${JSON.stringify(requestPayload, null, 2)}`);
+      
+      // HTTP APIリクエスト送信開始
+      const httpRequestStartTime = Date.now();
       
       // データ形式を判定する関数
       const detectAudioFormat = (data: Buffer): string => {
@@ -455,8 +464,9 @@ class FishAudioSynthesizeStream extends tts.SynthesizeStream {
         // 最初の音声チャンク受信時のログ
         if (!firstChunkReceived) {
           const firstChunkTime = Date.now() - sessionStartTime;
+          firstChunkTimeFromHttpRequest = Date.now() - httpRequestStartTime;
           console.log(
-            `[FishAudioTTS] ⏱️ First audio chunk received after ${firstChunkTime}ms`,
+            `[FishAudioTTS] ⏱️ First audio chunk received after ${firstChunkTime}ms (from session start), ${firstChunkTimeFromHttpRequest}ms (from HTTP request)`,
           );
           // 最初のチャンクの先頭バイトを確認（データ形式の判定用）
           const firstChunkPreview = audioChunk.slice(0, Math.min(32, audioChunk.length));
@@ -749,10 +759,25 @@ class FishAudioSynthesizeStream extends tts.SynthesizeStream {
         }
       }
       
+      // 全チャンク受信完了時の処理時間サマリー
+      const allChunksReceivedTime = Date.now();
+      const totalProcessingTime = allChunksReceivedTime - sessionStartTime;
+      const httpRequestToCompletionTime = allChunksReceivedTime - httpRequestStartTime;
+      const totalAudioBytes = allChunksForLogging.reduce((sum, chunk) => sum + chunk.length, 0);
+      
+      console.log('='.repeat(80));
+      console.log('[TTS Processing Summary]');
+      console.log(`Text receive duration: ${textReceiveDuration}ms`);
+      console.log(`HTTP request to first chunk: ${firstChunkReceived ? `${firstChunkTimeFromHttpRequest}ms` : 'N/A'}`);
+      console.log(`HTTP request to completion: ${httpRequestToCompletionTime}ms`);
+      console.log(`Total processing time: ${totalProcessingTime}ms`);
+      console.log(`Total chunks received: ${totalChunks}`);
+      console.log(`Total audio data: ${totalAudioBytes} bytes (${(totalAudioBytes / 1024).toFixed(2)} KB)`);
+      console.log(`Frames sent to LiveKit: ${framesSent}`);
+      console.log(`Frames skipped: ${framesSkipped}`);
+      console.log('='.repeat(80));
+      
       const totalTime = Date.now() - sessionStartTime;
-      console.log(
-        `[FishAudioTTS] ⏱️ Total audio generation: ${totalTime}ms (${totalChunks} chunks received, ${framesSent} frames sent, ${framesSkipped} frames skipped)`,
-      );
       
       // 全てのチャンクを結合して保存（ログ用）
       if (allChunksForLogging.length > 0) {

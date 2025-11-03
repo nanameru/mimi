@@ -187,17 +187,84 @@ export default defineAgent({
     //   llm: new openai.realtime.RealtimeModel({ voice: 'marin' }),
     // });
 
+    // Log configuration settings
+    console.log('='.repeat(80));
+    console.log('[Agent Configuration]');
+    console.log('STT:', {
+      provider: 'deepgram',
+      model: 'nova-2',
+      language: 'ja',
+    });
+    console.log('LLM:', {
+      provider: 'openai',
+      model: 'gpt-4o-mini',
+    });
+    console.log('TTS:', {
+      provider: 'fish-audio',
+      backend: 's1',
+      voiceId: process.env.FISH_AUDIO_VOICE_ID || 'not set',
+      sampleRate: 44100,
+      numChannels: 1,
+      chunkLength: 100,
+      latency: 'balanced',
+    });
+    console.log('='.repeat(80));
+
     // Metrics collection, to measure pipeline performance
     // For more information, see https://docs.livekit.io/agents/build/metrics/
     const usageCollector = new metrics.UsageCollector();
     session.on(voice.AgentSessionEventTypes.MetricsCollected, (ev) => {
       metrics.logMetrics(ev.metrics);
       usageCollector.collect(ev.metrics);
+      
+      // Log detailed processing times
+      const metricsData = ev.metrics as any;
+      console.log('='.repeat(80));
+      console.log('[Processing Metrics]');
+      
+      // STT metrics
+      if (metricsData.stt) {
+        const sttMetrics = metricsData.stt;
+        console.log('STT:', {
+          processingTime: sttMetrics.processingTime ? `${sttMetrics.processingTime}ms` : 'N/A',
+          tokens: sttMetrics.tokens || 'N/A',
+          characters: sttMetrics.characters || 'N/A',
+          segments: sttMetrics.segments || 'N/A',
+        });
+      }
+      
+      // LLM metrics
+      if (metricsData.llm) {
+        const llmMetrics = metricsData.llm;
+        console.log('LLM:', {
+          processingTime: llmMetrics.processingTime ? `${llmMetrics.processingTime}ms` : 'N/A',
+          tokens: llmMetrics.tokens || 'N/A',
+          inputTokens: llmMetrics.inputTokens || 'N/A',
+          outputTokens: llmMetrics.outputTokens || 'N/A',
+          timeToFirstToken: llmMetrics.timeToFirstToken ? `${llmMetrics.timeToFirstToken}ms` : 'N/A',
+        });
+      }
+      
+      // TTS metrics
+      if (metricsData.tts) {
+        const ttsMetrics = metricsData.tts;
+        console.log('TTS:', {
+          processingTime: ttsMetrics.processingTime ? `${ttsMetrics.processingTime}ms` : 'N/A',
+          characters: ttsMetrics.characters || 'N/A',
+          audioDuration: ttsMetrics.audioDuration ? `${ttsMetrics.audioDuration}s` : 'N/A',
+          timeToFirstChunk: ttsMetrics.timeToFirstChunk ? `${ttsMetrics.timeToFirstChunk}ms` : 'N/A',
+        });
+      }
+      
+      console.log('='.repeat(80));
     });
 
     const logUsage = async () => {
       const summary = usageCollector.getSummary();
-      console.log(`Usage: ${JSON.stringify(summary)}`);
+      console.log('='.repeat(80));
+      console.log('[Session Summary]');
+      console.log(`Usage: ${JSON.stringify(summary, null, 2)}`);
+      console.log('='.repeat(80));
     };
 
     ctx.addShutdownCallback(logUsage);
