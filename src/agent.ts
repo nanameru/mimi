@@ -82,7 +82,7 @@ export default defineAgent({
       // See: https://docs.fish.audio/sdk-reference/python/websocket
       tts: new FishAudioTTS({
         ...(process.env.FISH_AUDIO_VOICE_ID && { voiceId: process.env.FISH_AUDIO_VOICE_ID }),
-        backend: 'speech-1.5',
+        backend: 's1',
         sampleRate: 44100,
         numChannels: 1,
         chunkLength: 100,
