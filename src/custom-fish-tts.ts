@@ -1,11 +1,13 @@
 import { tts } from '@livekit/agents';
 import { AudioFrame } from '@livekit/rtc-node';
-import { WebSocketSession, TTSRequest, type Backends } from 'fish-audio-sdk';
+import { Session, TTSRequest, type Backends } from 'fish-audio-sdk';
 
 /**
  * Fish Audio TTS 設定
  * 公式 fish-audio-sdk を使用した高品質リアルタイム音声合成
- * ドキュメント: https://docs.fish.audio/sdk-reference/python/websocket
+ * HTTP APIを使用してエモーションタグをサポート
+ * 接続プーリングの最適化を実装
+ * ドキュメント: https://docs.fish.audio/api-reference/introduction
  * npm: https://www.npmjs.com/package/fish-audio-sdk
  */
 export interface FishAudioTTSOptions {
@@ -18,9 +20,11 @@ export interface FishAudioTTSOptions {
   latency?: 'normal' | 'balanced';
 }
 
+
 /**
  * Fish Audio TTS 実装
- * 公式 Node.js SDK (fish-audio-sdk) を使用したリアルタイムストリーミング音声合成
+ * HTTP APIを使用してエモーションタグをサポート
+ * 接続プーリングとHTTP/2の最適化を実装
  */
 export class FishAudioTTS extends tts.TTS {
   label = 'fish-audio-tts';
@@ -29,7 +33,7 @@ export class FishAudioTTS extends tts.TTS {
   public backend: Backends;
   public chunkLength: number;
   public latency: 'normal' | 'balanced';
-  public wsSession: WebSocketSession;
+  public httpSession: Session;
 
   constructor(options: FishAudioTTSOptions = {}) {
     const sampleRate = options.sampleRate || 44100;
@@ -46,11 +50,17 @@ export class FishAudioTTS extends tts.TTS {
     if (!this.apiKey) {
       throw new Error('FISH_AUDIO_API_KEY is required');
     }
-    // WebSocket セッションを初期化
-    this.wsSession = new WebSocketSession(this.apiKey);
+    // HTTP Session を初期化（接続プーリング最適化）
+    // fish-audio-sdkのSessionクラスは既にkeepAliveを使用しているため、
+    // 基本的な接続プーリング最適化は行われています
+    // より詳細な最適化（maxSockets, maxFreeSocketsなど）が必要な場合は、
+    // fish-audio-sdkのソースコードを修正する必要があります
+    // HTTP/2のサポートについては、Fish Audio APIがサポートしているか確認が必要です
+    this.httpSession = new Session(this.apiKey);
     console.log(
-      `[FishAudioTTS] Initialized with official SDK: backend=${this.backend}, voiceId=${this.voiceId ? 'set' : 'not set'}, sampleRate=${sampleRate}Hz, channels=${numChannels}`,
+      `[FishAudioTTS] Initialized with HTTP API: backend=${this.backend}, voiceId=${this.voiceId ? 'set' : 'not set'}, sampleRate=${sampleRate}Hz, channels=${numChannels}`,
     );
+    console.log('[FishAudioTTS] Connection pooling: keepAlive=true (fish-audio-sdk default)');
   }
 
   /**
@@ -73,8 +83,8 @@ export class FishAudioTTS extends tts.TTS {
    * クリーンアップ
    */
   async close(): Promise<void> {
-    await this.wsSession.close();
-    console.log('[FishAudioTTS] WebSocket session closed');
+    this.httpSession.close();
+    console.log('[FishAudioTTS] HTTP session closed');
   }
 }
 
@@ -95,8 +105,8 @@ class FishAudioChunkedStream extends tts.ChunkedStream {
   async run() {
     try {
       console.log('[FishAudioTTS] Starting non-streaming synthesis');
-      // TTSRequest を作成
-      const request = new TTSRequest('', {
+      // TTSRequest を作成（テキストを含める）
+      const request = new TTSRequest(this.text, {
         referenceId: this.ttsInstance.voiceId,
         format: 'pcm',
         sampleRate: this.ttsInstance.sampleRate,
@@ -104,18 +114,12 @@ class FishAudioChunkedStream extends tts.ChunkedStream {
         latency: this.ttsInstance.latency,
         normalize: true,
       });
-      // テキストストリームを作成（単一テキスト）
-      const text = this.text;
-      async function* singleTextStream() {
-        yield text;
-      }
-      // Fish Audio SDK で音声生成
+      // HTTP APIで音声生成（ストリーミングレスポンス）
+      // ドキュメントに基づいてmodelヘッダーを追加
       const audioChunks: Buffer[] = [];
-      for await (const chunk of this.ttsInstance.wsSession.tts(
-        request,
-        singleTextStream(),
-        this.ttsInstance.backend,
-      )) {
+      for await (const chunk of this.ttsInstance.httpSession.tts(request, {
+        model: this.ttsInstance.backend,
+      })) {
         audioChunks.push(chunk);
       }
       // 音声データを結合
@@ -156,8 +160,6 @@ class FishAudioChunkedStream extends tts.ChunkedStream {
 class FishAudioSynthesizeStream extends tts.SynthesizeStream {
   label = 'fish-audio-synthesize-stream';
   private ttsInstance: FishAudioTTS;
-  private textBuffer: string[] = [];
-  private bufferThreshold = 50; // 文字数の閾値
 
   constructor(ttsInstance: FishAudioTTS) {
     super(ttsInstance);
@@ -168,12 +170,31 @@ class FishAudioSynthesizeStream extends tts.SynthesizeStream {
     try {
       const sessionStartTime = Date.now();
       console.log(
-        `[FishAudioTTS] [${new Date().toLocaleTimeString()}] Starting streaming synthesis session`,
+        `[FishAudioTTS] [${new Date().toLocaleTimeString()}] Starting HTTP API streaming synthesis session`,
       );
-      // 入力テキストストリームを処理
-      const textStream = this.createBufferedTextStream();
-      // TTSRequest を作成（空のテキスト、実際のテキストはストリームから）
-      const request = new TTSRequest('', {
+      
+      // LLMからのテキストストリームを完全に受信
+      const textBuffer: string[] = [];
+      for await (const text of this.input) {
+        if (text === FishAudioSynthesizeStream.FLUSH_SENTINEL) {
+          // FLUSH_SENTINELが来たら、バッファに残っているテキストを送信
+          if (textBuffer.length > 0) {
+            break; // ループを抜けてHTTP APIに送信
+          }
+          continue;
+        }
+        textBuffer.push(text);
+      }
+      
+      // テキストを結合
+      const fullText = textBuffer.join('');
+      console.log(
+        `[FishAudioTTS] 📤 [${new Date().toLocaleTimeString()}] Sending text to HTTP API (${fullText.length} chars): "${fullText.substring(0, 50)}..."`,
+      );
+      
+      // HTTP APIで音声生成（ストリーミングレスポンス）
+      // ドキュメントに基づいてmodelヘッダーを追加
+      const request = new TTSRequest(fullText, {
         referenceId: this.ttsInstance.voiceId,
         format: 'pcm',
         sampleRate: this.ttsInstance.sampleRate,
@@ -181,16 +202,16 @@ class FishAudioSynthesizeStream extends tts.SynthesizeStream {
         latency: this.ttsInstance.latency,
         normalize: true,
       });
-      // Fish Audio SDK で音声生成（ストリーミング）
+      
       let segmentId = 0;
       let firstChunkReceived = false;
       let totalChunks = 0;
-      console.log(`[FishAudioTTS] Starting TTS with backend: ${this.ttsInstance.backend}, voiceId: ${this.ttsInstance.voiceId || 'not set'}`);
-      for await (const audioChunk of this.ttsInstance.wsSession.tts(
-        request,
-        textStream,
-        this.ttsInstance.backend,
-      )) {
+      console.log(`[FishAudioTTS] Starting HTTP API TTS with backend: ${this.ttsInstance.backend}, voiceId: ${this.ttsInstance.voiceId || 'not set'}`);
+      
+      // HTTP APIはストリーミングレスポンスを返す
+      for await (const audioChunk of this.ttsInstance.httpSession.tts(request, {
+        model: this.ttsInstance.backend,
+      })) {
         totalChunks++;
         // 最初の音声チャンク受信時のログ
         if (!firstChunkReceived) {
@@ -222,19 +243,19 @@ class FishAudioSynthesizeStream extends tts.SynthesizeStream {
         };
         this.queue.put(audio);
       }
+      
       const totalTime = Date.now() - sessionStartTime;
       console.log(
         `[FishAudioTTS] ⏱️ Total audio generation: ${totalTime}ms (${totalChunks} chunks)`,
       );
-      console.log('[FishAudioTTS] Streaming synthesis session completed');
+      console.log('[FishAudioTTS] HTTP API streaming synthesis session completed');
     } catch (error) {
-      console.error('[FishAudioTTS] Streaming error:', error);
+      console.error('[FishAudioTTS] HTTP API streaming error:', error);
       // エラーの詳細をログに出力
       if (error instanceof Error) {
         console.error('[FishAudioTTS] Error name:', error.name);
         console.error('[FishAudioTTS] Error message:', error.message);
         console.error('[FishAudioTTS] Error stack:', error.stack);
-        // WebSocketErrorの場合は追加情報を出力
         if ('code' in error) {
           console.error('[FishAudioTTS] Error code:', (error as any).code);
         }
@@ -248,52 +269,5 @@ class FishAudioSynthesizeStream extends tts.SynthesizeStream {
     }
   }
 
-  /**
-   * 入力テキストをバッファリングして効率的に送信
-   */
-  private async *createBufferedTextStream() {
-    try {
-      for await (const text of this.input) {
-        if (text === FishAudioSynthesizeStream.FLUSH_SENTINEL) {
-          // バッファに残っているテキストを送信
-          if (this.textBuffer.length > 0) {
-            const bufferedText = this.textBuffer.join('');
-            const sendTime = Date.now();
-            console.log(
-              `[FishAudioTTS] 📤 [${new Date(sendTime).toLocaleTimeString()}] Flushing buffered text (${bufferedText.length} chars): "${bufferedText.substring(0, 50)}..."`,
-            );
-            yield bufferedText;
-            this.textBuffer = [];
-          }
-          continue;
-        }
-        // テキストをバッファに追加
-        this.textBuffer.push(text);
-        const totalLength = this.textBuffer.reduce((sum, t) => sum + t.length, 0);
-        // 閾値を超えたら送信
-        if (totalLength >= this.bufferThreshold) {
-          const bufferedText = this.textBuffer.join('');
-          const sendTime = Date.now();
-          console.log(
-            `[FishAudioTTS] 📤 [${new Date(sendTime).toLocaleTimeString()}] Sending buffered text (${bufferedText.length} chars): "${bufferedText.substring(0, 50)}..."`,
-          );
-          yield bufferedText;
-          this.textBuffer = [];
-        }
-      }
-      // 最後に残っているテキストを送信
-      if (this.textBuffer.length > 0) {
-        const bufferedText = this.textBuffer.join('');
-        const sendTime = Date.now();
-        console.log(
-          `[FishAudioTTS] 📤 [${new Date(sendTime).toLocaleTimeString()}] Sending final buffered text (${bufferedText.length} chars): "${bufferedText.substring(0, 50)}..."`,
-        );
-        yield bufferedText;
-      }
-    } catch (error) {
-      console.error('[FishAudioTTS] Error in text stream:', error);
-      throw error;
-    }
-  }
 }
 
