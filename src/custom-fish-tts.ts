@@ -240,6 +240,11 @@ class FishAudioSynthesizeStream extends tts.SynthesizeStream {
       const MAX_GAIN_FACTOR = 100; // 最大ゲイン倍率（極端な増幅を防ぐ）
       const MIN_AMPLITUDE_THRESHOLD = 100; // この値未満の場合、増幅が必要
       
+      // 無音チャンクのスキップ用変数
+      let audioStarted = false; // 音声が開始されたかどうか
+      const SILENCE_THRESHOLD = 100; // この値未満は無音とみなす
+      const MAX_SILENT_CHUNKS_BEFORE_START = 50; // 音声開始前にスキップする最大チャンク数
+      
       // データ形式判定用の変数
       let allChunksForAnalysis: Buffer[] = [];
       const MAX_CHUNKS_FOR_ANALYSIS = 10; // 最初の10チャンクを保存して分析
@@ -439,12 +444,24 @@ class FishAudioSynthesizeStream extends tts.SynthesizeStream {
           chunkAbsMax = Math.max(Math.abs(minSample), Math.abs(maxSample));
         }
         
-        // 無音チャンクをスキップ（振幅が閾値未満の場合は送信しない）
-        const SILENCE_THRESHOLD = 100; // この値未満は無音とみなす
-        if (chunkAbsMax < SILENCE_THRESHOLD && totalChunks <= 20) {
-          // 最初の20チャンクで無音の場合はスキップ
-          console.log(`[FishAudioTTS] ⏭️ Skipping silent chunk ${totalChunks} (absMax=${chunkAbsMax})`);
-          continue; // このチャンクをスキップして次のチャンクへ
+        // 音声開始の検出（振幅が閾値以上の場合、音声が開始されたとみなす）
+        if (!audioStarted && chunkAbsMax >= SILENCE_THRESHOLD) {
+          audioStarted = true;
+          console.log(`[FishAudioTTS] 🔊 Audio started at chunk ${totalChunks} (absMax=${chunkAbsMax})`);
+        }
+        
+        // 無音チャンクのスキップ（音声開始前のみ）
+        // 音声開始後は無音チャンクも送信する（音声の途中で無音になる可能性があるため）
+        if (!audioStarted && chunkAbsMax < SILENCE_THRESHOLD) {
+          // 音声開始前に無音が続く場合のみスキップ
+          if (totalChunks <= MAX_SILENT_CHUNKS_BEFORE_START) {
+            console.log(`[FishAudioTTS] ⏭️ Skipping silent chunk ${totalChunks} before audio start (absMax=${chunkAbsMax})`);
+            continue; // このチャンクをスキップして次のチャンクへ
+          } else {
+            // 最大スキップ数を超えた場合は、無音でも送信（データが破損している可能性があるため）
+            console.log(`[FishAudioTTS] ⚠️ Max silent chunks reached, sending chunk ${totalChunks} even though silent (absMax=${chunkAbsMax})`);
+            audioStarted = true; // 強制的に音声開始とみなす
+          }
         }
         
         // ゲイン調整のための最大振幅を追跡（最初の数チャンクをスキップ）
