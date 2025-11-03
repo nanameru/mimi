@@ -11,30 +11,34 @@ export const motionTool = createTool({
   id: 'motion-tool',
   description: `Live2Dキャラクターのモーションを実行します。
   
-利用可能なモーション:
-- モーショングループ:
-  * "Idle": 待機モーション（常にループ再生される）
-    - haru_g_idle.motion3.json（標準アイドル）
-    - haru_g_m15.motion3.json（アイドルバリエーション）
-  * "TapBody": 体をタップした時のモーション（反応・驚き・喜びなど）
-    - haru_g_m26.motion3.json（会話モーション）
-    - haru_g_m06.motion3.json（情報提供モーション）
-    - haru_g_m20.motion3.json（通常モーション）
-    - haru_g_m09.motion3.json（情報モーション）
+**重要**: モーショングループ（"TapBody"など）ではなく、**必ずaction: 'play_file'を使用して具体的なモーションファイル名を指定してください**。
 
-- 個別モーションファイル（play_fileアクションで直接指定可能）:
-  * haru_g_m01.motion3.json 〜 haru_g_m26.motion3.json（全26種類）
-  * haru_g_idle.motion3.json（アイドル専用）
+利用可能なモーションファイル（必ずこれらから選択）:
+- haru_g_m01.motion3.json 〜 haru_g_m26.motion3.json（全26種類の会話・反応系モーション）
+- haru_g_idle.motion3.json（アイドル専用、待機中）
+
+よく使うモーションファイル:
+- haru_g_m26.motion3.json - 会話モーション（よく使う）
+- haru_g_m20.motion3.json - 通常モーション（よく使う）
+- haru_g_m06.motion3.json - 情報提供・考え込むモーション（よく使う）
+- haru_g_m09.motion3.json - 情報・確認モーション（よく使う）
+- haru_g_m02.motion3.json - 喜び・笑顔のモーション
+- haru_g_m05.motion3.json - 驚きのモーション
+- haru_g_m11.motion3.json - 驚き・反応のモーション
+- haru_g_m04.motion3.json - 謝罪・お辞儀のモーション
+- haru_g_m08.motion3.json - フォロー・申し訳なさそうなモーション
+- haru_g_m07.motion3.json - 悲しみ・困ったモーション
+- haru_g_m12.motion3.json - 心配・困ったモーション
   
-- 表情（Haruモデル）:
-  * "F01": 通常の表情
-  * "F02": 笑顔
-  * "F03": 考え中の表情
-  * "F04": 表情4
-  * "F05": 表情5
-  * "F06": 表情6
-  * "F07": 表情7
-  * "F08": 表情8
+表情（Haruモデル）:
+- "F01": 通常の表情
+- "F02": 笑顔
+- "F03": 考え中の表情
+- "F04": 表情4
+- "F05": 表情5
+- "F06": 表情6
+- "F07": 表情7
+- "F08": 表情8
   
 優先度:
 - 1-2: 低優先度（他のモーションに割り込まれやすい）
@@ -42,12 +46,13 @@ export const motionTool = createTool({
 - 4-5: 高優先度（他のモーションを中断する）
 
 モーション選択のガイドライン:
-- 肯定的な応答: "TapBody"グループ（喜び・笑顔のモーション、優先度: 4-5）
-- 質問や確認: "TapBody"グループ（首を傾げる・考え込むモーション、優先度: 3-4）
-- 謝罪やフォロー: "TapBody"グループ（お辞儀・申し訳なさそうなモーション、優先度: 4-5）
-- 待機中: "Idle"グループ（自然な待機姿勢、優先度: 1-2）
-- 感情表現: 表情を変更（happy→F02, sad→F03など）
-- 特定のモーション: play_fileアクションで直接ファイル名を指定（例: "haru_g_m01"）`,
+- 肯定的な応答・喜び: haru_g_m26.motion3.json または haru_g_m20.motion3.json（優先度: 4-5）+ 表情F02
+- 質問や確認・考え込む: haru_g_m06.motion3.json または haru_g_m09.motion3.json（優先度: 3-4）+ 表情F03
+- 驚き: haru_g_m05.motion3.json または haru_g_m11.motion3.json（優先度: 5）+ 表情F03
+- 謝罪: haru_g_m04.motion3.json または haru_g_m08.motion3.json（優先度: 4-5）+ 表情F03
+- 悲しみ・困った: haru_g_m07.motion3.json または haru_g_m12.motion3.json（優先度: 4）+ 表情F03
+
+**実行方法**: 必ずaction: 'play_file'を使用し、motion_fileパラメータに具体的なファイル名（例: "haru_g_m26.motion3.json"または"haru_g_m26"）を指定してください。`,
   inputSchema: z.object({
     action: z.enum(['play', 'play_file', 'expression']).describe('実行するアクションの種類'),
     motion: z.string().optional().describe('モーショングループ名（例: "Idle", "TapBody"）。actionが"play"の場合に必須'),

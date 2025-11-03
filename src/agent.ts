@@ -27,16 +27,22 @@ async function handleMotionAgent(
   transcript: string,
   room: any, // JobContext.room の型
 ): Promise<void> {
+  const startTime = Date.now();
+  console.log(`[Motion Agent] Starting motion agent at ${new Date().toISOString()}`);
+  
   try {
     const motionAgent = mastra.getAgent('motionAgent');
 
     // モーションエージェントに会話テキストを渡す
+    const responseStartTime = Date.now();
     const response = await motionAgent.generate([
       {
         role: 'user',
         content: `以下の会話内容から、適切なLive2Dモーションを選択して実行してください: ${transcript}`,
       },
     ]);
+    const responseEndTime = Date.now();
+    console.log(`[Motion Agent] LLM response received in ${responseEndTime - responseStartTime}ms`);
 
     // ツール実行結果を確認
     // response.toolResults の構造を確認
@@ -44,6 +50,7 @@ async function handleMotionAgent(
       hasToolResults: !!response.toolResults,
       toolResultsLength: response.toolResults?.length || 0,
       toolResults: response.toolResults,
+      timestamp: new Date().toISOString(),
     });
 
     if (response.toolResults && response.toolResults.length > 0) {
@@ -52,33 +59,87 @@ async function handleMotionAgent(
         // toolResultの構造を確認（型によって異なる可能性がある）
         const result = toolResult as any;
         
+        // デバッグ用: 構造を詳細にログ出力
+        console.log('[Motion Agent] ToolResult structure:', {
+          hasPayload: !!result.payload,
+          payloadType: typeof result.payload,
+          payloadKeys: result.payload ? Object.keys(result.payload) : [],
+          payload: result.payload,
+        });
+        
+        // payloadの中にデータがある場合（Mastraの標準構造）
+        if (result.payload) {
+          const payload = result.payload;
+          
+          // payloadが直接successとmotion_dataを持つ場合
+          if (payload.success && payload.motion_data) {
+            const motionData = payload.motion_data;
+            const sendStartTime = Date.now();
+            await sendMotionToFrontend(room, motionData);
+            const sendEndTime = Date.now();
+            console.log(`[Motion Agent] Motion sent (from payload) in ${sendEndTime - sendStartTime}ms:`, motionData);
+            continue;
+          }
+          
+          // payload.resultがsuccessとmotion_dataを持つ場合
+          if (payload.result?.success && payload.result?.motion_data) {
+            const motionData = payload.result.motion_data;
+            const sendStartTime = Date.now();
+            await sendMotionToFrontend(room, motionData);
+            const sendEndTime = Date.now();
+            console.log(`[Motion Agent] Motion sent (from payload.result) in ${sendEndTime - sendStartTime}ms:`, motionData);
+            continue;
+          }
+          
+          // payloadに直接motion_dataがある場合
+          if (payload.motion_data) {
+            const motionData = payload.motion_data;
+            const sendStartTime = Date.now();
+            await sendMotionToFrontend(room, motionData);
+            const sendEndTime = Date.now();
+            console.log(`[Motion Agent] Motion sent (direct payload.motion_data) in ${sendEndTime - sendStartTime}ms:`, motionData);
+            continue;
+          }
+        }
+        
         // resultが直接successとmotion_dataを持つ場合
         if (result.success && result.motion_data) {
           const motionData = result.motion_data;
+          const sendStartTime = Date.now();
           await sendMotionToFrontend(room, motionData);
-          console.log('[Motion Agent] Motion sent:', motionData);
+          const sendEndTime = Date.now();
+          console.log(`[Motion Agent] Motion sent (direct) in ${sendEndTime - sendStartTime}ms:`, motionData);
           continue;
         }
         
         // result.resultがsuccessとmotion_dataを持つ場合
         if (result.result?.success && result.result?.motion_data) {
           const motionData = result.result.motion_data;
+          const sendStartTime = Date.now();
           await sendMotionToFrontend(room, motionData);
-          console.log('[Motion Agent] Motion sent:', motionData);
+          const sendEndTime = Date.now();
+          console.log(`[Motion Agent] Motion sent (from result.result) in ${sendEndTime - sendStartTime}ms:`, motionData);
           continue;
         }
         
         // その他の構造を試す
         if (result.motion_data) {
-          await sendMotionToFrontend(room, result.motion_data);
-          console.log('[Motion Agent] Motion sent:', result.motion_data);
+          const motionData = result.motion_data;
+          const sendStartTime = Date.now();
+          await sendMotionToFrontend(room, motionData);
+          const sendEndTime = Date.now();
+          console.log(`[Motion Agent] Motion sent (fallback) in ${sendEndTime - sendStartTime}ms:`, motionData);
         }
       }
     } else {
       console.log('[Motion Agent] No tool results found');
     }
+    
+    const endTime = Date.now();
+    console.log(`[Motion Agent] Total processing time: ${endTime - startTime}ms`);
   } catch (error) {
-    console.error('[Motion Agent] Failed to execute:', error);
+    const endTime = Date.now();
+    console.error(`[Motion Agent] Failed to execute after ${endTime - startTime}ms:`, error);
   }
 }
 
@@ -451,17 +512,45 @@ export default defineAgent({
       console.log(`[Agent] Agent state changed: ${ev.newState}`);
     });
 
+    // LLMの出力を監視してタイムスタンプを記録
+    session.on(voice.AgentSessionEventTypes.ConversationItemAdded, (ev) => {
+      if (ev.item.role === 'assistant') {
+        const llmOutputTime = Date.now();
+        console.log(`[LLM Output] Message: "${ev.item.content}" at ${new Date(llmOutputTime).toISOString()}`);
+        // メッセージを保存して、モーション実行時間との比較に使用
+        (globalThis as any).lastLLMOutput = {
+          message: ev.item.content,
+          timestamp: llmOutputTime,
+        };
+      }
+    });
+
     // STT完了時にモーションエージェントを呼び出す
     session.on(voice.AgentSessionEventTypes.UserInputTranscribed, async (ev) => {
+      // デバッグ: 全てのtranscriptionイベントをログに出力
+      console.log(`[Motion Agent] Transcription event received:`, {
+        transcript: ev.transcript,
+        isFinal: ev.isFinal,
+        timestamp: new Date().toISOString(),
+      });
+
       // 最終確定されたテキストのみを処理
-      if (!ev.isFinal) return;
+      if (!ev.isFinal) {
+        console.log(`[Motion Agent] Skipping non-final transcription: "${ev.transcript}"`);
+        return;
+      }
 
       const transcript = ev.transcript;
-      console.log(`[Motion Agent] STT completed: "${transcript}"`);
+      console.log(`[Motion Agent] STT completed (final): "${transcript}" at ${new Date().toISOString()}`);
 
       // モーションエージェントを呼び出す（非同期で実行、ブロックしない）
-      handleMotionAgent(transcript, ctx.room).catch((error) => {
-        console.error('[Motion Agent] Error:', error);
+      const motionStartTime = Date.now();
+      handleMotionAgent(transcript, ctx.room).then(() => {
+        const motionEndTime = Date.now();
+        console.log(`[Motion Agent] Completed in ${motionEndTime - motionStartTime}ms`);
+      }).catch((error) => {
+        const motionEndTime = Date.now();
+        console.error(`[Motion Agent] Error after ${motionEndTime - motionStartTime}ms:`, error);
       });
     });
 

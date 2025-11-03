@@ -12,86 +12,60 @@ import { motionTool } from '../tools/motion-tool';
  */
 export const motionAgent = new Agent({
   name: 'Motion Agent',
-  instructions: `あなたはLive2Dキャラクターのモーションを制御する専門エージェントです。
-会話の文脈や感情を分析して、適切なモーションを実行してください。
+  instructions: `会話内容から適切なモーションと表情を選択し、motionToolのみを実行してください。テキスト生成は不要です。ツール実行のみを行ってください。
 
-## 利用可能なモーション
+## 利用可能なモーション一覧
 
-### モーショングループ
-- **Idle**: 待機モーション（常にループ再生される、通常は自動再生）
-  - haru_g_idle.motion3.json（標準アイドル）
-  - haru_g_m15.motion3.json（アイドルバリエーション）
-- **TapBody**: 体をタップした時のモーション（反応・驚き・喜び・首を傾げるなど）
-  - haru_g_m26.motion3.json（会話モーション）
-  - haru_g_m06.motion3.json（情報提供モーション）
-  - haru_g_m20.motion3.json（通常モーション）
-  - haru_g_m09.motion3.json（情報モーション）
+- haru_g_m01.motion3.json - 会話モーション1（基本会話）
+- haru_g_m02.motion3.json - 会話モーション2（喜び・笑顔）
+- haru_g_m03.motion3.json - 会話モーション3（考え込む）
+- haru_g_m04.motion3.json - 会話モーション4（謝罪・お辞儀）
+- haru_g_m05.motion3.json - 会話モーション5（驚き）
+- haru_g_m06.motion3.json - 情報提供モーション（情報を伝える）
+- haru_g_m07.motion3.json - 会話モーション7（悲しみ・困った）
+- haru_g_m08.motion3.json - 会話モーション8（フォロー・申し訳なさそう）
+- haru_g_m09.motion3.json - 情報モーション（情報・確認）
+- haru_g_m10.motion3.json - 会話モーション10（自然な会話）
+- haru_g_m11.motion3.json - 会話モーション11（驚き・反応）
+- haru_g_m12.motion3.json - 会話モーション12（心配・困った）
+- haru_g_m13.motion3.json - 会話モーション13（会話中）
+- haru_g_m14.motion3.json - 会話モーション14（会話中）
+- haru_g_m15.motion3.json - アイドルバリエーション（待機）
+- haru_g_m16.motion3.json - 会話モーション16（会話中）
+- haru_g_m17.motion3.json - 会話モーション17（会話中）
+- haru_g_m18.motion3.json - 会話モーション18（会話中）
+- haru_g_m19.motion3.json - 会話モーション19（会話中）
+- haru_g_m20.motion3.json - 通常モーション（標準的な会話・よく使う）
+- haru_g_m21.motion3.json - 会話モーション21（会話中）
+- haru_g_m22.motion3.json - 会話モーション22（会話中）
+- haru_g_m23.motion3.json - 会話モーション23（会話中）
+- haru_g_m24.motion3.json - 会話モーション24（会話中）
+- haru_g_m25.motion3.json - 会話モーション25（会話中）
+- haru_g_m26.motion3.json - 会話モーション26（会話・喜び・よく使う）
+- haru_g_idle.motion3.json - 標準アイドル（待機中）
 
-### 個別モーションファイル
-- haru_g_m01.motion3.json 〜 haru_g_m26.motion3.json（全26種類）
-- haru_g_idle.motion3.json（アイドル専用）
-- play_fileアクションで直接ファイル名を指定可能（例: "haru_g_m01"）
+## 表情一覧
 
-### 表情（Haruモデル）
-- **F01**: 通常の表情
-- **F02**: 笑顔
-- **F03**: 考え中の表情
-- **F04**: 表情4
-- **F05**: 表情5
-- **F06**: 表情6
-- **F07**: 表情7
-- **F08**: 表情8
+- F01 - 通常の表情
+- F02 - 笑顔
+- F03 - 考え中の表情
+- F04 - 表情4
+- F05 - 表情5
+- F06 - 表情6
+- F07 - 表情7
+- F08 - 表情8
 
-### 優先度
-- **1-2**: 低優先度（他のモーションに割り込まれやすい）
-- **3**: 通常優先度（デフォルト）
-- **4-5**: 高優先度（他のモーションを中断する）
+## 選択基準
 
-## モーション選択のガイドライン
+- 喜び/肯定/笑顔: haru_g_m02.motion3.json または haru_g_m26.motion3.json + F02
+- 質問/確認/考え込む: haru_g_m06.motion3.json または haru_g_m09.motion3.json + F03
+- 驚き: haru_g_m05.motion3.json または haru_g_m11.motion3.json + F03
+- 謝罪/フォロー: haru_g_m04.motion3.json または haru_g_m08.motion3.json + F03
+- 悲しみ/困った/心配: haru_g_m07.motion3.json または haru_g_m12.motion3.json + F03
+- 通常の会話: haru_g_m20.motion3.json または haru_g_m26.motion3.json + F02
+- その他: haru_g_m20.motion3.json + F02（デフォルト）
 
-### 肯定的な応答・喜び
-- **TapBody**グループを使用（優先度: 4-5）
-- 表情: **F02**（笑顔）または**exp_01**（喜びの表情）
-- 例: 「そうだよ」「わかった！」「素晴らしい！」
-
-### 質問や確認・考え込む
-- **TapBody**グループを使用（優先度: 3-4）
-- 表情: **F03**（考え中の表情）または**exp_02**（考え込む表情）
-- 例: 「どう思う？」「これについて聞きたいんだけど」
-
-### 謝罪やフォロー
-- **TapBody**グループを使用（優先度: 4-5）
-- 表情: **exp_03**（申し訳なさそうな表情）または**F03**
-- 例: 「ごめんね」「すみません」
-
-### 驚き・驚いた反応
-- **TapBody**グループを使用（優先度: 5）
-- 表情: **exp_04**（驚きの表情）または**F03**
-- 例: 「本当！？」「驚いた！」
-
-### 悲しみ・困った
-- **TapBody**グループを使用（優先度: 4）
-- 表情: **exp_05**（悲しみの表情）または**F03**
-- 例: 「困ったな」「悲しい」
-
-### 待機中・アイドル
-- **Idle**グループを使用（優先度: 1-2）
-- 通常は自動再生されるため、明示的に指定する必要はない
-
-## 重要な原則
-
-1. **過度なモーションを避ける**: 全ての発話にモーションを付ける必要はありません。適切なタイミングでのみ実行してください。
-2. **感情に応じた選択**: 会話の感情や文脈を正確に理解して、適切なモーションを選択してください。
-3. **優先度の適切な使用**: 重要な反応には高優先度（4-5）を使用し、自然な動作には通常優先度（3）を使用してください。
-4. **表情とモーションの組み合わせ**: 可能な限り、モーションと表情を組み合わせて使用してください。
-
-## 会話分析のポイント
-
-- ユーザーの発話内容を分析して、感情や意図を判断してください
-- 会話の流れから、適切なタイミングでモーションを実行してください
-- 不要なモーションは実行しないでください（自然な会話の流れを重視）
-
-motionToolを使用してモーションを実行してください。`,
+必ずmotionToolを2回実行: 1回目=モーション（action: 'play_file', priority: 5）、2回目=表情（action: 'expression'）`,
   model: openai('gpt-5-mini'),
   tools: { motionTool },
   memory: new Memory({
