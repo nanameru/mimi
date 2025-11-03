@@ -12,6 +12,8 @@ import * as silero from '@livekit/agents-plugin-silero';
 import { BackgroundVoiceCancellation } from '@livekit/noise-cancellation-node';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'node:url';
+import * as fs from 'fs';
+import * as path from 'path';
 import { FishAudioTTS } from './custom-fish-tts';
 
 dotenv.config({ path: '.env.local' });
@@ -146,6 +148,23 @@ export default defineAgent({
     proc.userData.vad = await silero.VAD.load();
   },
   entry: async (ctx: JobContext) => {
+    // デバッグ用ディレクトリの設定（日付と時間ごとに分割）
+    const now = new Date();
+    const dateStr = now.toISOString().split('T')[0]!; // YYYY-MM-DD形式
+    const timeStr = now.toTimeString().split(' ')[0]!.replace(/:/g, '-').substring(0, 5); // HH-MM形式（秒は除外）
+    const debugBaseDir = path.join(process.cwd(), 'debug-audio');
+    const debugDateDir = path.join(debugBaseDir, dateStr, timeStr);
+    if (!fs.existsSync(debugDateDir)) {
+      fs.mkdirSync(debugDateDir, { recursive: true });
+    }
+    
+    // 処理時間ログを保存するためのオブジェクト
+    const processingLog: {
+      configuration?: any;
+      metrics?: any[];
+      sessionSummary?: any;
+    } = {};
+    
     // Set up a voice AI pipeline using OpenAI, Deepgram, and the LiveKit turn detector
     // Configured to match multiagent-python-feature2 settings
     const session = new voice.AgentSession({
@@ -190,29 +209,39 @@ export default defineAgent({
     // Log configuration settings
     console.log('='.repeat(80));
     console.log('[Agent Configuration]');
-    console.log('STT:', {
-      provider: 'deepgram',
-      model: 'nova-2',
-      language: 'ja',
-    });
-    console.log('LLM:', {
-      provider: 'openai',
-      model: 'gpt-4o-mini',
-    });
-    console.log('TTS:', {
-      provider: 'fish-audio',
-      backend: 's1',
-      voiceId: process.env.FISH_AUDIO_VOICE_ID || 'not set',
-      sampleRate: 44100,
-      numChannels: 1,
-      chunkLength: 100,
-      latency: 'balanced',
-    });
+    const config = {
+      STT: {
+        provider: 'deepgram',
+        model: 'nova-2',
+        language: 'ja',
+      },
+      LLM: {
+        provider: 'openai',
+        model: 'gpt-4o-mini',
+      },
+      TTS: {
+        provider: 'fish-audio',
+        backend: 's1',
+        voiceId: process.env.FISH_AUDIO_VOICE_ID || 'not set',
+        sampleRate: 44100,
+        numChannels: 1,
+        chunkLength: 100,
+        latency: 'balanced',
+      },
+    };
+    console.log('STT:', config.STT);
+    console.log('LLM:', config.LLM);
+    console.log('TTS:', config.TTS);
     console.log('='.repeat(80));
+    
+    // 設定をログファイルに保存
+    processingLog.configuration = config;
 
     // Metrics collection, to measure pipeline performance
     // For more information, see https://docs.livekit.io/agents/build/metrics/
     const usageCollector = new metrics.UsageCollector();
+    processingLog.metrics = [];
+    
     session.on(voice.AgentSessionEventTypes.MetricsCollected, (ev) => {
       metrics.logMetrics(ev.metrics);
       usageCollector.collect(ev.metrics);
@@ -222,41 +251,54 @@ export default defineAgent({
       console.log('='.repeat(80));
       console.log('[Processing Metrics]');
       
+      const metricEntry: any = {
+        timestamp: new Date().toISOString(),
+      };
+      
       // STT metrics
       if (metricsData.stt) {
         const sttMetrics = metricsData.stt;
-        console.log('STT:', {
+        const sttLog = {
           processingTime: sttMetrics.processingTime ? `${sttMetrics.processingTime}ms` : 'N/A',
           tokens: sttMetrics.tokens || 'N/A',
           characters: sttMetrics.characters || 'N/A',
           segments: sttMetrics.segments || 'N/A',
-        });
+        };
+        console.log('STT:', sttLog);
+        metricEntry.STT = sttLog;
       }
       
       // LLM metrics
       if (metricsData.llm) {
         const llmMetrics = metricsData.llm;
-        console.log('LLM:', {
+        const llmLog = {
           processingTime: llmMetrics.processingTime ? `${llmMetrics.processingTime}ms` : 'N/A',
           tokens: llmMetrics.tokens || 'N/A',
           inputTokens: llmMetrics.inputTokens || 'N/A',
           outputTokens: llmMetrics.outputTokens || 'N/A',
           timeToFirstToken: llmMetrics.timeToFirstToken ? `${llmMetrics.timeToFirstToken}ms` : 'N/A',
-        });
+        };
+        console.log('LLM:', llmLog);
+        metricEntry.LLM = llmLog;
       }
       
       // TTS metrics
       if (metricsData.tts) {
         const ttsMetrics = metricsData.tts;
-        console.log('TTS:', {
+        const ttsLog = {
           processingTime: ttsMetrics.processingTime ? `${ttsMetrics.processingTime}ms` : 'N/A',
           characters: ttsMetrics.characters || 'N/A',
           audioDuration: ttsMetrics.audioDuration ? `${ttsMetrics.audioDuration}s` : 'N/A',
           timeToFirstChunk: ttsMetrics.timeToFirstChunk ? `${ttsMetrics.timeToFirstChunk}ms` : 'N/A',
-        });
+        };
+        console.log('TTS:', ttsLog);
+        metricEntry.TTS = ttsLog;
       }
       
       console.log('='.repeat(80));
+      
+      // メトリクスをログに追加
+      processingLog.metrics!.push(metricEntry);
     });
 
     const logUsage = async () => {
@@ -265,6 +307,15 @@ export default defineAgent({
       console.log('[Session Summary]');
       console.log(`Usage: ${JSON.stringify(summary, null, 2)}`);
       console.log('='.repeat(80));
+      
+      // セッションサマリーをログに保存
+      processingLog.sessionSummary = summary;
+      
+      // 処理時間ログをファイルに保存
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const logFile = path.join(debugDateDir, `processing-times-${timestamp}.json`);
+      fs.writeFileSync(logFile, JSON.stringify(processingLog, null, 2));
+      console.log(`[Agent] 💾 Saved processing times log to: ${logFile}`);
     };
 
     ctx.addShutdownCallback(logUsage);

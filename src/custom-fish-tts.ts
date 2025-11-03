@@ -767,15 +767,32 @@ class FishAudioSynthesizeStream extends tts.SynthesizeStream {
       
       console.log('='.repeat(80));
       console.log('[TTS Processing Summary]');
-      console.log(`Text receive duration: ${textReceiveDuration}ms`);
-      console.log(`HTTP request to first chunk: ${firstChunkReceived ? `${firstChunkTimeFromHttpRequest}ms` : 'N/A'}`);
-      console.log(`HTTP request to completion: ${httpRequestToCompletionTime}ms`);
-      console.log(`Total processing time: ${totalProcessingTime}ms`);
-      console.log(`Total chunks received: ${totalChunks}`);
-      console.log(`Total audio data: ${totalAudioBytes} bytes (${(totalAudioBytes / 1024).toFixed(2)} KB)`);
-      console.log(`Frames sent to LiveKit: ${framesSent}`);
-      console.log(`Frames skipped: ${framesSkipped}`);
+      const ttsSummary = {
+        textReceiveDuration: `${textReceiveDuration}ms`,
+        httpRequestToFirstChunk: firstChunkReceived ? `${firstChunkTimeFromHttpRequest}ms` : 'N/A',
+        httpRequestToCompletion: `${httpRequestToCompletionTime}ms`,
+        totalProcessingTime: `${totalProcessingTime}ms`,
+        totalChunksReceived: totalChunks,
+        totalAudioDataBytes: totalAudioBytes,
+        totalAudioDataKB: `${(totalAudioBytes / 1024).toFixed(2)} KB`,
+        framesSentToLiveKit: framesSent,
+        framesSkipped: framesSkipped,
+      };
+      console.log(`Text receive duration: ${ttsSummary.textReceiveDuration}`);
+      console.log(`HTTP request to first chunk: ${ttsSummary.httpRequestToFirstChunk}`);
+      console.log(`HTTP request to completion: ${ttsSummary.httpRequestToCompletion}`);
+      console.log(`Total processing time: ${ttsSummary.totalProcessingTime}`);
+      console.log(`Total chunks received: ${ttsSummary.totalChunksReceived}`);
+      console.log(`Total audio data: ${ttsSummary.totalAudioDataBytes} bytes (${ttsSummary.totalAudioDataKB})`);
+      console.log(`Frames sent to LiveKit: ${ttsSummary.framesSentToLiveKit}`);
+      console.log(`Frames skipped: ${ttsSummary.framesSkipped}`);
       console.log('='.repeat(80));
+      
+      // TTS処理時間をファイルに保存
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const ttsLogFile = path.join(debugDateDir, `tts-processing-times-${timestamp}.json`);
+      fs.writeFileSync(ttsLogFile, JSON.stringify(ttsSummary, null, 2));
+      console.log(`[FishAudioTTS] 💾 Saved TTS processing times log to: ${ttsLogFile}`);
       
       const totalTime = Date.now() - sessionStartTime;
       
