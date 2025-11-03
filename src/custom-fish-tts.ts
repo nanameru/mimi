@@ -238,7 +238,7 @@ class FishAudioSynthesizeStream extends tts.SynthesizeStream {
       }
       
       // テキストを結合
-      const fullText = textBuffer.join('');
+      let fullText = textBuffer.join('');
       
       // エモーションタグを検出してログに記録
       const emotionTags = fullText.match(/\([^)]+\)/g) || [];
@@ -248,6 +248,28 @@ class FishAudioSynthesizeStream extends tts.SynthesizeStream {
         );
         console.log(
           `[FishAudioTTS] 📝 Original text: "${fullText.substring(0, 100)}${fullText.length > 100 ? '...' : ''}"`,
+        );
+      }
+      
+      // エモーションタグの前処理: 文の最初のタグのみを保持（Fish Audioは最初のタグのみを認識する可能性）
+      // 1. 全てのエモーションタグを抽出
+      const allEmotionTags = fullText.match(/\([^)]+\)/g) || [];
+      if (allEmotionTags.length > 0) {
+        // 2. テキストから全てのエモーションタグを一時的に削除
+        let cleanedText = fullText.replace(/\([^)]+\)/g, '').trim();
+        
+        // 3. 文の最初のエモーションタグのみを先頭に配置
+        // 複数のタグがある場合、最初のタグを優先（より強い感情表現として認識される可能性）
+        const firstEmotionTag = allEmotionTags[0]!;
+        
+        // 4. 最初のタグをテキストの先頭に配置
+        fullText = `${firstEmotionTag} ${cleanedText}`;
+        
+        console.log(
+          `[FishAudioTTS] 🔧 Preprocessed text: "${fullText.substring(0, 100)}${fullText.length > 100 ? '...' : ''}"`,
+        );
+        console.log(
+          `[FishAudioTTS] 📌 Using first emotion tag only: ${firstEmotionTag} (${allEmotionTags.length - 1} tag(s) removed)`,
         );
       }
       
