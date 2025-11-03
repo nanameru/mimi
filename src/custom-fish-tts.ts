@@ -1,6 +1,8 @@
 import { tts } from '@livekit/agents';
 import { AudioFrame } from '@livekit/rtc-node';
 import { Session, TTSRequest, type Backends } from 'fish-audio-sdk';
+import * as fs from 'fs';
+import * as path from 'path';
 
 /**
  * Fish Audio TTS 設定
@@ -238,13 +240,107 @@ class FishAudioSynthesizeStream extends tts.SynthesizeStream {
       const MAX_GAIN_FACTOR = 100; // 最大ゲイン倍率（極端な増幅を防ぐ）
       const MIN_AMPLITUDE_THRESHOLD = 100; // この値未満の場合、増幅が必要
       
+      // データ形式判定用の変数
+      let allChunksForAnalysis: Buffer[] = [];
+      const MAX_CHUNKS_FOR_ANALYSIS = 10; // 最初の10チャンクを保存して分析
+      
       console.log(`[FishAudioTTS] Starting HTTP API TTS with backend: ${this.ttsInstance.backend}, voiceId: ${this.ttsInstance.voiceId || 'not set'}`);
+      
+      // データ形式を判定する関数
+      const detectAudioFormat = (data: Buffer): string => {
+        if (data.length < 4) return 'UNKNOWN';
+        
+        const firstBytes = data.slice(0, 4);
+        const hexString = firstBytes.toString('hex').toUpperCase();
+        
+        // MP3形式のマジックナンバーをチェック
+        // MP3: FF FB, FF F3, FF F2, FF FA, FF E3, FF E2, FF E1, FF E0
+        if (hexString.startsWith('FF')) {
+          const secondByte = firstBytes[1];
+          if (secondByte === 0xFB || secondByte === 0xF3 || secondByte === 0xF2 || secondByte === 0xFA ||
+              secondByte === 0xE3 || secondByte === 0xE2 || secondByte === 0xE1 || secondByte === 0xE0) {
+            return 'MP3';
+          }
+        }
+        
+        // WAV形式のマジックナンバーをチェック
+        // WAV: 52 49 46 46 (RIFF) または 52 49 46 46 (RIFF) + 57 41 56 45 (WAVE)
+        if (data.length >= 12) {
+          const riffHeader = data.slice(0, 4).toString('ascii');
+          if (riffHeader === 'RIFF') {
+            const waveHeader = data.slice(8, 12).toString('ascii');
+            if (waveHeader === 'WAVE') {
+              return 'WAV';
+            }
+          }
+        }
+        
+        // Opus形式のマジックナンバーをチェック
+        // Opus: OggS (4F 67 67 53)
+        if (data.length >= 4) {
+          const oggHeader = data.slice(0, 4).toString('ascii');
+          if (oggHeader === 'OggS') {
+            return 'OPUS';
+          }
+        }
+        
+        // PCM形式の判定（データの統計的特性から）
+        // PCMデータは通常、ランダムなバイト分布を持つ
+        // しかし、最初の数バイトが全て0xFFや0x00の場合は、他の形式の可能性がある
+        const first16Bytes = data.slice(0, Math.min(16, data.length));
+        const uniqueBytes = new Set(Array.from(first16Bytes)).size;
+        
+        // 全て同じバイト値（0xFFや0x00など）の場合は、PCMではない可能性が高い
+        if (uniqueBytes === 1) {
+          return 'SUSPICIOUS (all same bytes)';
+        }
+        
+        // バイトの分布を確認（エントロピーの簡単なチェック）
+        const byteCounts = new Array(256).fill(0);
+        const sampleSize = Math.min(256, data.length);
+        for (let i = 0; i < sampleSize; i++) {
+          byteCounts[data[i]!]++;
+        }
+        
+        // エントロピーが低い場合（特定のバイト値に偏っている）、圧縮形式の可能性
+        const entropy = byteCounts.reduce((sum, count) => {
+          if (count === 0) return sum;
+          const p = count / sampleSize;
+          return sum - p * Math.log2(p);
+        }, 0);
+        
+        // エントロピーが低い場合（< 5.0）、圧縮形式の可能性
+        if (entropy < 5.0 && entropy > 0) {
+          return `SUSPICIOUS (low entropy: ${entropy.toFixed(2)})`;
+        }
+        
+        // データが2バイトの倍数で、16-bit PCMとして解釈可能な場合
+        if (data.length % 2 === 0) {
+          // サンプル値を確認して、Int16の範囲内かチェック
+          const samples = new Int16Array(data.buffer, data.byteOffset, Math.min(100, data.length / 2));
+          const minSample = Math.min(...Array.from(samples));
+          const maxSample = Math.max(...Array.from(samples));
+          
+          // Int16の範囲内であれば、PCMの可能性が高い
+          if (minSample >= -32768 && maxSample <= 32767) {
+            return 'PCM (16-bit, Int16 range)';
+          }
+        }
+        
+        return 'UNKNOWN';
+      };
       
       // HTTP APIはストリーミングレスポンスを返す
       for await (const audioChunk of this.ttsInstance.httpSession.tts(request, {
         model: this.ttsInstance.backend,
       })) {
         totalChunks++;
+        
+        // 最初の数チャンクを保存して分析
+        if (totalChunks <= MAX_CHUNKS_FOR_ANALYSIS) {
+          allChunksForAnalysis.push(Buffer.from(audioChunk));
+        }
+        
         // 最初の音声チャンク受信時のログ
         if (!firstChunkReceived) {
           const firstChunkTime = Date.now() - sessionStartTime;
@@ -256,6 +352,10 @@ class FishAudioSynthesizeStream extends tts.SynthesizeStream {
           console.log(`[FishAudioTTS] 🔍 First chunk preview (hex): ${firstChunkPreview.toString('hex')}`);
           console.log(`[FishAudioTTS] 🔍 First chunk preview (decimal): ${Array.from(firstChunkPreview).join(', ')}`);
           console.log(`[FishAudioTTS] 🔍 First chunk length: ${audioChunk.length} bytes`);
+          
+          // データ形式を詳細に判定
+          const detectedFormat = detectAudioFormat(audioChunk);
+          console.log(`[FishAudioTTS] 🔍 Detected audio format: ${detectedFormat}`);
           
           // MP3のマジックナンバーを確認（FF FB, FF F3, FF F2, FF FAなど）
           const firstBytes = audioChunk.slice(0, 4);
@@ -395,6 +495,42 @@ class FishAudioSynthesizeStream extends tts.SynthesizeStream {
       console.log(
         `[FishAudioTTS] ⏱️ Total audio generation: ${totalTime}ms (${totalChunks} chunks)`,
       );
+      
+      // 保存したチャンクを結合して詳細分析
+      if (allChunksForAnalysis.length > 0) {
+        const combinedData = Buffer.concat(allChunksForAnalysis);
+        console.log(`[FishAudioTTS] 🔍 Analyzing ${allChunksForAnalysis.length} chunks (${combinedData.length} bytes total)`);
+        
+        // 結合したデータの形式を判定
+        const combinedFormat = detectAudioFormat(combinedData);
+        console.log(`[FishAudioTTS] 🔍 Combined data format: ${combinedFormat}`);
+        
+        // バイナリデータをファイルに保存（デバッグ用）
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const debugDir = path.join(process.cwd(), 'debug-audio');
+        if (!fs.existsSync(debugDir)) {
+          fs.mkdirSync(debugDir, { recursive: true });
+        }
+        const debugFile = path.join(debugDir, `fish-audio-${timestamp}-${totalChunks}chunks.bin`);
+        fs.writeFileSync(debugFile, combinedData);
+        console.log(`[FishAudioTTS] 💾 Saved first ${allChunksForAnalysis.length} chunks to: ${debugFile}`);
+        console.log(`[FishAudioTTS] 💾 File size: ${combinedData.length} bytes`);
+        console.log(`[FishAudioTTS] 💾 To analyze: file ${debugFile} | xxd | head -20`);
+        
+        // データの統計情報を出力
+        const byteCounts = new Array(256).fill(0);
+        const sampleSize = Math.min(1000, combinedData.length);
+        for (let i = 0; i < sampleSize; i++) {
+          byteCounts[combinedData[i]!]++;
+        }
+        const mostCommonBytes = byteCounts
+          .map((count, byte) => ({ byte, count }))
+          .sort((a, b) => b.count - a.count)
+          .slice(0, 5);
+        console.log(`[FishAudioTTS] 📊 Most common bytes in first ${sampleSize} bytes:`, 
+          mostCommonBytes.map(({ byte, count }) => `0x${byte.toString(16).padStart(2, '0').toUpperCase()}:${count}`).join(', '));
+      }
+      
       console.log('[FishAudioTTS] HTTP API streaming synthesis session completed');
     } catch (error) {
       console.error('[FishAudioTTS] HTTP API streaming error:', error);
