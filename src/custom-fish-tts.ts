@@ -116,13 +116,36 @@ class FishAudioChunkedStream extends tts.ChunkedStream {
         latency: this.ttsInstance.latency,
         normalize: true,
       });
+      
+      // curlコマンドの形式に合わせてリクエストボディを拡張
+      const requestPayload = request.toJSON() as any;
+      // temperatureとtop_pを追加（curlコマンドと同じ値）
+      requestPayload.temperature = 0.9;
+      requestPayload.top_p = 0.9;
+      // reference_idが空文字列の場合はundefinedに設定
+      if (!requestPayload.reference_id || (typeof requestPayload.reference_id === 'string' && requestPayload.reference_id.trim() === '')) {
+        requestPayload.reference_id = undefined;
+      }
+      
       // HTTP APIで音声生成（ストリーミングレスポンス）
-      // ドキュメントに基づいてmodelヘッダーを追加
+      // curlコマンドの形式に合わせて直接HTTPリクエストを送信（temperatureとtop_pを含める）
+      // Sessionクラスのclientを使用してHTTPリクエストを送信
+      const response = await (this.ttsInstance.httpSession as any).client.post('/v1/tts', requestPayload, {
+        responseType: 'stream',
+        headers: {
+          'Content-Type': 'application/json',
+          model: this.ttsInstance.backend,
+        },
+      });
+      
+      // レスポンスヘッダーをログに記録
+      console.log('TTS Response Content-Type:', response.headers['content-type']);
+      console.log('TTS Response headers:', JSON.stringify(response.headers, null, 2));
+      
       const audioChunks: Buffer[] = [];
       let firstChunkForSynthesize = true;
-      for await (const chunk of this.ttsInstance.httpSession.tts(request, {
-        model: this.ttsInstance.backend,
-      })) {
+      for await (const chunk of response.data) {
+        const audioChunk = Buffer.from(chunk);
         // 最初のチャンクの先頭バイトを確認（データ形式の判定用）
         if (firstChunkForSynthesize) {
           const firstChunkPreview = chunk.slice(0, Math.min(32, chunk.length));
@@ -216,12 +239,25 @@ class FishAudioSynthesizeStream extends tts.SynthesizeStream {
       
       // テキストを結合
       const fullText = textBuffer.join('');
+      
+      // エモーションタグを検出してログに記録
+      const emotionTags = fullText.match(/\([^)]+\)/g) || [];
+      if (emotionTags.length > 0) {
+        console.log(
+          `[FishAudioTTS] 🏷️ Detected ${emotionTags.length} emotion tag(s): ${emotionTags.join(', ')}`,
+        );
+        console.log(
+          `[FishAudioTTS] 📝 Original text: "${fullText.substring(0, 100)}${fullText.length > 100 ? '...' : ''}"`,
+        );
+      }
+      
       console.log(
         `[FishAudioTTS] 📤 [${new Date().toLocaleTimeString()}] Sending text to HTTP API (${fullText.length} chars): "${fullText.substring(0, 50)}..."`,
       );
       
       // HTTP APIで音声生成（ストリーミングレスポンス）
-      // ドキュメントに基づいてmodelヘッダーを追加
+      // curlコマンドの形式に合わせてtemperatureとtop_pを追加
+      // エモーションタグを含むテキストをそのまま送信（Fish Audio APIが処理する可能性があるため）
       const request = new TTSRequest(fullText, {
         referenceId: this.ttsInstance.voiceId,
         format: 'pcm',
@@ -230,6 +266,16 @@ class FishAudioSynthesizeStream extends tts.SynthesizeStream {
         latency: this.ttsInstance.latency,
         normalize: true,
       });
+      
+      // curlコマンドの形式に合わせてリクエストボディを拡張
+      const requestPayload = request.toJSON() as any;
+      // temperatureとtop_pを追加（curlコマンドと同じ値）
+      requestPayload.temperature = 0.9;
+      requestPayload.top_p = 0.9;
+      // reference_idが空文字列の場合はundefinedに設定
+      if (!requestPayload.reference_id || (typeof requestPayload.reference_id === 'string' && requestPayload.reference_id.trim() === '')) {
+        requestPayload.reference_id = undefined;
+      }
       
       let segmentId = 0;
       let firstChunkReceived = false;
@@ -245,11 +291,34 @@ class FishAudioSynthesizeStream extends tts.SynthesizeStream {
       const SILENCE_THRESHOLD = 100; // この値未満は無音とみなす
       const MAX_SILENT_CHUNKS_BEFORE_START = 50; // 音声開始前にスキップする最大チャンク数
       
+      // フレームサイズの正規化（可変長チャンクを一定サイズのフレームに再分割）
+      // 44100Hz * 0.015625秒 = 689.0625サンプル → 689サンプル（最も一般的なサイズ）
+      const TARGET_SAMPLES_PER_FRAME = 689; // 15.62ms @ 44100Hz
+      const TARGET_FRAME_SIZE = TARGET_SAMPLES_PER_FRAME * 2; // 2 bytes per sample (Int16)
+      let pcmBuffer = Buffer.alloc(0); // 受信したPCMデータを蓄積するバッファ
+      let framesSent = 0; // LiveKitに送信したフレーム数
+      let framesSkipped = 0; // スキップしたフレーム数（デバッグ用）
+      const MAX_SILENT_FRAMES_AFTER_START = 20; // 音声開始後の低振幅フレームをスキップする最大数
+      
       // データ形式判定用の変数
       let allChunksForAnalysis: Buffer[] = [];
       const MAX_CHUNKS_FOR_ANALYSIS = 50; // 最初の50チャンクを保存して分析（正常な音声データを含む）
       
+      // 全てのチャンクを保存（デバッグ用）
+      const allChunksForLogging: Buffer[] = [];
+      
+      // デバッグ用ディレクトリの設定（日付と時間ごとに分割）
+      const now = new Date();
+      const dateStr = now.toISOString().split('T')[0]!; // YYYY-MM-DD形式
+      const timeStr = now.toTimeString().split(' ')[0]!.replace(/:/g, '-').substring(0, 5); // HH-MM形式（秒は除外）
+      const debugBaseDir = path.join(process.cwd(), 'debug-audio');
+      const debugDateDir = path.join(debugBaseDir, dateStr, timeStr);
+      if (!fs.existsSync(debugDateDir)) {
+        fs.mkdirSync(debugDateDir, { recursive: true });
+      }
+      
       console.log(`[FishAudioTTS] Starting HTTP API TTS with backend: ${this.ttsInstance.backend}, voiceId: ${this.ttsInstance.voiceId || 'not set'}`);
+      console.log(`[FishAudioTTS] 📋 Request payload: ${JSON.stringify(requestPayload, null, 2)}`);
       
       // データ形式を判定する関数
       const detectAudioFormat = (data: Buffer): string => {
@@ -335,11 +404,26 @@ class FishAudioSynthesizeStream extends tts.SynthesizeStream {
         return 'UNKNOWN';
       };
       
-      // HTTP APIはストリーミングレスポンスを返す
-      for await (const audioChunk of this.ttsInstance.httpSession.tts(request, {
-        model: this.ttsInstance.backend,
-      })) {
+      // curlコマンドの形式に合わせて直接HTTPリクエストを送信（temperatureとtop_pを含める）
+      // Sessionクラスのclientを使用してHTTPリクエストを送信
+      const response = await (this.ttsInstance.httpSession as any).client.post('/v1/tts', requestPayload, {
+        responseType: 'stream',
+        headers: {
+          'Content-Type': 'application/json',
+          model: this.ttsInstance.backend,
+        },
+      });
+      
+      // レスポンスヘッダーをログに記録
+      console.log('TTS Response Content-Type:', response.headers['content-type']);
+      console.log('TTS Response headers:', JSON.stringify(response.headers, null, 2));
+      
+      for await (const chunk of response.data) {
+        const audioChunk = Buffer.from(chunk);
         totalChunks++;
+        
+        // 全てのチャンクを保存（ログ用）
+        allChunksForLogging.push(Buffer.from(audioChunk));
         
         // 最初の数チャンクを保存して分析（正常な音声データを含む）
         if (totalChunks <= MAX_CHUNKS_FOR_ANALYSIS) {
@@ -428,19 +512,21 @@ class FishAudioSynthesizeStream extends tts.SynthesizeStream {
           firstChunkReceived = true;
         }
         
-        // Buffer を Int16Array (PCM) に変換
-        const allSamples = new Int16Array(
+        // 受信したチャンクをバッファに追加
+        pcmBuffer = Buffer.concat([pcmBuffer, audioChunk]);
+        
+        // チャンクの振幅を計算（音声開始検出用）
+        const chunkSamples = new Int16Array(
           audioChunk.buffer,
           audioChunk.byteOffset,
           audioChunk.length / 2,
         );
         
-        // チャンクの振幅を計算
         let chunkAbsMax = 0;
         let minSample = 0;
         let maxSample = 0;
-        if (allSamples.length > 0) {
-          const samplesArray = Array.from(allSamples);
+        if (chunkSamples.length > 0) {
+          const samplesArray = Array.from(chunkSamples);
           minSample = Math.min(...samplesArray);
           maxSample = Math.max(...samplesArray);
           chunkAbsMax = Math.max(Math.abs(minSample), Math.abs(maxSample));
@@ -449,11 +535,7 @@ class FishAudioSynthesizeStream extends tts.SynthesizeStream {
         // 正常な振幅のチャンクを特定して保存（デバッグ用）
         if (chunkAbsMax > 1000 && totalChunks > 15 && totalChunks <= 30) {
           // Chunk 15-30で正常な振幅のチャンクを保存
-          const debugDir = path.join(process.cwd(), 'debug-audio');
-          if (!fs.existsSync(debugDir)) {
-            fs.mkdirSync(debugDir, { recursive: true });
-          }
-          const debugFile = path.join(debugDir, `chunk-${totalChunks}-normal-amplitude.bin`);
+          const debugFile = path.join(debugDateDir, `chunk-${totalChunks}-normal-amplitude.bin`);
           fs.writeFileSync(debugFile, Buffer.from(audioChunk));
           console.log(`[FishAudioTTS] 💾 Saved normal amplitude chunk ${totalChunks} (absMax=${chunkAbsMax}, range=[${minSample}, ${maxSample}]) to: ${debugFile}`);
           
@@ -493,8 +575,8 @@ class FishAudioSynthesizeStream extends tts.SynthesizeStream {
         }
         
         // ゲイン調整のための最大振幅を追跡（最初の数チャンクをスキップ）
-        if (allSamples.length > 0 && totalChunks > 5 && totalChunks <= GAIN_CALIBRATION_CHUNKS) {
-          const samplesArray = Array.from(allSamples);
+        if (chunkSamples.length > 0 && totalChunks > 5 && totalChunks <= GAIN_CALIBRATION_CHUNKS) {
+          const samplesArray = Array.from(chunkSamples);
           const minSample = Math.min(...samplesArray);
           const maxSample = Math.max(...samplesArray);
           const absMax = Math.max(Math.abs(minSample), Math.abs(maxSample));
@@ -521,42 +603,171 @@ class FishAudioSynthesizeStream extends tts.SynthesizeStream {
           }
         }
         
-        // ゲインを適用（ゲインが決定されている場合）
-        let pcmData: Int16Array;
-        if (gainFactor !== null && gainFactor > 1) {
-          const scaledSamples = new Int16Array(allSamples.length);
-          for (let i = 0; i < allSamples.length; i++) {
-            const scaled = allSamples[i]! * gainFactor;
-            // クリッピングを防止
-            scaledSamples[i] = Math.max(-32767, Math.min(32767, scaled));
+        // バッファから一定サイズのフレームを抽出してLiveKitに送信
+        // バッファに十分なデータがある限り、フレームを抽出し続ける
+        while (pcmBuffer.length >= TARGET_FRAME_SIZE) {
+          // 1フレーム分のデータを抽出（コピーを作成して安全に処理）
+          const frameData = Buffer.from(pcmBuffer.slice(0, TARGET_FRAME_SIZE)); // 明示的にコピーを作成
+          pcmBuffer = pcmBuffer.slice(TARGET_FRAME_SIZE);
+          
+          // Buffer を Int16Array (PCM) に変換（コピーされたデータを使用）
+          const frameSamples = new Int16Array(
+            frameData.buffer,
+            frameData.byteOffset,
+            frameData.length / 2,
+          );
+          
+          // フレームの振幅をチェック
+          let frameAbsMax = 0;
+          if (frameSamples.length > 0) {
+            const samplesArray = Array.from(frameSamples);
+            const minSample = Math.min(...samplesArray);
+            const maxSample = Math.max(...samplesArray);
+            frameAbsMax = Math.max(Math.abs(minSample), Math.abs(maxSample));
           }
-          pcmData = scaledSamples;
-        } else {
-          // ゲインがまだ決定されていない場合、または不要な場合
-          pcmData = allSamples;
+          
+          // 音声開始後の低振幅フレームをスキップ（最初の数フレームのみ）
+          if (audioStarted && frameAbsMax < SILENCE_THRESHOLD && framesSkipped < MAX_SILENT_FRAMES_AFTER_START) {
+            framesSkipped++;
+            console.log(`[FishAudioTTS] ⏭️ Skipping low amplitude frame ${framesSent + framesSkipped} after audio start (absMax=${frameAbsMax})`);
+            continue; // このフレームをスキップ
+          }
+          
+          // ゲインを適用（ゲインが決定されている場合）
+          let pcmData: Int16Array;
+          if (gainFactor !== null && gainFactor > 1) {
+            const scaledSamples = new Int16Array(frameSamples.length);
+            for (let i = 0; i < frameSamples.length; i++) {
+              const scaled = frameSamples[i]! * gainFactor;
+              // クリッピングを防止
+              scaledSamples[i] = Math.max(-32767, Math.min(32767, scaled));
+            }
+            pcmData = scaledSamples;
+          } else {
+            // ゲインがまだ決定されていない場合、または不要な場合
+            // Int16Arrayのコピーを作成してメモリの共有を避ける
+            pcmData = new Int16Array(frameSamples);
+          }
+          
+          // LiveKit AudioFrame に変換
+          const samplesPerChannel = pcmData.length / this.ttsInstance.numChannels;
+          const audioFrame = new AudioFrame(
+            pcmData,
+            this.ttsInstance.sampleRate,
+            this.ttsInstance.numChannels,
+            samplesPerChannel,
+          );
+          
+          // LiveKitに送信する前に、実際に送信されるデータを保存（デバッグ用）
+          framesSent++;
+          if (framesSent <= 10 || (framesSent > 15 && framesSent <= 30)) {
+            // 最初の10フレームと正常な振幅のフレーム（15-30）を保存
+            const debugFrameFile = path.join(debugDateDir, `livekit-frame-${framesSent}.bin`);
+            // AudioFrameのデータを直接保存（Int16Array形式）
+            fs.writeFileSync(debugFrameFile, Buffer.from(pcmData.buffer, pcmData.byteOffset, pcmData.length * 2));
+            console.log(`[FishAudioTTS] 🔍 Saved LiveKit frame ${framesSent}: ${pcmData.length} samples, samplesPerChannel=${samplesPerChannel}, absMax=${frameAbsMax}`);
+          }
+          
+          const audio = {
+            requestId: '',
+            segmentId: `segment-${segmentId++}`,
+            frame: audioFrame,
+            final: false, // ストリーミング中は false
+          };
+          this.queue.put(audio);
         }
-        
-        // LiveKit AudioFrame に変換
-        const samplesPerChannel = pcmData.length / this.ttsInstance.numChannels;
-        const audioFrame = new AudioFrame(
-          pcmData,
-          this.ttsInstance.sampleRate,
-          this.ttsInstance.numChannels,
-          samplesPerChannel,
-        );
-        const audio = {
-          requestId: '',
-          segmentId: `segment-${segmentId++}`,
-          frame: audioFrame,
-          final: false, // ストリーミング中は false
-        };
-        this.queue.put(audio);
+      }
+      
+      // 最後にバッファに残っているデータをフラッシュ（最小サイズ以上のデータがある場合）
+      // 注意: 最後のフレームは通常のサイズより小さくなる可能性があるが、LiveKitはこれを処理できる
+      if (pcmBuffer.length > 0) {
+        const remainingSamples = pcmBuffer.length / 2;
+        if (remainingSamples > 0) {
+          // バッファの残りデータをコピーして安全に処理
+          const remainingData = Buffer.from(pcmBuffer); // 明示的にコピーを作成
+          const frameSamples = new Int16Array(
+            remainingData.buffer,
+            remainingData.byteOffset,
+            remainingSamples,
+          );
+          
+          // ゲインを適用（ゲインが決定されている場合）
+          let pcmData: Int16Array;
+          if (gainFactor !== null && gainFactor > 1) {
+            const scaledSamples = new Int16Array(frameSamples.length);
+            for (let i = 0; i < frameSamples.length; i++) {
+              const scaled = frameSamples[i]! * gainFactor;
+              scaledSamples[i] = Math.max(-32767, Math.min(32767, scaled));
+            }
+            pcmData = scaledSamples;
+          } else {
+            // ゲインがまだ決定されていない場合、または不要な場合
+            // Int16Arrayのコピーを作成してメモリの共有を避ける
+            pcmData = new Int16Array(frameSamples);
+          }
+          
+          // LiveKit AudioFrame に変換
+          const samplesPerChannel = pcmData.length / this.ttsInstance.numChannels;
+          const audioFrame = new AudioFrame(
+            pcmData,
+            this.ttsInstance.sampleRate,
+            this.ttsInstance.numChannels,
+            samplesPerChannel,
+          );
+          
+          framesSent++;
+          const audio = {
+            requestId: '',
+            segmentId: `segment-${segmentId++}`,
+            frame: audioFrame,
+            final: true, // 最後のフレームなので final=true
+          };
+          this.queue.put(audio);
+          console.log(`[FishAudioTTS] 🔍 Flushed final frame: ${pcmData.length} samples, samplesPerChannel=${samplesPerChannel}`);
+        }
       }
       
       const totalTime = Date.now() - sessionStartTime;
       console.log(
-        `[FishAudioTTS] ⏱️ Total audio generation: ${totalTime}ms (${totalChunks} chunks)`,
+        `[FishAudioTTS] ⏱️ Total audio generation: ${totalTime}ms (${totalChunks} chunks received, ${framesSent} frames sent, ${framesSkipped} frames skipped)`,
       );
+      
+      // 全てのチャンクを結合して保存（ログ用）
+      if (allChunksForLogging.length > 0) {
+        const allChunksCombined = Buffer.concat(allChunksForLogging);
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const fullAudioFile = path.join(debugDateDir, `full-audio-${timestamp}-${totalChunks}chunks.bin`);
+        fs.writeFileSync(fullAudioFile, allChunksCombined);
+        console.log(`[FishAudioTTS] 💾 Saved all ${allChunksForLogging.length} chunks (${allChunksCombined.length} bytes) to: ${fullAudioFile}`);
+        
+        // WAVファイルとしても保存（再生可能な形式）
+        const samples = new Int16Array(allChunksCombined.buffer, allChunksCombined.byteOffset, allChunksCombined.length / 2);
+        const sampleRate = this.ttsInstance.sampleRate;
+        const numChannels = this.ttsInstance.numChannels;
+        const bitsPerSample = 16;
+        const dataSize = allChunksCombined.length;
+        const fileSize = 36 + dataSize;
+        
+        const wavHeader = Buffer.alloc(44);
+        wavHeader.write('RIFF', 0);
+        wavHeader.writeUInt32LE(fileSize, 4);
+        wavHeader.write('WAVE', 8);
+        wavHeader.write('fmt ', 12);
+        wavHeader.writeUInt32LE(16, 16);
+        wavHeader.writeUInt16LE(1, 20);
+        wavHeader.writeUInt16LE(numChannels, 22);
+        wavHeader.writeUInt32LE(sampleRate, 24);
+        wavHeader.writeUInt32LE(sampleRate * numChannels * (bitsPerSample / 8), 28);
+        wavHeader.writeUInt16LE(numChannels * (bitsPerSample / 8), 32);
+        wavHeader.writeUInt16LE(bitsPerSample, 34);
+        wavHeader.write('data', 36);
+        wavHeader.writeUInt32LE(dataSize, 40);
+        
+        const wavFile = path.join(debugDateDir, `full-audio-${timestamp}-${totalChunks}chunks.wav`);
+        const wavData = Buffer.concat([wavHeader, allChunksCombined]);
+        fs.writeFileSync(wavFile, wavData);
+        console.log(`[FishAudioTTS] 💾 Saved full audio as WAV (${(samples.length / sampleRate).toFixed(3)}s) to: ${wavFile}`);
+      }
       
       // 保存したチャンクを結合して詳細分析
       if (allChunksForAnalysis.length > 0) {
@@ -569,11 +780,7 @@ class FishAudioSynthesizeStream extends tts.SynthesizeStream {
         
         // バイナリデータをファイルに保存（デバッグ用）
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-        const debugDir = path.join(process.cwd(), 'debug-audio');
-        if (!fs.existsSync(debugDir)) {
-          fs.mkdirSync(debugDir, { recursive: true });
-        }
-        const debugFile = path.join(debugDir, `fish-audio-${timestamp}-${totalChunks}chunks.bin`);
+        const debugFile = path.join(debugDateDir, `fish-audio-${timestamp}-${totalChunks}chunks.bin`);
         fs.writeFileSync(debugFile, combinedData);
         console.log(`[FishAudioTTS] 💾 Saved first ${allChunksForAnalysis.length} chunks to: ${debugFile}`);
         console.log(`[FishAudioTTS] 💾 File size: ${combinedData.length} bytes`);
