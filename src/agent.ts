@@ -16,8 +16,99 @@ import { fileURLToPath } from 'node:url';
 import * as fs from 'fs';
 import * as path from 'path';
 import { FishAudioTTS } from './custom-fish-tts.js';
+import { mastra } from './mastra/index.js';
 
 dotenv.config({ path: '.env.local' });
+
+/**
+ * モーションエージェントを呼び出してモーションを実行
+ */
+async function handleMotionAgent(
+  transcript: string,
+  room: any, // JobContext.room の型
+): Promise<void> {
+  try {
+    const motionAgent = mastra.getAgent('motionAgent');
+
+    // モーションエージェントに会話テキストを渡す
+    const response = await motionAgent.generate([
+      {
+        role: 'user',
+        content: `以下の会話内容から、適切なLive2Dモーションを選択して実行してください: ${transcript}`,
+      },
+    ]);
+
+    // ツール実行結果を確認
+    // response.toolResults の構造を確認
+    console.log('[Motion Agent] Response:', {
+      hasToolResults: !!response.toolResults,
+      toolResultsLength: response.toolResults?.length || 0,
+      toolResults: response.toolResults,
+    });
+
+    if (response.toolResults && response.toolResults.length > 0) {
+      // toolResultsは配列で、各要素はツール実行結果を含む
+      for (const toolResult of response.toolResults) {
+        // toolResultの構造を確認（型によって異なる可能性がある）
+        const result = toolResult as any;
+        
+        // resultが直接successとmotion_dataを持つ場合
+        if (result.success && result.motion_data) {
+          const motionData = result.motion_data;
+          await sendMotionToFrontend(room, motionData);
+          console.log('[Motion Agent] Motion sent:', motionData);
+          continue;
+        }
+        
+        // result.resultがsuccessとmotion_dataを持つ場合
+        if (result.result?.success && result.result?.motion_data) {
+          const motionData = result.result.motion_data;
+          await sendMotionToFrontend(room, motionData);
+          console.log('[Motion Agent] Motion sent:', motionData);
+          continue;
+        }
+        
+        // その他の構造を試す
+        if (result.motion_data) {
+          await sendMotionToFrontend(room, result.motion_data);
+          console.log('[Motion Agent] Motion sent:', result.motion_data);
+        }
+      }
+    } else {
+      console.log('[Motion Agent] No tool results found');
+    }
+  } catch (error) {
+    console.error('[Motion Agent] Failed to execute:', error);
+  }
+}
+
+/**
+ * LiveKitのData Channel経由でフロントエンドにモーションデータを送信
+ */
+async function sendMotionToFrontend(
+  room: any, // JobContext.room の型
+  motionData: any,
+): Promise<void> {
+  try {
+    // Data Channel経由でメッセージを送信
+    const message = JSON.stringify(motionData);
+    const encoder = new TextEncoder();
+    const data = encoder.encode(message);
+
+    // ローカルパブリケーションを取得してデータを送信
+    const localParticipant = room.localParticipant;
+    if (localParticipant) {
+      await localParticipant.publishData(data, {
+        reliable: true,
+        destinationIdentities: [], // 空配列で全員に送信
+      });
+
+      console.log('[Motion Agent] Data sent to frontend:', motionData);
+    }
+  } catch (error) {
+    console.error('[Motion Agent] Failed to send data:', error);
+  }
+}
 
 class Assistant extends voice.Agent {
   constructor() {
@@ -358,6 +449,20 @@ export default defineAgent({
 
     session.on(voice.AgentSessionEventTypes.AgentStateChanged, (ev) => {
       console.log(`[Agent] Agent state changed: ${ev.newState}`);
+    });
+
+    // STT完了時にモーションエージェントを呼び出す
+    session.on(voice.AgentSessionEventTypes.UserInputTranscribed, async (ev) => {
+      // 最終確定されたテキストのみを処理
+      if (!ev.isFinal) return;
+
+      const transcript = ev.transcript;
+      console.log(`[Motion Agent] STT completed: "${transcript}"`);
+
+      // モーションエージェントを呼び出す（非同期で実行、ブロックしない）
+      handleMotionAgent(transcript, ctx.room).catch((error) => {
+        console.error('[Motion Agent] Error:', error);
+      });
     });
 
     // STTエラーの詳細ログを追加
