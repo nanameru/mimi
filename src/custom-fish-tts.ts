@@ -254,6 +254,7 @@ class FishAudioSynthesizeStream extends tts.SynthesizeStream {
       // エモーションタグの前処理: 文の最初のタグのみを保持（Fish Audioは最初のタグのみを認識する可能性）
       // 1. 全てのエモーションタグを抽出
       const allEmotionTags = fullText.match(/\([^)]+\)/g) || [];
+      
       if (allEmotionTags.length > 0) {
         // 2. テキストから全てのエモーションタグを一時的に削除
         let cleanedText = fullText.replace(/\([^)]+\)/g, '').trim();
@@ -270,6 +271,18 @@ class FishAudioSynthesizeStream extends tts.SynthesizeStream {
         );
         console.log(
           `[FishAudioTTS] 📌 Using first emotion tag only: ${firstEmotionTag} (${allEmotionTags.length - 1} tag(s) removed)`,
+        );
+      } else {
+        // エモーションタグがない場合、デフォルトのエモーションタグを追加
+        // エモーションタグがない文章には感情表現が適用されないため、必ずタグを付ける
+        const defaultEmotionTag = '(calm)'; // デフォルトは落ち着いた声
+        fullText = `${defaultEmotionTag} ${fullText.trim()}`;
+        
+        console.log(
+          `[FishAudioTTS] ⚠️ No emotion tags detected! Adding default tag: ${defaultEmotionTag}`,
+        );
+        console.log(
+          `[FishAudioTTS] 📝 Original text: "${fullText.substring(0, 100)}${fullText.length > 100 ? '...' : ''}"`,
         );
       }
       
