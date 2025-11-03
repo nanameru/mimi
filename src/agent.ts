@@ -12,6 +12,7 @@ import * as silero from '@livekit/agents-plugin-silero';
 import { BackgroundVoiceCancellation } from '@livekit/noise-cancellation-node';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'node:url';
+import { FishAudioTTS } from './custom-fish-tts';
 
 dotenv.config({ path: '.env.local' });
 
@@ -76,10 +77,17 @@ export default defineAgent({
       // See all providers at https://docs.livekit.io/agents/models/llm/
       llm: 'openai/gpt-4o-mini',
 
-      // Text-to-speech (TTS) - Using OpenAI TTS with alloy voice
-      // Closest alternative to Python's Fish Audio TTS
-      // See all available models as well as voice selections at https://docs.livekit.io/agents/models/tts/
-      tts: 'openai/tts-1:alloy',
+      // Text-to-speech (TTS) - Using Fish Speech TTS with WebSocket streaming
+      // Fish Audio SDKを使用したリアルタイムストリーミング音声合成
+      // See: https://docs.fish.audio/sdk-reference/python/websocket
+      tts: new FishAudioTTS({
+        ...(process.env.FISH_AUDIO_VOICE_ID && { voiceId: process.env.FISH_AUDIO_VOICE_ID }),
+        backend: 'speech-1.5',
+        sampleRate: 44100,
+        numChannels: 1,
+        chunkLength: 100,
+        latency: 'balanced',
+      }),
 
       // VAD and turn detection are used to determine when the user is speaking and when the agent should respond
       // See more at https://docs.livekit.io/agents/build/turns
