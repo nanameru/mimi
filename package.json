@@ -49,6 +49,7 @@
     "@mastra/libsql": "^0.16.1",
     "@mastra/loggers": "^0.10.18",
     "@mastra/memory": "^0.15.9",
+    "ai": "^5.0.87",
     "codemirror": "^6.0.2",
     "dotenv": "^17.2.3",
     "fish-audio-sdk": "2025.9.11",
