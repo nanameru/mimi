@@ -29,27 +29,34 @@ export const createDocumentTool = createTool({
   execute: async ({ context, runtimeContext }: any) => {
     const { type, prompt } = context;
     const room = runtimeContext?.room;
+    const toolExecutionId = `${Date.now()}-${Math.random().toString(36).substring(7)}`;
+
+    console.log(`[Create Document Tool] 🚀 Tool execution started (ID: ${toolExecutionId})`);
+    console.log(`[Create Document Tool] Type: ${type}`);
+    console.log(`[Create Document Tool] Prompt: "${prompt.substring(0, 100)}..."`);
+    console.log(`[Create Document Tool] Timestamp: ${new Date().toISOString()}`);
 
     if (!room) {
-      console.error('[Create Document Tool] No room context available');
+      console.error(`[Create Document Tool] ❌ No room context available (ID: ${toolExecutionId})`);
       return {
         success: false,
         content: '',
       };
     }
 
-    console.log(`[Create Document Tool] Creating ${type} document with prompt: "${prompt}"`);
-
     // ストリーミング用の一意なID（このツール実行中は同じIDを使用）
     const streamId = `create-${type}-${Date.now()}`;
+    console.log(`[Create Document Tool] 📡 Stream ID: ${streamId} (ID: ${toolExecutionId})`);
 
     // ローディング状態を送信
+    console.log(`[Create Document Tool] ⏳ Sending loading state... (ID: ${toolExecutionId})`);
     await sendLoadingArtifact(room, `Creating ${type} document...`);
 
     try {
       let draftContent = '';
 
       if (type === 'text') {
+        console.log(`[Create Document Tool] 📝 Generating TEXT document... (ID: ${toolExecutionId})`);
         // テキストドキュメントの生成（ストリーミング）
         const { fullStream } = streamText({
           model: openai('gpt-4o-mini'),
@@ -57,15 +64,23 @@ export const createDocumentTool = createTool({
           prompt,
         });
 
+        let chunkCount = 0;
         for await (const delta of fullStream) {
           if (delta.type === 'text-delta') {
             draftContent += delta.text;
+            chunkCount++;
 
             // ストリーミングでフロントエンドに送信（同じstreamIdを使用）
             await sendTextArtifact(room, draftContent, true, streamId);
+            
+            if (chunkCount % 10 === 0) {
+              console.log(`[Create Document Tool] 📡 Streamed ${chunkCount} chunks, ${draftContent.length} chars (ID: ${toolExecutionId})`);
+            }
           }
         }
+        console.log(`[Create Document Tool] ✅ TEXT streaming completed: ${chunkCount} chunks, ${draftContent.length} chars (ID: ${toolExecutionId})`);
       } else if (type === 'code') {
+        console.log(`[Create Document Tool] 💻 Generating CODE document... (ID: ${toolExecutionId})`);
         // コードドキュメントの生成（ストリーミング）
         const { fullStream } = streamObject({
           model: openai('gpt-4o-mini'),
@@ -76,6 +91,7 @@ export const createDocumentTool = createTool({
           }),
         });
 
+        let chunkCount = 0;
         for await (const delta of fullStream) {
           if (delta.type === 'object') {
             const { object } = delta;
@@ -83,12 +99,19 @@ export const createDocumentTool = createTool({
 
             if (code) {
               draftContent = code;
+              chunkCount++;
               // ストリーミングでフロントエンドに送信（同じstreamIdを使用）
               await sendCodeArtifact(room, draftContent, true, streamId);
+              
+              if (chunkCount % 10 === 0) {
+                console.log(`[Create Document Tool] 📡 Streamed ${chunkCount} chunks, ${draftContent.length} chars (ID: ${toolExecutionId})`);
+              }
             }
           }
         }
+        console.log(`[Create Document Tool] ✅ CODE streaming completed: ${chunkCount} chunks, ${draftContent.length} chars (ID: ${toolExecutionId})`);
       } else if (type === 'sheet') {
+        console.log(`[Create Document Tool] 📊 Generating SPREADSHEET document... (ID: ${toolExecutionId})`);
         // スプレッドシートドキュメントの生成（ストリーミング）
         const { fullStream } = streamObject({
           model: openai('gpt-4o-mini'),
@@ -99,6 +122,7 @@ export const createDocumentTool = createTool({
           }),
         });
 
+        let chunkCount = 0;
         for await (const delta of fullStream) {
           if (delta.type === 'object') {
             const { object } = delta;
@@ -106,26 +130,36 @@ export const createDocumentTool = createTool({
 
             if (csv) {
               draftContent = csv;
+              chunkCount++;
               // ストリーミングでフロントエンドに送信（同じstreamIdを使用）
               await sendSheetArtifact(room, draftContent, true, streamId);
+              
+              if (chunkCount % 10 === 0) {
+                console.log(`[Create Document Tool] 📡 Streamed ${chunkCount} chunks, ${draftContent.length} chars (ID: ${toolExecutionId})`);
+              }
             }
           }
         }
 
         // スプレッドシートの場合は最後にもう一度送信（完了を通知）
         if (draftContent) {
+          console.log(`[Create Document Tool] 📡 Sending final sheet artifact (ID: ${toolExecutionId})`);
           await sendSheetArtifact(room, draftContent, false, streamId);
         }
+        console.log(`[Create Document Tool] ✅ SHEET streaming completed: ${chunkCount} chunks, ${draftContent.length} chars (ID: ${toolExecutionId})`);
       }
 
-      console.log(`[Create Document Tool] Successfully created ${type} document (${draftContent.length} chars)`);
+      console.log(`[Create Document Tool] 🎉 Successfully created ${type} document (${draftContent.length} chars) (ID: ${toolExecutionId})`);
 
       return {
         success: true,
         content: draftContent,
       };
     } catch (error) {
-      console.error('[Create Document Tool] Error:', error);
+      console.error(`[Create Document Tool] ❌ Error (ID: ${toolExecutionId}):`, error);
+      if (error instanceof Error) {
+        console.error(`[Create Document Tool] ❌ Stack trace (ID: ${toolExecutionId}):`, error.stack);
+      }
       return {
         success: false,
         content: '',

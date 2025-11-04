@@ -47,7 +47,9 @@ async function handleTaskAgent(
   conversationHistory: any[],
   room: any,
 ): Promise<void> {
-  console.log(`[Task Agent] Starting task execution...`);
+  const executionId = `${Date.now()}-${Math.random().toString(36).substring(7)}`;
+  console.log(`[Task Agent] 🚀 Starting task execution... (ID: ${executionId})`);
+  console.log(`[Task Agent] Timestamp: ${new Date().toISOString()}`);
   
   try {
     const taskAgent = mastra.getAgent('taskAgent');
@@ -59,7 +61,7 @@ async function handleTaskAgent(
       .slice(-1)[0];
 
     if (!lastUserMessage) {
-      console.log('[Task Agent] No user message found in history, skipping task execution');
+      console.log(`[Task Agent] ⚠️ No user message found in history, skipping task execution (ID: ${executionId})`);
       return;
     }
 
@@ -69,11 +71,18 @@ async function handleTaskAgent(
         ? lastUserMessage.content.map((c: any) => typeof c === 'string' ? c : c.text || '').join('')
         : String(lastUserMessage.content || '');
 
-    console.log(`[Task Agent] User message: "${userContent}"`);
+    console.log(`[Task Agent] 💬 User message: "${userContent}" (ID: ${executionId})`);
 
     // 実行済みタスクの履歴を取得
     const roomTaskHistory = executedTasksHistory.get(roomName) || [];
-    console.log(`[Task Agent] Found ${roomTaskHistory.length} previously executed tasks`);
+    console.log(`[Task Agent] 📚 Found ${roomTaskHistory.length} previously executed tasks (ID: ${executionId})`);
+    
+    if (roomTaskHistory.length > 0) {
+      console.log(`[Task Agent] 📋 Task history details:`);
+      roomTaskHistory.forEach((task, idx) => {
+        console.log(`  ${idx + 1}. ${task.toolName} - "${task.userMessage.substring(0, 50)}..." (${new Date(task.timestamp).toLocaleString('ja-JP')})`);
+      });
+    }
 
     // タスクエージェントに会話履歴を渡す（最後の数件のみ）
     const recentHistory = conversationHistory.slice(-10); // 最後の10件に増やす
@@ -105,13 +114,14 @@ async function handleTaskAgent(
         content: `【重要】以下は既に実行済みのタスクです。同じタスクを再度実行しないでください：\n${taskHistoryText}`,
       });
       
-      console.log(`[Task Agent] Added task history context:\n${taskHistoryText}`);
+      console.log(`[Task Agent] ⚠️ Added task history context to prevent duplicates (ID: ${executionId})`);
     }
 
     // タスクエージェントを実行
-    console.log(`[Task Agent] Calling taskAgent.generate() with ${messages.length} messages`);
-    console.log(`[Task Agent] Messages:`, JSON.stringify(messages, null, 2));
+    console.log(`[Task Agent] 🤖 Calling taskAgent.generate() with ${messages.length} messages (ID: ${executionId})`);
+    console.log(`[Task Agent] 📝 Messages:`, JSON.stringify(messages, null, 2));
     
+    const startTime = Date.now();
     const response = await taskAgent.generate(
       messages as any, // Mastra の型定義に合わせるため
       {
@@ -121,14 +131,18 @@ async function handleTaskAgent(
         } as any, // RuntimeContext に room を追加するため
       }
     );
+    const endTime = Date.now();
 
     const responseText = response.text || '';
-    console.log(`[Task Agent] Response: "${responseText}"`);
+    console.log(`[Task Agent] ✅ Response received in ${endTime - startTime}ms: "${responseText}" (ID: ${executionId})`);
     
     // ツールが実行されたかどうかを確認
     if ((response as any).toolCalls && (response as any).toolCalls.length > 0) {
       const toolCalls = (response as any).toolCalls;
-      console.log(`[Task Agent] Tool calls executed:`, toolCalls);
+      console.log(`[Task Agent] 🔧 Tool calls executed (${toolCalls.length} tools) (ID: ${executionId}):`);
+      toolCalls.forEach((tc: any, idx: number) => {
+        console.log(`  ${idx + 1}. ${tc.toolName} with args:`, JSON.stringify(tc.args, null, 2));
+      });
       
       // 実行されたタスクを履歴に記録
       if (!executedTasksHistory.has(roomName)) {
@@ -147,24 +161,30 @@ async function handleTaskAgent(
         };
         
         history.push(executedTask);
-        console.log(`[Task Agent] Recorded executed task: ${executedTask.toolName} for message: "${userContent}"`);
+        console.log(`[Task Agent] 💾 Recorded executed task: ${executedTask.toolName} for message: "${userContent.substring(0, 50)}..." (ID: ${executionId})`);
       }
       
       // 履歴が長くなりすぎないように制限（最新20件まで）
       if (history.length > 20) {
         history.splice(0, history.length - 20);
-        console.log(`[Task Agent] Trimmed task history to 20 most recent tasks`);
+        console.log(`[Task Agent] 🗑️ Trimmed task history to 20 most recent tasks (ID: ${executionId})`);
       }
+      
+      console.log(`[Task Agent] 📊 Total executed tasks in history: ${history.length} (ID: ${executionId})`);
     } else {
-      console.log(`[Task Agent] No tool calls executed`);
+      console.log(`[Task Agent] ⏭️ No tool calls executed (ID: ${executionId})`);
     }
     
     // レスポンス全体をログに出力（デバッグ用）
-    console.log(`[Task Agent] Full response object:`, JSON.stringify(response, null, 2));
+    console.log(`[Task Agent] 🔍 Full response object (ID: ${executionId}):`, JSON.stringify(response, null, 2));
     
+    console.log(`[Task Agent] 🏁 Task execution completed (ID: ${executionId})`);
     // レスポンスは返さない（非同期で実行するため）
   } catch (error) {
-    console.error(`[Task Agent] Error:`, error);
+    console.error(`[Task Agent] ❌ Error (ID: ${executionId}):`, error);
+    if (error instanceof Error) {
+      console.error(`[Task Agent] ❌ Stack trace (ID: ${executionId}):`, error.stack);
+    }
     // エラーが発生しても処理を続行する（非同期実行のため）
   }
 }
@@ -932,21 +952,42 @@ export default defineAgent({
       // ユーザーのメッセージ時：タスクエージェントを実行
       if (ev.item.role === 'user') {
         const taskStartTime = Date.now();
+        const eventId = `${Date.now()}-${Math.random().toString(36).substring(7)}`;
+        
+        // contentを文字列に変換
+        let userMessage = '';
+        if (typeof ev.item.content === 'string') {
+          userMessage = ev.item.content;
+        } else if (Array.isArray(ev.item.content)) {
+          userMessage = ev.item.content
+            .map((item: any) => {
+              if (typeof item === 'string') return item;
+              else if (item && typeof item.text === 'string') return item.text;
+              return '';
+            })
+            .join('');
+        } else if (ev.item.content && typeof ev.item.content === 'object' && 'text' in ev.item.content) {
+          userMessage = String((ev.item.content as any).text || '');
+        } else {
+          userMessage = String(ev.item.content || '');
+        }
         
         // 会話履歴を取得して Mastra の taskAgent を実行
         // taskAgent 自身が会話履歴を分析して、タスク実行が必要かどうかを判断する
         const conversationHistory = session.history?.items || [];
         
-        console.log(`[Task Agent] ★★★ Executing taskAgent to analyze user message... ★★★`);
-        console.log(`[Task Agent] Conversation history length: ${conversationHistory.length}`);
+        console.log(`[ConversationItemAdded] ★★★ USER MESSAGE DETECTED ★★★ (Event ID: ${eventId})`);
+        console.log(`[ConversationItemAdded] User message: "${userMessage.substring(0, 100)}..."`);
+        console.log(`[ConversationItemAdded] Conversation history length: ${conversationHistory.length}`);
+        console.log(`[ConversationItemAdded] Triggering taskAgent execution...`);
         
         // 非同期でタスクエージェントを実行（ブロックしない）
         handleTaskAgent(conversationHistory, ctx.room).then(() => {
           const taskEndTime = Date.now();
-          console.log(`[Task Agent] ★★★ Completed in ${taskEndTime - taskStartTime}ms ★★★`);
+          console.log(`[ConversationItemAdded] ✅ TaskAgent completed in ${taskEndTime - taskStartTime}ms (Event ID: ${eventId})`);
         }).catch((error) => {
           const taskEndTime = Date.now();
-          console.error(`[Task Agent] ★★★ Error after ${taskEndTime - taskStartTime}ms ★★★:`, error);
+          console.error(`[ConversationItemAdded] ❌ TaskAgent error after ${taskEndTime - taskStartTime}ms (Event ID: ${eventId}):`, error);
         });
       }
     });
