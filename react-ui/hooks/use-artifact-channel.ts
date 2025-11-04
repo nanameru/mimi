@@ -29,12 +29,27 @@ export function useArtifactChannel() {
         console.log(`[useArtifactChannel] 🔔 Received notification (ID: ${receiveId}):`, {
           artifactType: notification.artifactType,
           title: notification.title,
+          streamId: notification.streamId,
         });
         
-        // 通知を追加（最大10件まで保持）
+        // 同じstreamIdの通知を更新、なければ追加
         setNotifications((prev) => {
-          const newNotifications = [...prev, notification].slice(-10);
-          return newNotifications;
+          // streamIdが同じ通知を探す
+          const existingIndex = notification.streamId 
+            ? prev.findIndex(n => n.streamId === notification.streamId)
+            : -1;
+          
+          if (existingIndex !== -1) {
+            // 既存の通知を更新
+            console.log(`[useArtifactChannel] 🔄 Updating existing notification with streamId: ${notification.streamId}`);
+            const updated = [...prev];
+            updated[existingIndex] = notification;
+            return updated;
+          } else {
+            // 新しい通知を追加（最大10件まで保持）
+            console.log(`[useArtifactChannel] ➕ Adding new notification with streamId: ${notification.streamId}`);
+            return [...prev, notification].slice(-10);
+          }
         });
         return;
       }
