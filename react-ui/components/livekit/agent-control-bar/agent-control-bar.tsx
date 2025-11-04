@@ -192,7 +192,7 @@ export function AgentControlBar({
             variant="destructive"
             onClick={handleDisconnect}
             disabled={!isSessionActive}
-            className="font-mono"
+            className="font-mono bg-black text-white border-black hover:bg-gray-800 focus:bg-gray-800"
           >
             <PhoneDisconnectIcon weight="bold" />
             <span className="hidden md:inline">END CALL</span>
