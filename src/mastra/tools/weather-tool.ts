@@ -148,7 +148,7 @@ const getWeather = async (location: string) => {
     console.log(`[Weather Tool] Trying geocoding query: "${query}"`);
     
     try {
-      const geocodingResponse = await fetch(geocodingUrl);
+  const geocodingResponse = await fetch(geocodingUrl);
       const data = (await geocodingResponse.json()) as GeocodingResponse;
       
       if (data.results?.[0]) {

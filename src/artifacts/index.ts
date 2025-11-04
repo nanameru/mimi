@@ -3,7 +3,14 @@
  */
 
 import type { Room } from 'livekit-server-sdk';
-import type { ArtifactData, WeatherArtifact, LoadingArtifact } from './types';
+import type {
+  ArtifactData,
+  WeatherArtifact,
+  TextArtifact,
+  CodeArtifact,
+  SheetArtifact,
+  LoadingArtifact,
+} from './types';
 
 /**
  * アーティファクトデータをLiveKit Data Channelで送信
@@ -40,6 +47,61 @@ export async function sendWeatherArtifact(
     timestamp: Date.now(),
     ...artifact,
   });
+}
+
+/**
+ * テキストアーティファクトを送信（ストリーミング対応）
+ * delta（差分）を送信する場合は、既存のcontentに追加される
+ */
+export async function sendTextArtifact(
+  room: Room,
+  content: string,
+  isDelta: boolean = false
+): Promise<void> {
+  const artifact: TextArtifact = {
+    type: 'artifact',
+    kind: 'text',
+    content,
+    timestamp: Date.now(),
+  };
+
+  await sendArtifact(room, artifact);
+}
+
+/**
+ * コードアーティファクトを送信（ストリーミング対応）
+ */
+export async function sendCodeArtifact(
+  room: Room,
+  content: string,
+  isDelta: boolean = false
+): Promise<void> {
+  const artifact: CodeArtifact = {
+    type: 'artifact',
+    kind: 'code',
+    content,
+    timestamp: Date.now(),
+  };
+
+  await sendArtifact(room, artifact);
+}
+
+/**
+ * スプレッドシートアーティファクトを送信（ストリーミング対応）
+ */
+export async function sendSheetArtifact(
+  room: Room,
+  content: string,
+  isDelta: boolean = false
+): Promise<void> {
+  const artifact: SheetArtifact = {
+    type: 'artifact',
+    kind: 'sheet',
+    content,
+    timestamp: Date.now(),
+  };
+
+  await sendArtifact(room, artifact);
 }
 
 /**

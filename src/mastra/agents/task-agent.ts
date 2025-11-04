@@ -3,6 +3,8 @@ import { Agent } from '@mastra/core/agent';
 import { Memory } from '@mastra/memory';
 import { LibSQLStore } from '@mastra/libsql';
 import { weatherTool } from '../tools/weather-tool';
+import { createDocumentTool } from '../tools/create-document-tool';
+import { updateDocumentTool } from '../tools/update-document-tool';
 
 /**
  * タスクエージェント
@@ -29,6 +31,16 @@ export const taskAgent = new Agent({
 - ユーザーが「○○の天気」「気温」「天気予報」などと言及している場合に実行してください
 - 気温、湿度、風速などの詳細情報を提供します
 
+### ドキュメント作成
+- テキスト、コード、スプレッドシートのドキュメントを作成できます
+- ユーザーが「メールの下書きを作成して」「コードを書いて」「表を作成して」などと言及している場合に実行してください
+- createDocumentToolを使用して、type（text/code/sheet）とpromptを指定してください
+
+### ドキュメント更新
+- 既存のドキュメントを更新できます
+- ユーザーが「このドキュメントを修正して」「コードを改善して」などと言及している場合に実行してください
+- updateDocumentToolを使用して、type、currentContent、updatePromptを指定してください
+
 ## 応答のガイドライン
 
 - **タスク実行が必要な場合のみ応答してください**
@@ -42,12 +54,22 @@ export const taskAgent = new Agent({
 ユーザー: 「東京の天気を教えて」
 あなた: weatherTool を実行して、結果を返す
 
+ユーザー: 「メールの下書きを作成して」
+あなた: createDocumentTool({ type: 'text', prompt: 'メールの下書き' }) を実行
+
+ユーザー: 「PythonでFizzBuzzを書いて」
+あなた: createDocumentTool({ type: 'code', prompt: 'PythonでFizzBuzzプログラムを作成' }) を実行
+
 ### タスク実行が不要な場合
 ユーザー: 「こんにちは」
 あなた: ツールを実行せず、応答もしない（タスク実行が不要なため）
   `,
   model: openai('gpt-4o-mini'),
-  tools: { weatherTool },
+  tools: {
+    weatherTool,
+    createDocumentTool,
+    updateDocumentTool,
+  },
   memory: new Memory({
     storage: new LibSQLStore({
       url: 'file:../mastra.db',

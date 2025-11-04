@@ -20,8 +20,31 @@ export function useArtifactChannel() {
 
       console.log('[useArtifactChannel] Received:', data);
 
-      // アーティファクトを更新
-      setArtifact(data);
+      // ストリーミング対応: contentが含まれている場合、既存のcontentに追加または置き換え
+      if (data.content !== undefined) {
+        setArtifact((prev) => {
+          // 新しいkindまたは新しいtimestampの場合、完全に置き換え
+          if (!prev || prev.kind !== data.kind || prev.timestamp !== data.timestamp) {
+            return data;
+          }
+
+          // 同じkindで、contentがストリーミングで送られてくる場合
+          if (prev.content && data.content) {
+            // 既存のcontentよりも新しいcontentが短い場合、これは完全な置き換え（新規生成）
+            if (data.content.length < prev.content.length) {
+              return data;
+            }
+            // 既存のcontentに追加（ストリーミング）
+            // バックエンドから完全なcontentが送られてくるので、単純に置き換え
+            return data;
+          }
+
+          return data;
+        });
+      } else {
+        // contentがない場合（weather、loadingなど）、そのまま置き換え
+        setArtifact(data);
+      }
 
       // 一定時間後に自動でクリア（loading以外）
       if (data.kind !== 'loading' && data.message === '') {

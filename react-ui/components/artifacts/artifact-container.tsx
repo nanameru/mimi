@@ -8,7 +8,16 @@
 import { AnimatePresence } from 'motion/react';
 import { useArtifactChannel } from '@/hooks/use-artifact-channel';
 import { WeatherCard } from './weather-card';
-import type { WeatherArtifact, LoadingArtifact } from './types';
+import { TextEditor } from './text-editor';
+import { CodeEditor } from './code-editor';
+import { SheetEditor } from './sheet-editor';
+import type {
+  WeatherArtifact,
+  TextArtifact,
+  CodeArtifact,
+  SheetArtifact,
+  LoadingArtifact,
+} from './types';
 
 export function ArtifactContainer() {
   const artifact = useArtifactChannel();
@@ -18,8 +27,11 @@ export function ArtifactContainer() {
     return null;
   }
 
+  // コンテンツの種類に応じてストリーミング状態を判定
+  const isStreaming = artifact.content !== undefined && artifact.content.length > 0;
+
   return (
-    <div className="fixed right-4 top-20 z-30 pointer-events-none">
+    <div className="fixed right-4 top-20 z-30 pointer-events-none w-[420px] max-h-[calc(100vh-5rem)] overflow-y-auto">
       {/* アーティファクトコンテンツ */}
       <div className="pointer-events-auto">
         <AnimatePresence mode="wait">
@@ -28,6 +40,43 @@ export function ArtifactContainer() {
               key="weather"
               weather={(artifact as WeatherArtifact).data}
             />
+          )}
+
+          {artifact.kind === 'text' && (
+            <div
+              key="text"
+              className="w-full bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl overflow-hidden"
+            >
+              <TextEditor
+                content={(artifact as TextArtifact).content || ''}
+                status={isStreaming ? 'streaming' : 'idle'}
+              />
+            </div>
+          )}
+
+          {artifact.kind === 'code' && (
+            <div
+              key="code"
+              className="w-full bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl overflow-hidden"
+            >
+              <CodeEditor
+                content={(artifact as CodeArtifact).content || ''}
+                status={isStreaming ? 'streaming' : 'idle'}
+              />
+            </div>
+          )}
+
+          {artifact.kind === 'sheet' && (
+            <div
+              key="sheet"
+              className="w-full bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl overflow-hidden"
+              style={{ height: '600px' }}
+            >
+              <SheetEditor
+                content={(artifact as SheetArtifact).content || ''}
+                status={isStreaming ? 'streaming' : 'idle'}
+              />
+            </div>
           )}
 
           {artifact.kind === 'loading' && (
