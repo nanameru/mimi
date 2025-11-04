@@ -99,8 +99,8 @@ export const SessionView = ({
   // アーティファクトが表示されているかどうか
   const hasArtifact = artifact && !(artifact.kind === 'loading' && !artifact.message);
   
-  // アーティファクトの幅 + マージン（w-96 = 384px + right-4 = 16px + 余白 = 約420px）
-  const artifactWidth = hasArtifact ? 420 : 0;
+  // アーティファクトの幅 + マージン（w-96 = 384px + right-4 = 16px + 余白 = 約200pxで調整）
+  const artifactWidth = hasArtifact ? 200 : 0;
 
   const controls: ControlBarControls = {
     leave: true,
