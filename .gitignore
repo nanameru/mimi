@@ -205,3 +205,6 @@ ehthumbs.db
 
 # Debug audio files (should not be committed but accessible in Cursor)
 debug-audio/
+
+# pnpm store
+.pnpm-store/
