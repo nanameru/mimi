@@ -149,40 +149,32 @@ export const createDocumentTool = createTool({
         }
         console.log(`[Create Document Tool] ✅ SHEET streaming completed: ${chunkCount} chunks, ${draftContent.length} chars (ID: ${toolExecutionId})`);
       } else if (type === 'slide') {
-        console.log(`[Create Document Tool] 🎬 Generating SLIDE document... (ID: ${toolExecutionId})`);
-        // スライドドキュメントの生成（ストリーミング）
-        // maxTokensで生成量を制限（1つのスライドHTMLは通常2000トークン以下）
+        console.log(`[Create Document Tool] 🎬 Generating SLIDE deck... (ID: ${toolExecutionId})`);
+        // スライドデッキの生成（ストリーミング）
+        // maxTokensを大幅に増やして複数枚のスライドをサポート
         const { fullStream } = streamText({
           model: openai('gpt-4o-mini'),
           system: slidePrompt,
           prompt,
-          maxTokens: 2000, // 1つのスライドHTMLに制限
+          maxTokens: 8000, // 複数枚のスライドデッキ用（約5-20枚）
         });
 
         let chunkCount = 0;
-        let stopReason: string | null = null;
         
         for await (const delta of fullStream) {
           if (delta.type === 'text-delta') {
             draftContent += delta.text;
             chunkCount++;
 
-            // </html>が出現したら完了とみなす（1つのスライドが完成）
-            if (draftContent.includes('</html>')) {
-              console.log(`[Create Document Tool] 🎯 Detected </html>, stopping stream (ID: ${toolExecutionId})`);
-              stopReason = 'complete_html';
-              break;
-            }
-
             // ストリーミングでフロントエンドに送信（同じstreamIdを使用）
             await sendSlideArtifact(room, draftContent, true, streamId);
             
-            if (chunkCount % 10 === 0) {
+            if (chunkCount % 50 === 0) {
               console.log(`[Create Document Tool] 📡 Streamed ${chunkCount} chunks, ${draftContent.length} chars (ID: ${toolExecutionId})`);
             }
           }
         }
-        console.log(`[Create Document Tool] ✅ SLIDE streaming completed: ${chunkCount} chunks, ${draftContent.length} chars, reason: ${stopReason || 'natural'} (ID: ${toolExecutionId})`);
+        console.log(`[Create Document Tool] ✅ SLIDE deck streaming completed: ${chunkCount} chunks, ${draftContent.length} chars (ID: ${toolExecutionId})`);
       }
 
       console.log(`[Create Document Tool] 🎉 Successfully created ${type} document (${draftContent.length} chars) (ID: ${toolExecutionId})`);

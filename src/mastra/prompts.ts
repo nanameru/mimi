@@ -37,120 +37,159 @@ Write about the given topic. Markdown is supported. Use headings wherever approp
 `;
 
 export const slidePrompt = `
-You are an HTML slide generator. Generate EXACTLY ONE beautiful, modern presentation slide.
+You are an HTML presentation deck generator. Generate a beautiful, modern slide deck with multiple slides and navigation.
 
-⚠️ CRITICAL RULES - READ CAREFULLY:
-1. Output ONLY raw HTML code - NO markdown code blocks (no \`\`\`html), NO explanations, NO multiple slides
+⚠️ CRITICAL RULES:
+1. Output ONLY raw HTML code - NO markdown code blocks (no \`\`\`html), NO explanations
 2. Start directly with <!DOCTYPE html> and end with </html>
-3. Generate EXACTLY ONE slide, not multiple slides - NEVER generate multiple HTML documents
-4. Body dimensions: EXACTLY 960px × 540px (16:9 ratio)
-5. Use the FULL screen space - minimize margins
-6. Create visually rich, modern designs with gradients, colors, and professional layouts
-7. If the user requests multiple slides (e.g., "10 slides", "20 slides"), generate ONLY THE FIRST ONE
-8. Stop after generating ONE complete HTML document
+3. Create a slide deck with navigation (arrow keys, buttons)
+4. Each slide must be 960px × 540px (16:9 ratio)
+5. Use visually rich, modern designs: gradients, icons, animations, professional layouts
+6. Include navigation buttons and keyboard support (←/→ arrows)
 
-DESIGN PATTERNS (choose one and customize):
-
-Pattern 1 - Full Background with Overlay:
 <!DOCTYPE html>
 <html>
 <head>
+<meta charset="UTF-8">
 <style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
 body {
-  margin: 0;
-  padding: 0;
+  font-family: 'Arial', 'Helvetica', 'Noto Sans JP', sans-serif;
+  overflow: hidden;
+}
+.slide-container {
   width: 960px;
   height: 540px;
-  font-family: 'Arial', 'Helvetica', 'Noto Sans JP', sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  position: relative;
+  overflow: hidden;
+}
+.slide {
+  width: 960px;
+  height: 540px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: none;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+.slide.active {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  opacity: 1;
+}
+.nav-button {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255,255,255,0.9);
+  border: none;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 24px;
+  color: #333;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  z-index: 100;
+  transition: all 0.3s;
+}
+.nav-button:hover { background: white; box-shadow: 0 6px 20px rgba(0,0,0,0.25); }
+.prev-btn { left: 20px; }
+.next-btn { right: 20px; }
+.slide-counter {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  background: rgba(0,0,0,0.6);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  z-index: 100;
 }
 </style>
 </head>
 <body>
-  <div style="text-align: center; color: white; padding: 60px;">
-    <h1 style="font-size: 64px; margin: 0 0 30px 0; font-weight: bold; text-shadow: 0 4px 20px rgba(0,0,0,0.3);">Title</h1>
-    <p style="font-size: 28px; line-height: 1.6; opacity: 0.95;">Subtitle or key message</p>
-  </div>
-</body>
-</html>
+<div class="slide-container">
 
-Pattern 2 - Split Screen Design:
-<!DOCTYPE html>
-<html>
-<head>
-<style>
-body {
-  margin: 0;
-  padding: 0;
-  width: 960px;
-  height: 540px;
-  font-family: 'Arial', 'Helvetica', 'Noto Sans JP', sans-serif;
-  display: flex;
-}
-</style>
-</head>
-<body>
-  <div style="flex: 1; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; padding: 40px;">
-    <h1 style="font-size: 56px; font-weight: bold; text-shadow: 0 4px 20px rgba(0,0,0,0.3);">Title</h1>
-  </div>
-  <div style="flex: 1; background: white; padding: 50px; display: flex; flex-direction: column; justify-content: center;">
-    <ul style="list-style: none; padding: 0; margin: 0;">
-      <li style="font-size: 24px; margin-bottom: 20px; padding-left: 30px; position: relative;">
-        <span style="position: absolute; left: 0; color: #667eea;">●</span>
-        Point 1
+<!-- Slide 1: Title Slide -->
+<div class="slide active" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); align-items: center; justify-content: center; flex-direction: column;">
+  <h1 style="font-size: 72px; font-weight: bold; color: white; text-shadow: 0 4px 20px rgba(0,0,0,0.3); margin-bottom: 20px; text-align: center;">Your Title Here</h1>
+  <p style="font-size: 28px; color: rgba(255,255,255,0.9); text-align: center;">Subtitle or tagline</p>
+</div>
+
+<!-- Slide 2: Content Slide -->
+<div class="slide" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 60px;">
+  <div style="background: white; border-radius: 20px; padding: 50px; height: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+    <h2 style="font-size: 48px; color: #f5576c; margin-bottom: 30px; border-left: 6px solid #f5576c; padding-left: 20px;">Section Title</h2>
+    <ul style="list-style: none; font-size: 24px; line-height: 2; color: #333;">
+      <li style="margin-bottom: 15px; padding-left: 30px; position: relative;">
+        <span style="position: absolute; left: 0; color: #f5576c; font-size: 30px;">●</span>
+        Key point 1
       </li>
-      <li style="font-size: 24px; margin-bottom: 20px; padding-left: 30px; position: relative;">
-        <span style="position: absolute; left: 0; color: #667eea;">●</span>
-        Point 2
+      <li style="margin-bottom: 15px; padding-left: 30px; position: relative;">
+        <span style="position: absolute; left: 0; color: #f5576c; font-size: 30px;">●</span>
+        Key point 2
+      </li>
+      <li style="padding-left: 30px; position: relative;">
+        <span style="position: absolute; left: 0; color: #f5576c; font-size: 30px;">●</span>
+        Key point 3
       </li>
     </ul>
   </div>
-</body>
-</html>
+</div>
 
-Pattern 3 - Card with Full Width:
-<!DOCTYPE html>
-<html>
-<head>
-<style>
-body {
-  margin: 0;
-  padding: 0;
-  width: 960px;
-  height: 540px;
-  font-family: 'Arial', 'Helvetica', 'Noto Sans JP', sans-serif;
-  background: #f5f5f5;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+<!-- Add more slides following this pattern -->
+
+<!-- Navigation -->
+<button class="nav-button prev-btn" onclick="changeSlide(-1)">‹</button>
+<button class="nav-button next-btn" onclick="changeSlide(1)">›</button>
+<div class="slide-counter"><span id="current">1</span> / <span id="total">2</span></div>
+</div>
+
+<script>
+let currentSlide = 0;
+const slides = document.querySelectorAll('.slide');
+const totalSlides = slides.length;
+document.getElementById('total').textContent = totalSlides;
+
+function showSlide(n) {
+  slides[currentSlide].classList.remove('active');
+  currentSlide = (n + totalSlides) % totalSlides;
+  slides[currentSlide].classList.add('active');
+  document.getElementById('current').textContent = currentSlide + 1;
 }
-</style>
-</head>
-<body>
-  <div style="background: white; border-radius: 20px; padding: 60px 80px; box-shadow: 0 20px 80px rgba(0,0,0,0.15); width: 800px;">
-    <div style="border-left: 6px solid #667eea; padding-left: 30px; margin-bottom: 40px;">
-      <h1 style="color: #667eea; font-size: 48px; margin: 0; font-weight: bold;">Title</h1>
-    </div>
-    <p style="font-size: 22px; line-height: 1.7; color: #333; margin: 0;">Content goes here with good typography and spacing.</p>
-  </div>
+
+function changeSlide(direction) {
+  showSlide(currentSlide + direction);
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowLeft') changeSlide(-1);
+  if (e.key === 'ArrowRight') changeSlide(1);
+});
+</script>
 </body>
 </html>
 
-REQUIREMENTS:
-- Use FULL 960×540px space (minimize unused areas)
-- Rich gradients (linear-gradient with multiple colors)
-- Large, bold typography (48-72px for titles)
-- Professional color schemes
-- Modern spacing and shadows
-- Support Japanese text with proper fonts
-- NO code block markers (\`\`\`html) - output raw HTML only
-- Generate ONLY ONE slide
+DESIGN TIPS:
+- Vary slide layouts: full background, split screen, card-based, image + text
+- Use different gradient combinations for each slide
+- Large typography (48-72px for titles, 24-32px for content)
+- Icons using Unicode symbols: ✓ ● ★ → ← ↑ ↓ ◆ ◇ ■ □
+- Professional color schemes: purple (#667eea, #764ba2), pink (#f093fb, #f5576c), blue (#4facfe, #00f2fe), green (#43e97b, #38f9d7)
+- Animations via CSS transitions
+- Each slide should be visually distinct and engaging
 
-START YOUR OUTPUT WITH: <!DOCTYPE html>
-END YOUR OUTPUT WITH: </html>
+RULES:
+- Output ONLY raw HTML (no \`\`\`html markers)
+- Create 5-20 slides based on content needs
+- Support Japanese text with proper fonts
+- Include navigation (buttons + arrow keys)
+- Each slide: 960×540px
+
+START WITH: <!DOCTYPE html>
+END WITH: </html>
 OUTPUT NOTHING ELSE.
 `;
 
