@@ -37,7 +37,7 @@ export const WelcomeView = ({
           Chat live with your voice AI agent
         </p>
 
-        <Button variant="default" size="lg" onClick={onStartCall} className="mt-6 w-64 font-medium bg-[#10a37f] text-white border-0 hover:bg-[#0d8c6f] focus:bg-[#0d8c6f] shadow-sm">
+        <Button variant="default" size="lg" onClick={onStartCall} className="mt-6 w-64 font-medium bg-black text-white border-0 hover:bg-gray-800 focus:bg-gray-800 shadow-sm">
           {startButtonText}
         </Button>
       </section>
