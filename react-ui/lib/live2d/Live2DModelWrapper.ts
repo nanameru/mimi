@@ -157,11 +157,11 @@ export class Live2DModelWrapper {
     this._projection = new CubismMatrix44();
     this.updateProjection();
 
-    // モデル行列を設定（画面中央に配置）
+    // モデル行列を設定（画面右側に配置、上半身のみ表示）
     const modelMatrix = this._model.getModelMatrix();
-    modelMatrix.setHeight(2.8); // モデルサイズを調整
-    modelMatrix.centerX(0.0);
-    modelMatrix.setY(-0.2); // 少し下に配置
+    modelMatrix.setHeight(4.5); // モデルサイズを大きくする
+    modelMatrix.centerX(1.0); // 右端に配置（元に戻す）
+    modelMatrix.setY(-1.8); // Y位置を調整（埋まらないように少し上に）
 
     // レンダリングループを開始
     this._lastUpdateTime = Date.now();
@@ -253,6 +253,17 @@ export class Live2DModelWrapper {
   setLipSyncValue(value: number): void {
     if (this._model) {
       this._model.setLipSyncValue(value);
+    }
+  }
+
+  /**
+   * マウス位置を設定（顔の向きを変更）
+   * @param x X座標（-1.0 ~ 1.0、左が負、右が正）
+   * @param y Y座標（-1.0 ~ 1.0、下が負、上が正）
+   */
+  setMousePosition(x: number, y: number): void {
+    if (this._model) {
+      this._model.setMousePosition(x, y);
     }
   }
 

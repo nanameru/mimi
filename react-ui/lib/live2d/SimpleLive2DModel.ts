@@ -491,6 +491,37 @@ export class SimpleLive2DModel extends CubismUserModel {
       }
     }
 
+    // ドラッグによる顔の向き変更（マウストラッキング）
+    if (this._dragManager) {
+      this._dragManager.update(deltaTimeSeconds);
+      const dragX = this._dragManager.getX();
+      const dragY = this._dragManager.getY();
+
+      // 顔の向きパラメータを設定
+      if (this._idParamAngleX) {
+        this._model.addParameterValueById(this._idParamAngleX, dragX * 30, 1.0); // -30 ~ 30度
+      }
+      if (this._idParamAngleY) {
+        this._model.addParameterValueById(this._idParamAngleY, dragY * 30, 1.0); // -30 ~ 30度
+      }
+      if (this._idParamAngleZ) {
+        this._model.addParameterValueById(this._idParamAngleZ, dragX * dragY * -30, 1.0);
+      }
+
+      // 体の向きパラメータを設定
+      if (this._idParamBodyAngleX) {
+        this._model.addParameterValueById(this._idParamBodyAngleX, dragX * 10, 1.0); // -10 ~ 10度
+      }
+
+      // 目の向きパラメータを設定
+      if (this._idParamEyeBallX) {
+        this._model.addParameterValueById(this._idParamEyeBallX, dragX, 1.0); // -1.0 ~ 1.0
+      }
+      if (this._idParamEyeBallY) {
+        this._model.addParameterValueById(this._idParamEyeBallY, dragY, 1.0); // -1.0 ~ 1.0
+      }
+    }
+
     // モデルを更新
     this._model.update();
   }
@@ -641,6 +672,17 @@ export class SimpleLive2DModel extends CubismUserModel {
    */
   public getLipSyncValue(): number {
     return this._lipSyncValue;
+  }
+
+  /**
+   * マウス位置を設定（顔の向きを変更）
+   * @param x X座標（-1.0 ~ 1.0、左が負、右が正）
+   * @param y Y座標（-1.0 ~ 1.0、下が負、上が正）
+   */
+  public setMousePosition(x: number, y: number): void {
+    if (this._dragManager) {
+      this._dragManager.set(x, y);
+    }
   }
 
   /**

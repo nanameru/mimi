@@ -29,6 +29,32 @@ export function Live2DBackground({ agentState, className }: Live2DBackgroundProp
   // AIエージェントからのモーション制御を有効化
   useLive2DMotionControl(modelRef);
 
+  // マウストラッキング機能（マウス位置に応じてキャラクターの顔と目が追従）
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!modelRef.current) return;
+
+      // マウス座標を-1.0 ~ 1.0の範囲に正規化
+      // X: 左端(-1.0) → 中央(0.0) → 右端(1.0)
+      // Y: 上端(1.0) → 中央(0.0) → 下端(-1.0)
+      const x = (e.clientX / window.innerWidth) * 2.0 - 1.0;
+      const y = -((e.clientY / window.innerHeight) * 2.0 - 1.0);
+
+      // モデルにマウス位置を設定
+      modelRef.current.setMousePosition(x, y);
+    };
+
+    // グローバルにマウスイベントを登録（画面全体でトラッキング）
+    window.addEventListener('mousemove', handleMouseMove);
+
+    console.log('[Live2DBackground] Mouse tracking enabled');
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      console.log('[Live2DBackground] Mouse tracking disabled');
+    };
+  }, []);
+
   // モデル初期化
   useEffect(() => {
     const initModel = async () => {
@@ -185,17 +211,17 @@ export function Live2DBackground({ agentState, className }: Live2DBackgroundProp
     <div
       className={cn(
         'fixed inset-0 z-10',
-        'flex items-center justify-center',
+        'flex items-end justify-end',
         'pointer-events-none',
         className
       )}
     >
-      {/* Live2Dキャラクターを画面中央に配置 */}
+      {/* Live2Dキャラクターを画面右側下に配置（上半身のみ表示） */}
       <canvas
         ref={canvasRef}
         width={800}
         height={1200}
-        className="max-h-[80vh]"
+        className="max-h-[85vh] mr-2 mb-0"
         style={{ background: 'transparent' }}
       />
     </div>

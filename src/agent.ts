@@ -22,7 +22,9 @@ dotenv.config({ path: '.env.local' });
 
 /**
  * モーションエージェントを呼び出してモーションを実行
+ * motion-agentはコメントアウト済み
  */
+/*
 async function handleMotionAgent(
   transcript: string,
   room: any, // JobContext.room の型
@@ -140,6 +142,161 @@ async function handleMotionAgent(
   } catch (error) {
     const endTime = Date.now();
     console.error(`[Motion Agent] Failed to execute after ${endTime - startTime}ms:`, error);
+  }
+}
+*/
+
+/**
+ * Motion-Tag マッピングテーブル
+ * 意味的なタグ名をLive2Dモーションファイル名に変換
+ */
+const MOTION_TAG_MAP: Record<string, string> = {
+  // 感情・反応系
+  smile: 'haru_g_m02',
+  happy: 'haru_g_m26',
+  surprised: 'haru_g_m05',
+  react: 'haru_g_m11',
+  sad: 'haru_g_m07',
+  worry: 'haru_g_m12',
+  
+  // 行動系
+  think: 'haru_g_m03',
+  explain: 'haru_g_m06',
+  confirm: 'haru_g_m09',
+  apologize: 'haru_g_m04',
+  sorry: 'haru_g_m08',
+  
+  // 会話系
+  talk: 'haru_g_m20', // デフォルト
+  chat: 'haru_g_m10',
+  speak: 'haru_g_m13',
+  discuss: 'haru_g_m14',
+  respond: 'haru_g_m16',
+  reply: 'haru_g_m17',
+  answer: 'haru_g_m18',
+  interact: 'haru_g_m19',
+  express: 'haru_g_m21',
+  gesture: 'haru_g_m22',
+  communicate: 'haru_g_m23',
+  engage: 'haru_g_m24',
+  converse: 'haru_g_m25',
+  
+  // 待機系
+  idle: 'haru_g_idle',
+};
+
+/**
+ * Expression-Tag マッピングテーブル
+ * 意味的なタグ名を表情IDに変換
+ */
+const EXPRESSION_TAG_MAP: Record<string, string> = {
+  neutral: 'F01',
+  smile: 'F02',
+  thinking: 'F03',
+  curious: 'F04',
+  confused: 'F05',
+  serious: 'F06',
+  gentle: 'F07',
+  playful: 'F08',
+};
+
+/**
+ * LLMの応答テキストからmotion-tagを検出して実行（高速化版）
+ */
+async function handleMotionTags(
+  content: string,
+  room: any, // JobContext.room の型
+): Promise<void> {
+  try {
+    // モーションタグを検出: <smile>, <happy>, <think> など
+    const motionRegex = /<([a-z]+)>/g;
+    const motionMatches = Array.from(content.matchAll(motionRegex));
+    
+    // 優先度タグを検出: <priority:5> など
+    const priorityMatch = content.match(/<priority:([1-5])>/);
+    const priority = priorityMatch ? parseInt(priorityMatch[1]!, 10) : 5;
+    
+    // 表情タグを検出: <smile>, <thinking> など（モーションタグと重複する可能性がある）
+    // ただし、表情タグはモーションタグとは別に処理する
+    const expressionRegex = /<(smile|thinking|neutral|curious|confused|serious|gentle|playful)>/g;
+    const expressionMatches = Array.from(content.matchAll(expressionRegex));
+    
+    let motionExecuted = false;
+    let expressionExecuted = false;
+    
+    // 最初のモーションタグを実行
+    if (motionMatches.length > 0) {
+      const firstMotionTag = motionMatches[0]![1]!;
+      const motionFile = MOTION_TAG_MAP[firstMotionTag];
+      
+      if (motionFile) {
+        const motionData = {
+          type: 'live2d_motion',
+          action: 'play_file',
+          motion_file: motionFile,
+          priority: priority,
+        };
+        
+        // 即座に実行（awaitしない、ブロックしない）
+        sendMotionToFrontend(room, motionData).catch((error) => {
+          console.error('[Motion Tag] Failed to send motion:', error);
+        });
+        motionExecuted = true;
+        console.log(`[Motion Tag] Motion executed (async): ${firstMotionTag} → ${motionFile} (priority: ${priority})`);
+      } else {
+        console.warn(`[Motion Tag] Unknown motion tag: ${firstMotionTag}`);
+      }
+    }
+    
+    // 最初の表情タグを実行（モーションタグとは別に処理）
+    if (expressionMatches.length > 0) {
+      const firstExpressionTag = expressionMatches[0]![1]!;
+      const expressionId = EXPRESSION_TAG_MAP[firstExpressionTag];
+      
+      if (expressionId) {
+        // モーションと表情が同じタグ名（例: <smile>）の場合、表情としても処理
+        // ただし、既にモーションとして実行された場合は表情も実行
+        if (firstExpressionTag === 'smile' && !motionExecuted) {
+          // smileはモーションとして既に実行されている可能性があるので、表情だけ実行
+          const expressionData = {
+            type: 'live2d_motion',
+            action: 'expression',
+            name: expressionId,
+          };
+          
+          // 即座に実行（awaitしない、ブロックしない）
+          sendMotionToFrontend(room, expressionData).catch((error) => {
+            console.error('[Motion Tag] Failed to send expression:', error);
+          });
+          expressionExecuted = true;
+          console.log(`[Motion Tag] Expression executed (async): ${firstExpressionTag} → ${expressionId}`);
+        } else if (firstExpressionTag !== 'smile') {
+          // smile以外の表情タグは通常通り実行
+          const expressionData = {
+            type: 'live2d_motion',
+            action: 'expression',
+            name: expressionId,
+          };
+          
+          // 即座に実行（awaitしない、ブロックしない）
+          sendMotionToFrontend(room, expressionData).catch((error) => {
+            console.error('[Motion Tag] Failed to send expression:', error);
+          });
+          expressionExecuted = true;
+          console.log(`[Motion Tag] Expression executed (async): ${firstExpressionTag} → ${expressionId}`);
+        }
+      } else {
+        console.warn(`[Motion Tag] Unknown expression tag: ${firstExpressionTag}`);
+      }
+    }
+    
+    // デフォルト: モーションタグがない場合、デフォルトのモーションと表情を実行
+    if (!motionExecuted && !expressionExecuted) {
+      // デフォルトは実行しない（motion-agentに任せる）
+      console.log('[Motion Tag] No motion tags found, skipping default motion');
+    }
+  } catch (error) {
+    console.error('[Motion Tag] Failed to execute motion tags:', error);
   }
 }
 
@@ -290,6 +447,62 @@ IMPORTANT: Always respond in Japanese (日本語で応答してください).
 重要: 1文に複数のエモーションタグを配置する場合（例: 文の始めと終わり）、Fish Audioは最初のタグのみを認識します。最も強い感情表現を最初に配置してください。
 文の途中や終わりにエモーションタグを配置しても無視されます。必ず文の始めに配置してください。
 </limitations>
+</rules>
+
+<motion_tags>
+<requirement>
+必須: すべての応答に、適切なLive2Dモーションタグを必ず使用してください。モーションタグがない場合は、motion-agentが別途実行されますが、タグがある場合は即座に実行されるため、より良いタイミングでモーションが実行されます。
+重要: モーションタグは応答の先頭に配置してください。各文の前に配置することも可能です。
+</requirement>
+
+<available_motion_tags>
+感情・反応系: <smile>, <happy>, <surprised>, <react>, <sad>, <worry>
+行動系: <think>, <explain>, <confirm>, <apologize>, <sorry>
+会話系: <talk>, <chat>, <speak>, <discuss>, <respond>, <reply>, <answer>, <interact>, <express>, <gesture>, <communicate>, <engage>, <converse>
+待機系: <idle>
+</available_motion_tags>
+
+<available_expression_tags>
+表情タグ: <neutral>, <smile>, <thinking>, <curious>, <confused>, <serious>, <gentle>, <playful>
+注意: <smile>はモーションタグと表情タグの両方として機能します。
+</available_expression_tags>
+
+<priority_tags>
+優先度タグ（オプション）: <priority:1>（低優先度）〜 <priority:5>（最高優先度、デフォルト）
+</priority_tags>
+
+<guidelines>
+<by_context>
+喜び/肯定/笑顔: <smile> または <happy> + <smile>（表情）+ <priority:5>
+質問/確認/考え込む: <think> または <explain> または <confirm> + <thinking>（表情）+ <priority:3-4>
+驚き: <surprised> または <react> + <thinking>（表情）+ <priority:5>
+謝罪/フォロー: <apologize> または <sorry> + <thinking>（表情）+ <priority:4-5>
+悲しみ/困った/心配: <sad> または <worry> + <thinking>（表情）+ <priority:4>
+通常の会話: <talk> または <chat> または <happy> + <smile>（表情）+ <priority:3-4>
+デフォルト: <talk> + <smile>（表情）+ <priority:3>
+</by_context>
+</guidelines>
+
+<examples>
+<correct>
+✅ 正しい: (excited) <happy> <smile> <priority:5> こんにちは！
+✅ 正しい: (curious) <think> <thinking> 何か質問があるの？
+✅ 正しい: (surprised) <react> <priority:5> 本当ですか！
+✅ 正しい: (regretful) <apologize> <thinking> 申し訳ありません。
+</correct>
+</examples>
+
+<rules>
+<mandatory>
+必須: すべての応答に、適切なモーションタグを少なくとも1つ配置してください。
+モーションタグは応答の先頭または各文の前に配置してください。
+</mandatory>
+<placement>
+モーションタグは emotion-tag の後に配置してください。
+例: (excited) <happy> <smile> こんにちは！
+モーションタグと表情タグを同時に使用できます。
+優先度タグはオプションですが、重要なモーションには <priority:5> を使用してください。
+</placement>
 </rules>`,
 
       // To add tools, specify `tools` in the constructor.
@@ -512,16 +725,75 @@ export default defineAgent({
       console.log(`[Agent] Agent state changed: ${ev.newState}`);
     });
 
-    // LLMの出力を監視してタイムスタンプを記録
-    session.on(voice.AgentSessionEventTypes.ConversationItemAdded, (ev) => {
+    // LLMの出力を監視してタイムスタンプを記録 + motion-tagを検出して実行（高速化版）
+    session.on(voice.AgentSessionEventTypes.ConversationItemAdded, async (ev) => {
       if (ev.item.role === 'assistant') {
         const llmOutputTime = Date.now();
-        console.log(`[LLM Output] Message: "${ev.item.content}" at ${new Date(llmOutputTime).toISOString()}`);
+        const content = ev.item.content;
+        
+        // contentが文字列でない場合（配列やオブジェクトの場合）を処理
+        let contentString: string;
+        if (typeof content === 'string') {
+          contentString = content;
+        } else if (Array.isArray(content)) {
+          // 配列の場合は、すべてのテキスト要素を結合
+          contentString = content
+            .map((item: any) => {
+              if (typeof item === 'string') {
+                return item;
+              } else if (item && typeof item.text === 'string') {
+                return item.text;
+              }
+              return '';
+            })
+            .join('');
+        } else if (content && typeof content === 'object' && 'text' in content) {
+          // オブジェクトの場合はtextプロパティを取得
+          contentString = String((content as any).text || '');
+        } else {
+          // その他の場合は文字列に変換を試みる
+          contentString = String(content || '');
+        }
+        
+        console.log(`[LLM Output] Message: "${contentString}" at ${new Date(llmOutputTime).toISOString()}`);
+        
         // メッセージを保存して、モーション実行時間との比較に使用
         (globalThis as any).lastLLMOutput = {
-          message: ev.item.content,
+          message: contentString,
           timestamp: llmOutputTime,
         };
+        
+        // motion-tagを検出して実行（完全非同期、ブロックしない）
+        // 部分的なテキストからでもタグを検出（早期実行）
+        const partialContent = contentString.substring(0, 30); // 最初の30文字をチェック
+        const earlyMotionMatch = partialContent.match(/<([a-z]+)>/);
+        
+        if (earlyMotionMatch) {
+          const earlyTag = earlyMotionMatch[1]!;
+          const motionFile = MOTION_TAG_MAP[earlyTag];
+          if (motionFile) {
+            console.log(`[Motion Tag] Early detection: ${earlyTag} → ${motionFile}`);
+            // 即座に実行（awaitしない、ブロックしない）
+            const motionData = {
+              type: 'live2d_motion',
+              action: 'play_file',
+              motion_file: motionFile,
+              priority: 5,
+            };
+            sendMotionToFrontend(ctx.room, motionData).catch((error) => {
+              console.error('[Motion Tag] Failed to send early motion:', error);
+            });
+          }
+        }
+        
+        // 完全なテキストでもタグを検出（表情など追加情報用）
+        handleMotionTags(contentString, ctx.room).then(() => {
+          const motionTagEndTime = Date.now();
+          console.log(`[Motion Tag] Completed in ${motionTagEndTime - llmOutputTime}ms`);
+        }).catch((error) => {
+          const motionTagEndTime = Date.now();
+          console.error(`[Motion Tag] Error after ${motionTagEndTime - llmOutputTime}ms:`, error);
+        });
       }
     });
 
@@ -544,14 +816,15 @@ export default defineAgent({
       console.log(`[Motion Agent] STT completed (final): "${transcript}" at ${new Date().toISOString()}`);
 
       // モーションエージェントを呼び出す（非同期で実行、ブロックしない）
-      const motionStartTime = Date.now();
-      handleMotionAgent(transcript, ctx.room).then(() => {
-        const motionEndTime = Date.now();
-        console.log(`[Motion Agent] Completed in ${motionEndTime - motionStartTime}ms`);
-      }).catch((error) => {
-        const motionEndTime = Date.now();
-        console.error(`[Motion Agent] Error after ${motionEndTime - motionStartTime}ms:`, error);
-      });
+      // motion-agentはコメントアウト済み
+      // const motionStartTime = Date.now();
+      // handleMotionAgent(transcript, ctx.room).then(() => {
+      //   const motionEndTime = Date.now();
+      //   console.log(`[Motion Agent] Completed in ${motionEndTime - motionStartTime}ms`);
+      // }).catch((error) => {
+      //   const motionEndTime = Date.now();
+      //   console.error(`[Motion Agent] Error after ${motionEndTime - motionStartTime}ms:`, error);
+      // });
     });
 
     // STTエラーの詳細ログを追加

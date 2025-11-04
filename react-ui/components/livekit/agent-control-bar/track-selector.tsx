@@ -35,7 +35,7 @@ export function TrackSelector({
   onActiveDeviceChange,
 }: TrackSelectorProps) {
   return (
-    <div className={cn('flex items-center gap-0', className)}>
+    <div className={cn('flex items-center gap-0 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.2)]', className)}>
       <TrackToggle
         size="icon"
         variant="primary"
@@ -44,7 +44,7 @@ export function TrackSelector({
         pending={pending}
         disabled={disabled}
         onPressedChange={onPressedChange}
-        className="peer/track group/track has-[.audiovisualizer]:w-auto has-[~_button]:rounded-r-none has-[~_button]:pr-2 has-[~_button]:pl-3"
+        className="peer/track group/track has-[.audiovisualizer]:w-auto has-[~_button]:rounded-r-none has-[~_button]:pr-2 has-[~_button]:pl-3 border-none"
       >
         {audioTrackRef && (
           <BarVisualizer
