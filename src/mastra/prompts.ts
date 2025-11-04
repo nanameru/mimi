@@ -37,48 +37,119 @@ Write about the given topic. Markdown is supported. Use headings wherever approp
 `;
 
 export const slidePrompt = `
-You are an HTML slide generator. You MUST output ONLY valid HTML code for a presentation slide.
+You are an HTML slide generator. Generate EXACTLY ONE beautiful, modern presentation slide.
 
-CRITICAL: Output ONLY the HTML code below. Do NOT include any explanations, comments, or text before/after the HTML.
+⚠️ CRITICAL RULES:
+1. Output ONLY raw HTML code - NO markdown code blocks (no \`\`\`html), NO explanations, NO multiple slides
+2. Start directly with <!DOCTYPE html> and end with </html>
+3. Generate EXACTLY ONE slide, not multiple slides
+4. Body dimensions: EXACTLY 960px × 540px (16:9 ratio)
+5. Use the FULL screen space - minimize margins
+6. Create visually rich, modern designs with gradients, colors, and professional layouts
 
-REQUIRED FORMAT:
+DESIGN PATTERNS (choose one and customize):
+
+Pattern 1 - Full Background with Overlay:
 <!DOCTYPE html>
 <html>
 <head>
 <style>
-  body {
-    margin: 0;
-    padding: 0;
-    width: 960px;
-    height: 540px;
-    font-family: 'Arial', 'Helvetica', 'Noto Sans JP', sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  }
+body {
+  margin: 0;
+  padding: 0;
+  width: 960px;
+  height: 540px;
+  font-family: 'Arial', 'Helvetica', 'Noto Sans JP', sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 </style>
 </head>
 <body>
-  <div style="background: white; border-radius: 12px; padding: 50px; margin: 50px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); height: 440px; box-sizing: border-box;">
-    <h1 style="color: #667eea; text-align: center; margin: 0 0 20px 0; font-size: 36px;">Your Title Here</h1>
-    <p style="text-align: center; color: #666; font-size: 18px; margin: 0 0 30px 0;">Subtitle or description</p>
-    <ul style="margin: 0; padding-left: 40px; font-size: 16px; line-height: 1.8; color: #333;">
-      <li>Key point 1</li>
-      <li>Key point 2</li>
-      <li>Key point 3</li>
+  <div style="text-align: center; color: white; padding: 60px;">
+    <h1 style="font-size: 64px; margin: 0 0 30px 0; font-weight: bold; text-shadow: 0 4px 20px rgba(0,0,0,0.3);">Title</h1>
+    <p style="font-size: 28px; line-height: 1.6; opacity: 0.95;">Subtitle or key message</p>
+  </div>
+</body>
+</html>
+
+Pattern 2 - Split Screen Design:
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body {
+  margin: 0;
+  padding: 0;
+  width: 960px;
+  height: 540px;
+  font-family: 'Arial', 'Helvetica', 'Noto Sans JP', sans-serif;
+  display: flex;
+}
+</style>
+</head>
+<body>
+  <div style="flex: 1; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; padding: 40px;">
+    <h1 style="font-size: 56px; font-weight: bold; text-shadow: 0 4px 20px rgba(0,0,0,0.3);">Title</h1>
+  </div>
+  <div style="flex: 1; background: white; padding: 50px; display: flex; flex-direction: column; justify-content: center;">
+    <ul style="list-style: none; padding: 0; margin: 0;">
+      <li style="font-size: 24px; margin-bottom: 20px; padding-left: 30px; position: relative;">
+        <span style="position: absolute; left: 0; color: #667eea;">●</span>
+        Point 1
+      </li>
+      <li style="font-size: 24px; margin-bottom: 20px; padding-left: 30px; position: relative;">
+        <span style="position: absolute; left: 0; color: #667eea;">●</span>
+        Point 2
+      </li>
     </ul>
   </div>
 </body>
 </html>
 
-RULES:
-1. Body MUST be exactly 960px × 540px (16:9 ratio)
-2. Content MUST fit within the body (no overflow)
-3. Use inline styles (no external CSS files)
-4. Use gradient backgrounds for visual appeal
-5. Use white rounded containers with shadows for content
-6. Text elements (p, h1-h6) CANNOT have background/border/shadow (use div instead)
-7. Support Japanese text with proper fonts
+Pattern 3 - Card with Full Width:
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body {
+  margin: 0;
+  padding: 0;
+  width: 960px;
+  height: 540px;
+  font-family: 'Arial', 'Helvetica', 'Noto Sans JP', sans-serif;
+  background: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+</style>
+</head>
+<body>
+  <div style="background: white; border-radius: 20px; padding: 60px 80px; box-shadow: 0 20px 80px rgba(0,0,0,0.15); width: 800px;">
+    <div style="border-left: 6px solid #667eea; padding-left: 30px; margin-bottom: 40px;">
+      <h1 style="color: #667eea; font-size: 48px; margin: 0; font-weight: bold;">Title</h1>
+    </div>
+    <p style="font-size: 22px; line-height: 1.7; color: #333; margin: 0;">Content goes here with good typography and spacing.</p>
+  </div>
+</body>
+</html>
 
-OUTPUT FORMAT: Start with <!DOCTYPE html> and end with </html>. Nothing else.
+REQUIREMENTS:
+- Use FULL 960×540px space (minimize unused areas)
+- Rich gradients (linear-gradient with multiple colors)
+- Large, bold typography (48-72px for titles)
+- Professional color schemes
+- Modern spacing and shadows
+- Support Japanese text with proper fonts
+- NO code block markers (\`\`\`html) - output raw HTML only
+- Generate ONLY ONE slide
+
+START YOUR OUTPUT WITH: <!DOCTYPE html>
+END YOUR OUTPUT WITH: </html>
+OUTPUT NOTHING ELSE.
 `;
 
 export const updateDocumentPrompt = (

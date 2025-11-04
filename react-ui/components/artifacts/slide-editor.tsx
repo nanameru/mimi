@@ -22,8 +22,25 @@ export function SlideEditor({ content }: SlideEditorProps) {
       const doc = iframe.contentDocument || iframe.contentWindow?.document;
       
       if (doc) {
+        // マークダウンコードブロック (```html ... ```) を削除
+        let cleanedContent = content;
+        
+        // 複数の```htmlブロックがある場合、最初のものだけを取得
+        const htmlBlockMatch = cleanedContent.match(/```html\s*([\s\S]*?)```/);
+        if (htmlBlockMatch) {
+          cleanedContent = htmlBlockMatch[1].trim();
+        }
+        
+        // まだ```が残っている場合は削除
+        cleanedContent = cleanedContent.replace(/```html/g, '').replace(/```/g, '').trim();
+        
+        // HTMLとして有効かチェック（<!DOCTYPE または <html で始まる）
+        if (!cleanedContent.startsWith('<!DOCTYPE') && !cleanedContent.startsWith('<html')) {
+          console.warn('[SlideEditor] Content does not appear to be valid HTML:', cleanedContent.substring(0, 100));
+        }
+        
         doc.open();
-        doc.write(content);
+        doc.write(cleanedContent);
         doc.close();
       }
     }

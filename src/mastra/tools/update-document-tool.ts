@@ -6,9 +6,10 @@ import {
   sendTextArtifact,
   sendCodeArtifact,
   sendSheetArtifact,
+  sendSlideArtifact,
   sendLoadingArtifact,
 } from '../../artifacts/index.js';
-import { codePrompt, sheetPrompt, textPrompt, updateDocumentPrompt } from '../prompts.js';
+import { codePrompt, sheetPrompt, textPrompt, slidePrompt, updateDocumentPrompt } from '../prompts.js';
 
 /**
  * ドキュメント更新ツール
@@ -17,9 +18,9 @@ import { codePrompt, sheetPrompt, textPrompt, updateDocumentPrompt } from '../pr
 export const updateDocumentTool = createTool({
   id: 'update-document',
   description:
-    'Update an existing document (text, code, or spreadsheet) based on user request. The updated document will be displayed in real-time as it is generated.',
+    'Update an existing document (text, code, spreadsheet, or slide) based on user request. The updated document will be displayed in real-time as it is generated.',
   inputSchema: z.object({
-    type: z.enum(['text', 'code', 'sheet']).describe('Type of document to update'),
+    type: z.enum(['text', 'code', 'sheet', 'slide']).describe('Type of document to update'),
     currentContent: z.string().describe('Current content of the document'),
     updatePrompt: z.string().describe('User request describing how to update the document'),
   }),
@@ -124,6 +125,30 @@ export const updateDocumentTool = createTool({
         // スプレッドシートの場合は最後にもう一度送信（完了を通知）
         if (draftContent) {
           await sendSheetArtifact(room, draftContent, false, streamId);
+        }
+      } else if (type === 'slide') {
+        // スライドドキュメントの更新（ストリーミング）
+        const { fullStream } = streamText({
+          model: openai('gpt-4o-mini'),
+          system: updateDocumentPrompt(currentContent, 'slide'),
+          prompt: updatePrompt,
+          providerOptions: {
+            openai: {
+              prediction: {
+                type: 'content',
+                content: currentContent,
+              },
+            },
+          },
+        });
+
+        for await (const delta of fullStream) {
+          if (delta.type === 'text-delta') {
+            draftContent += delta.text;
+
+            // ストリーミングでフロントエンドに送信（同じstreamIdを使用）
+            await sendSlideArtifact(room, draftContent, true, streamId);
+          }
         }
       }
 
