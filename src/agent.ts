@@ -40,6 +40,12 @@ interface ExecutedTask {
 const executedTasksHistory = new Map<string, ExecutedTask[]>();
 
 /**
+ * タスクエージェントの実行状態を管理（重複実行防止）
+ * key: roomName, value: 実行中かどうか（true = 実行中、false = 待機中）
+ */
+const runningTaskAgents = new Map<string, boolean>();
+
+/**
  * タスクエージェントを呼び出してツールを実行（天気、ドキュメント作成など）
  * Mastra の taskAgent が会話履歴を分析して、タスク実行が必要かどうかを判断する
  */
@@ -48,12 +54,23 @@ async function handleTaskAgent(
   room: any,
 ): Promise<void> {
   const executionId = `${Date.now()}-${Math.random().toString(36).substring(7)}`;
+  const roomName = room.name || 'default';
+  
+  // 🔒 重複実行防止: 既に実行中の場合はスキップ
+  if (runningTaskAgents.get(roomName)) {
+    console.log(`[Task Agent] ⏸️ Already running for room "${roomName}", skipping duplicate execution (ID: ${executionId})`);
+    return;
+  }
+  
   console.log(`[Task Agent] 🚀 Starting task execution... (ID: ${executionId})`);
   console.log(`[Task Agent] Timestamp: ${new Date().toISOString()}`);
   
+  // 実行中フラグをtrueに設定
+  runningTaskAgents.set(roomName, true);
+  console.log(`[Task Agent] 🔒 Locked execution for room "${roomName}" (ID: ${executionId})`);
+  
   try {
     const taskAgent = mastra.getAgent('taskAgent');
-    const roomName = room.name || 'default';
 
     // 会話履歴からユーザーの最後のメッセージを取得
     const lastUserMessage = conversationHistory
@@ -186,6 +203,10 @@ async function handleTaskAgent(
       console.error(`[Task Agent] ❌ Stack trace (ID: ${executionId}):`, error.stack);
     }
     // エラーが発生しても処理を続行する（非同期実行のため）
+  } finally {
+    // 🔓 実行完了後、フラグを解除（エラーの有無に関わらず必ず実行）
+    runningTaskAgents.set(roomName, false);
+    console.log(`[Task Agent] 🔓 Unlocked execution for room "${roomName}" (ID: ${executionId})`);
   }
 }
 
