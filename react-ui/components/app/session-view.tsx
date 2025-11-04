@@ -18,6 +18,7 @@ import { useDebugMode } from '@/hooks/useDebug';
 import { useArtifactChannel } from '@/hooks/use-artifact-channel';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '../livekit/scroll-area/scroll-area';
+import { useWindowSize } from 'usehooks-ts';
 
 // Live2DBackgroundをクライアントサイドのみで読み込む
 const Live2DBackground = dynamic(
@@ -94,13 +95,12 @@ export const SessionView = ({
   const messages = useChatMessages();
   const [chatOpen, setChatOpen] = useState(false);
   const [showLive2D, setShowLive2D] = useState(false);
-  const artifact = useArtifactChannel();
+  const { artifact } = useArtifactChannel();
+  const { width: windowWidth } = useWindowSize();
+  const isMobile = windowWidth ? windowWidth < 768 : false;
   
   // アーティファクトが表示されているかどうか
   const hasArtifact = artifact && !(artifact.kind === 'loading' && !artifact.message);
-  
-  // アーティファクトの幅 + マージン（w-96 = 384px + right-4 = 16px + 余白 = 約200pxで調整）
-  const artifactWidth = hasArtifact ? 200 : 0;
 
   const controls: ControlBarControls = {
     leave: true,
@@ -116,28 +116,66 @@ export const SessionView = ({
       {/* Live2D背景レイヤー */}
       {showLive2D && <Live2DBackground agentState={agentState} />}
 
-      {/* アーティファクトコンテナ（中央配置） */}
-      <ArtifactContainer />
+      {/* アーティファクトコンテナ（全画面レイアウト） */}
+      {hasArtifact && <ArtifactContainer />}
 
-      {/* Chat Transcript */}
-      <div
-        className={cn(
-          'fixed inset-0 grid grid-cols-1 grid-rows-1 transition-all duration-300 ease-out',
-          !chatOpen && 'pointer-events-none'
-        )}
-        style={{
-          transform: hasArtifact ? `translateX(-${artifactWidth}px)` : 'translateX(0)',
-        }}
-      >
-        <Fade top className="absolute inset-x-4 top-0 h-40" />
-        <ScrollArea className="px-4 pt-40 pb-[150px] md:px-6 md:pb-[180px]">
-          <ChatTranscript
-            hidden={!chatOpen}
-            messages={messages}
-            className="mx-auto max-w-2xl space-y-3 transition-all duration-300 ease-out"
-          />
-        </ScrollArea>
-      </div>
+      {/* Chat Transcript - アーティファクト表示時は左側に400px幅で配置 */}
+      {hasArtifact && !isMobile && (
+        <motion.div
+          animate={{
+            opacity: 1,
+            x: 0,
+            scale: 1,
+            transition: {
+              delay: 0.1,
+              type: 'spring',
+              stiffness: 300,
+              damping: 30,
+            },
+          }}
+          className="fixed left-0 top-0 z-40 h-dvh w-[400px] shrink-0 bg-muted dark:bg-background"
+          exit={{
+            opacity: 0,
+            x: 0,
+            scale: 1,
+            transition: { duration: 0 },
+          }}
+          initial={{ opacity: 0, x: 10, scale: 1 }}
+        >
+          <div className={cn(
+            'h-full w-full transition-all duration-300 ease-out',
+            !chatOpen && 'pointer-events-none'
+          )}>
+            <Fade top className="absolute inset-x-4 top-0 h-40" />
+            <ScrollArea className="px-4 pt-40 pb-[150px] md:px-6 md:pb-[180px]">
+              <ChatTranscript
+                hidden={!chatOpen}
+                messages={messages}
+                className="mx-auto max-w-2xl space-y-3 transition-all duration-300 ease-out"
+              />
+            </ScrollArea>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Chat Transcript - アーティファクトがない場合の通常表示 */}
+      {!hasArtifact && (
+        <div
+          className={cn(
+            'fixed inset-0 grid grid-cols-1 grid-rows-1 transition-all duration-300 ease-out',
+            !chatOpen && 'pointer-events-none'
+          )}
+        >
+          <Fade top className="absolute inset-x-4 top-0 h-40" />
+          <ScrollArea className="px-4 pt-40 pb-[150px] md:px-6 md:pb-[180px]">
+            <ChatTranscript
+              hidden={!chatOpen}
+              messages={messages}
+              className="mx-auto max-w-2xl space-y-3 transition-all duration-300 ease-out"
+            />
+          </ScrollArea>
+        </div>
+      )}
 
       {/* Media Tiles */}
       <MediaTiles chatOpen={chatOpen} showLive2D={showLive2D} />
@@ -152,9 +190,6 @@ export const SessionView = ({
         )}
         <div 
           className="relative mx-auto max-w-2xl pb-3 md:pb-12 transition-all duration-300 ease-out"
-          style={{
-            transform: hasArtifact ? `translateX(-${artifactWidth}px)` : 'translateX(0)',
-          }}
         >
           <AgentControlBar
             controls={controls}

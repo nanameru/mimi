@@ -57,6 +57,12 @@ export function useArtifactChannel() {
     }
   });
 
+  return { artifact, setArtifact };
+}
+
+// 後方互換性のため、直接artifactを返す関数も提供
+export function useArtifactChannelValue() {
+  const { artifact } = useArtifactChannel();
   return artifact;
 }
 
