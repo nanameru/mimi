@@ -70,6 +70,9 @@ async function handleTaskAgent(
     }) as Array<{ role: 'user' | 'assistant'; content: string }>;
 
     // タスクエージェントを実行
+    console.log(`[Task Agent] Calling taskAgent.generate() with ${messages.length} messages`);
+    console.log(`[Task Agent] Messages:`, JSON.stringify(messages, null, 2));
+    
     const response = await taskAgent.generate(
       messages as any, // Mastra の型定義に合わせるため
       {
@@ -82,6 +85,16 @@ async function handleTaskAgent(
 
     const responseText = response.text || '';
     console.log(`[Task Agent] Response: "${responseText}"`);
+    
+    // ツールが実行されたかどうかを確認
+    if ((response as any).toolCalls && (response as any).toolCalls.length > 0) {
+      console.log(`[Task Agent] Tool calls executed:`, (response as any).toolCalls);
+    } else {
+      console.log(`[Task Agent] No tool calls executed`);
+    }
+    
+    // レスポンス全体をログに出力（デバッグ用）
+    console.log(`[Task Agent] Full response object:`, JSON.stringify(response, null, 2));
     
     // レスポンスは返さない（非同期で実行するため）
   } catch (error) {
