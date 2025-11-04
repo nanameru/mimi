@@ -92,7 +92,7 @@ You are an HTML slide generator. Generate a single beautiful slide (960px × 540
 6. Support Japanese text with web-safe fonts
 
 EXAMPLE OUTPUT:
-<div class="slide" style="width: 960px; height: 540px; display: flex; align-items: center; justify-content: center; flex-direction: column; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); font-family: 'Arial', 'Helvetica', 'Noto Sans JP', sans-serif;">
+<div class="slide" style="width: 960px; min-height: 540px; display: flex; align-items: center; justify-content: center; flex-direction: column; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); font-family: 'Arial', 'Helvetica', 'Noto Sans JP', sans-serif; position: relative;">
   <h1 style="font-size: 72px; font-weight: bold; color: white; text-shadow: 0 4px 20px rgba(0,0,0,0.3); margin-bottom: 20px; text-align: center; margin: 0;">タイトル</h1>
   <p style="font-size: 28px; color: rgba(255,255,255,0.9); text-align: center; margin: 20px 0 0 0;">サブタイトル</p>
 </div>
@@ -114,8 +114,9 @@ DESIGN TIPS:
 
 ⚠️ ABSOLUTE REQUIREMENTS:
 - Output ONLY the single slide div (no complete HTML document)
-- The slide MUST be exactly 960px × 540px
-- All styles MUST be inline
+- The slide MUST be 960px width × 540px min-height
+- All styles MUST be inline (including display: flex, position: relative)
+- ALWAYS include position: relative for the slide div
 - Support Japanese text
 
 START WITH: <div class="slide"
@@ -226,13 +227,14 @@ DESIGN TIPS:
 
 ⚠️ ABSOLUTE REQUIREMENTS FOR PPTX EXPORT:
 - Output ONLY raw HTML (no \`\`\`html markers)
-- Create 5-20 slides based on content needs
+- Create 5-20 slides based on content needs (stacked vertically)
 - Support Japanese text with proper fonts
-- Include navigation (buttons + arrow keys)
-- **CRITICAL**: .slide-container MUST be exactly 960px × 540px
-- **CRITICAL**: Every .slide MUST be exactly 960px × 540px
+- NO navigation buttons needed (vertical scroll)
+- **CRITICAL**: .slide-container MUST be 960px width
+- **CRITICAL**: Every .slide MUST be exactly 960px × 540px (min-height: 540px)
 - **NEVER** use responsive units (%, vw, vh) for slide dimensions
 - **ALWAYS** use absolute pixels: 960px width, 540px height
+- Slides should be stacked vertically with proper spacing
 
 START WITH: <!DOCTYPE html>
 END WITH: </html>

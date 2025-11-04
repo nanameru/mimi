@@ -230,13 +230,27 @@ Generate a single slide div with inline styles.
           });
           
           let slideHTML = '';
+          let chunkCount = 0;
+          
           for await (const delta of slideResponse.fullStream) {
             if (delta.type === 'text-delta') {
               slideHTML += delta.text;
+              chunkCount++;
+              
+              // 10チャンクごとに途中経過を送信（リアルタイム生成）
+              if (chunkCount % 10 === 0) {
+                // 生成中のスライドも含めて一時的なHTMLを作成
+                const tempSlideHTML = slideHTML.replace(/```html\s*/g, '').replace(/```\s*/g, '').trim();
+                const tempSlideHTMLs = [...slideHTMLs, tempSlideHTML];
+                const partialHTML = buildSlideHTML(tempSlideHTMLs, slideNumber, outline.length);
+                
+                console.log(`[Create Document Tool] 📡 Streaming slide ${slideNumber}, chunk ${chunkCount} (${slideHTML.length} chars) (ID: ${toolExecutionId})`);
+                await sendSlideArtifact(room, partialHTML, true, streamId, slides, slideNumber - 1, outline.length);
+              }
             }
           }
           
-          // マークダウンコードブロックを除去
+          // マークダウンコードブロックを除去（最終版）
           slideHTML = slideHTML.replace(/```html\s*/g, '').replace(/```\s*/g, '').trim();
           
           // スライドオブジェクトを作成
@@ -250,10 +264,9 @@ Generate a single slide div with inline styles.
           slides.push(slide);
           slideHTMLs.push(slideHTML);
           
-          console.log(`[Create Document Tool] ✅ Slide ${slideNumber} generated (${slideHTML.length} chars) (ID: ${toolExecutionId})`);
+          console.log(`[Create Document Tool] ✅ Slide ${slideNumber} generated (${chunkCount} chunks, ${slideHTML.length} chars) (ID: ${toolExecutionId})`);
           
-          // プログレス表示のため、途中経過をフロントエンドに送信
-          // 現在までのスライドを結合したHTMLを生成
+          // 完成版を送信（最終チャンク）
           const partialHTML = buildSlideHTML(slideHTMLs, slideNumber, outline.length);
           await sendSlideArtifact(room, partialHTML, true, streamId, slides, slideNumber - 1, outline.length);
           
