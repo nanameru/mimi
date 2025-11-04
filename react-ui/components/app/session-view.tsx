@@ -95,12 +95,21 @@ export const SessionView = ({
   const messages = useChatMessages();
   const [chatOpen, setChatOpen] = useState(false);
   const [showLive2D, setShowLive2D] = useState(false);
-  const { artifact } = useArtifactChannel();
+  const { artifact, setArtifact } = useArtifactChannel();
   const { width: windowWidth } = useWindowSize();
   const isMobile = windowWidth ? windowWidth < 768 : false;
   
   // アーティファクトが表示されているかどうか
   const hasArtifact = artifact && !(artifact.kind === 'loading' && !artifact.message);
+
+  // チャットボタンがクリックされた時のハンドラー
+  const handleChatOpenChange = (open: boolean) => {
+    setChatOpen(open);
+    // アーティファクトが表示されている場合、チャットボタンを押したらアーティファクトも閉じる
+    if (hasArtifact) {
+      setArtifact(null);
+    }
+  };
 
   const controls: ControlBarControls = {
     leave: true,
@@ -142,18 +151,17 @@ export const SessionView = ({
           }}
           initial={{ opacity: 0, x: 10, scale: 1 }}
         >
-          <div className={cn(
-            'h-full w-full transition-all duration-300 ease-out',
-            !chatOpen && 'pointer-events-none'
-          )}>
-            <Fade top className="absolute inset-x-4 top-0 h-40" />
-            <ScrollArea className="px-4 pt-40 pb-[150px] md:px-6 md:pb-[180px]">
-              <ChatTranscript
-                hidden={!chatOpen}
-                messages={messages}
-                className="mx-auto max-w-2xl space-y-3 transition-all duration-300 ease-out"
-              />
-            </ScrollArea>
+          <div className="flex h-full flex-col items-center justify-between">
+            {/* チャットメッセージエリア */}
+            <div className="flex h-full flex-col items-center gap-4 overflow-y-scroll px-4 pt-20 w-full">
+              <Fade top className="absolute inset-x-4 top-0 h-40" />
+              <ScrollArea className="w-full px-4 pt-0 pb-[150px] md:px-6 md:pb-[180px]">
+                <ChatTranscript
+                  messages={messages}
+                  className="mx-auto max-w-full space-y-3 transition-all duration-300 ease-out"
+                />
+              </ScrollArea>
+            </div>
           </div>
         </motion.div>
       )}
@@ -193,7 +201,7 @@ export const SessionView = ({
         >
           <AgentControlBar
             controls={controls}
-            onChatOpenChange={setChatOpen}
+            onChatOpenChange={handleChatOpenChange}
             showLive2D={showLive2D}
             onLive2DToggle={setShowLive2D}
           />
