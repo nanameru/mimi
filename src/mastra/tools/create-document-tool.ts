@@ -151,17 +151,28 @@ export const createDocumentTool = createTool({
       } else if (type === 'slide') {
         console.log(`[Create Document Tool] 🎬 Generating SLIDE document... (ID: ${toolExecutionId})`);
         // スライドドキュメントの生成（ストリーミング）
+        // maxTokensで生成量を制限（1つのスライドHTMLは通常2000トークン以下）
         const { fullStream } = streamText({
           model: openai('gpt-4o-mini'),
           system: slidePrompt,
           prompt,
+          maxTokens: 2000, // 1つのスライドHTMLに制限
         });
 
         let chunkCount = 0;
+        let stopReason: string | null = null;
+        
         for await (const delta of fullStream) {
           if (delta.type === 'text-delta') {
             draftContent += delta.text;
             chunkCount++;
+
+            // </html>が出現したら完了とみなす（1つのスライドが完成）
+            if (draftContent.includes('</html>')) {
+              console.log(`[Create Document Tool] 🎯 Detected </html>, stopping stream (ID: ${toolExecutionId})`);
+              stopReason = 'complete_html';
+              break;
+            }
 
             // ストリーミングでフロントエンドに送信（同じstreamIdを使用）
             await sendSlideArtifact(room, draftContent, true, streamId);
@@ -171,7 +182,7 @@ export const createDocumentTool = createTool({
             }
           }
         }
-        console.log(`[Create Document Tool] ✅ SLIDE streaming completed: ${chunkCount} chunks, ${draftContent.length} chars (ID: ${toolExecutionId})`);
+        console.log(`[Create Document Tool] ✅ SLIDE streaming completed: ${chunkCount} chunks, ${draftContent.length} chars, reason: ${stopReason || 'natural'} (ID: ${toolExecutionId})`);
       }
 
       console.log(`[Create Document Tool] 🎉 Successfully created ${type} document (${draftContent.length} chars) (ID: ${toolExecutionId})`);

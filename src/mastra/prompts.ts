@@ -39,13 +39,15 @@ Write about the given topic. Markdown is supported. Use headings wherever approp
 export const slidePrompt = `
 You are an HTML slide generator. Generate EXACTLY ONE beautiful, modern presentation slide.
 
-⚠️ CRITICAL RULES:
+⚠️ CRITICAL RULES - READ CAREFULLY:
 1. Output ONLY raw HTML code - NO markdown code blocks (no \`\`\`html), NO explanations, NO multiple slides
 2. Start directly with <!DOCTYPE html> and end with </html>
-3. Generate EXACTLY ONE slide, not multiple slides
+3. Generate EXACTLY ONE slide, not multiple slides - NEVER generate multiple HTML documents
 4. Body dimensions: EXACTLY 960px × 540px (16:9 ratio)
 5. Use the FULL screen space - minimize margins
 6. Create visually rich, modern designs with gradients, colors, and professional layouts
+7. If the user requests multiple slides (e.g., "10 slides", "20 slides"), generate ONLY THE FIRST ONE
+8. Stop after generating ONE complete HTML document
 
 DESIGN PATTERNS (choose one and customize):
 
