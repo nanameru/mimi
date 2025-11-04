@@ -13,13 +13,6 @@ type ArtifactPreviewCardProps = {
   onClick: () => void;
 };
 
-const ICONS = {
-  text: '📄',
-  code: '💻',
-  sheet: '📊',
-  slide: '🎬',
-};
-
 export function ArtifactPreviewCard({
   artifactType,
   title,
@@ -70,8 +63,8 @@ export function ArtifactPreviewCard({
       {/* ヘッダー */}
       <div className="flex flex-row items-start justify-between gap-2 rounded-t-2xl border border-b-0 p-4 sm:items-center dark:border-zinc-700 dark:bg-muted bg-white">
         <div className="flex flex-row items-start gap-3 sm:items-center">
-          <div className="text-muted-foreground">
-            {isStreaming ? (
+          {isStreaming && (
+            <div className="text-muted-foreground">
               <div className="animate-spin">
                 <svg
                   width="16"
@@ -109,11 +102,9 @@ export function ArtifactPreviewCard({
                   />
                 </svg>
               </div>
-            ) : (
-              <span className="text-xl">{ICONS[artifactType]}</span>
-            )}
-          </div>
-          <div className="-translate-y-1 font-medium sm:translate-y-0 text-gray-900 dark:text-white">
+            </div>
+          )}
+          <div className="font-medium text-gray-900 dark:text-white">
             {title}
           </div>
         </div>
