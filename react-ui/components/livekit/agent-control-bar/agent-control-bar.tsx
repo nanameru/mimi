@@ -179,12 +179,9 @@ export function AgentControlBar({
                 onLive2DToggle?.(pressed);
               }}
               title={showLive2D ? 'Hide Live2D character' : 'Show Live2D character'}
+              className={cn(!showLive2D && 'opacity-50')}
             >
-              {showLive2D ? (
-                <span className="text-lg">👤</span>
-              ) : (
-                <span className="text-lg">📊</span>
-              )}
+              <span className="text-lg">👤</span>
             </Toggle>
           )}
         </div>
