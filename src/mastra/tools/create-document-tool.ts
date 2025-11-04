@@ -10,7 +10,8 @@ import {
   sendLoadingArtifact,
   sendArtifactNotification,
 } from '../../artifacts/index.js';
-import { codePrompt, sheetPrompt, textPrompt, slidePrompt } from '../prompts.js';
+import { codePrompt, sheetPrompt, textPrompt, slidePrompt, slideOutlinePrompt, singleSlidePrompt } from '../prompts.js';
+import type { SingleSlide } from '../../artifacts/types.js';
 
 /**
  * ドキュメント作成ツール
@@ -161,31 +162,110 @@ export const createDocumentTool = createTool({
         console.log(`[Create Document Tool] ✅ SHEET streaming completed: ${chunkCount} chunks, ${draftContent.length} chars (ID: ${toolExecutionId})`);
       } else if (type === 'slide') {
         console.log(`[Create Document Tool] 🎬 Generating SLIDE deck... (ID: ${toolExecutionId})`);
-        // スライドデッキの生成（ストリーミング）
-        // maxTokensを大幅に増やして複数枚のスライドをサポート
-        const { fullStream } = streamText({
-          model: openai('gpt-4o-mini'),
-          system: slidePrompt,
-          prompt,
-          maxTokens: 8000, // 複数枚のスライドデッキ用（約5-20枚）
-        });
-
-        let chunkCount = 0;
         
-        for await (const delta of fullStream) {
+        // ステップ1: アウトライン生成
+        console.log(`[Create Document Tool] 📋 Step 1: Generating outline... (ID: ${toolExecutionId})`);
+        await sendLoadingArtifact(room, 'スライドの構成を考えています...');
+        
+        const outlineResponse = await streamText({
+          model: openai('gpt-4o-mini'),
+          system: slideOutlinePrompt,
+          prompt,
+          maxTokens: 2000,
+        });
+        
+        let outlineText = '';
+        for await (const delta of outlineResponse.fullStream) {
           if (delta.type === 'text-delta') {
-            draftContent += delta.text;
-            chunkCount++;
-
-            // ストリーミングでフロントエンドに送信（同じstreamIdを使用）
-            await sendSlideArtifact(room, draftContent, true, streamId);
-            
-            if (chunkCount % 50 === 0) {
-              console.log(`[Create Document Tool] 📡 Streamed ${chunkCount} chunks, ${draftContent.length} chars (ID: ${toolExecutionId})`);
-            }
+            outlineText += delta.text;
           }
         }
-        console.log(`[Create Document Tool] ✅ SLIDE deck streaming completed: ${chunkCount} chunks, ${draftContent.length} chars (ID: ${toolExecutionId})`);
+        
+        // JSONをパース（マークダウンコードブロックを除去）
+        let cleanedOutline = outlineText.trim();
+        cleanedOutline = cleanedOutline.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+        
+        let outline: Array<{ title: string; description: string; layoutType: string }> = [];
+        try {
+          outline = JSON.parse(cleanedOutline);
+          console.log(`[Create Document Tool] ✅ Outline parsed: ${outline.length} slides (ID: ${toolExecutionId})`);
+        } catch (error) {
+          console.error(`[Create Document Tool] ❌ Failed to parse outline JSON (ID: ${toolExecutionId}):`, error);
+          console.error(`[Create Document Tool] Outline text:`, cleanedOutline);
+          // フォールバック: デフォルトの構成を使用
+          outline = [
+            { title: 'タイトル', description: 'タイトルスライド', layoutType: 'title' },
+            { title: '内容', description: 'メインコンテンツ', layoutType: 'content' },
+            { title: 'まとめ', description: '結論', layoutType: 'conclusion' },
+          ];
+        }
+        
+        // ステップ2: 各スライドを1枚ずつ生成
+        const slides: SingleSlide[] = [];
+        const slideHTMLs: string[] = [];
+        
+        for (let i = 0; i < outline.length; i++) {
+          const slideOutline = outline[i]!;
+          const slideNumber = i + 1;
+          
+          console.log(`[Create Document Tool] 🎨 Step 2.${slideNumber}: Generating slide "${slideOutline.title}" (ID: ${toolExecutionId})`);
+          await sendLoadingArtifact(room, `スライド ${slideNumber}/${outline.length} を生成中: ${slideOutline.title}`);
+          
+          // 1枚のスライドを生成
+          const slidePromptText = `
+Slide ${slideNumber} of ${outline.length}
+
+Title: ${slideOutline.title}
+Description: ${slideOutline.description}
+Layout Type: ${slideOutline.layoutType}
+
+Generate a single slide div with inline styles.
+`;
+          
+          const slideResponse = await streamText({
+            model: openai('gpt-4o-mini'),
+            system: singleSlidePrompt,
+            prompt: slidePromptText,
+            maxTokens: 1500,
+          });
+          
+          let slideHTML = '';
+          for await (const delta of slideResponse.fullStream) {
+            if (delta.type === 'text-delta') {
+              slideHTML += delta.text;
+            }
+          }
+          
+          // マークダウンコードブロックを除去
+          slideHTML = slideHTML.replace(/```html\s*/g, '').replace(/```\s*/g, '').trim();
+          
+          // スライドオブジェクトを作成
+          const slide: SingleSlide = {
+            id: `slide-${slideNumber}`,
+            title: slideOutline.title,
+            content: slideHTML,
+            order: slideNumber,
+          };
+          
+          slides.push(slide);
+          slideHTMLs.push(slideHTML);
+          
+          console.log(`[Create Document Tool] ✅ Slide ${slideNumber} generated (${slideHTML.length} chars) (ID: ${toolExecutionId})`);
+          
+          // プログレス表示のため、途中経過をフロントエンドに送信
+          // 現在までのスライドを結合したHTMLを生成
+          const partialHTML = buildSlideHTML(slideHTMLs, slideNumber, outline.length);
+          await sendSlideArtifact(room, partialHTML, true, streamId, slides, slideNumber - 1, outline.length);
+        }
+        
+        // ステップ3: 全スライドを結合して完全なHTMLドキュメントを作成
+        console.log(`[Create Document Tool] 🔨 Step 3: Building final HTML document... (ID: ${toolExecutionId})`);
+        draftContent = buildSlideHTML(slideHTMLs, slideHTMLs.length, slideHTMLs.length);
+        
+        // 最終版を送信
+        await sendSlideArtifact(room, draftContent, false, streamId, slides, 0, slides.length);
+        
+        console.log(`[Create Document Tool] ✅ SLIDE deck completed: ${slides.length} slides (ID: ${toolExecutionId})`);
       }
 
       console.log(`[Create Document Tool] 🎉 Successfully created ${type} document (${draftContent.length} chars) (ID: ${toolExecutionId})`);
@@ -215,4 +295,116 @@ export const createDocumentTool = createTool({
     }
   },
 });
+
+/**
+ * 個別のスライドHTMLを結合して完全なHTMLドキュメントを作成
+ */
+function buildSlideHTML(slideHTMLs: string[], currentCount: number, totalCount: number): string {
+  // スライドHTML断片をactiveクラスを付けて結合
+  const slidesHTML = slideHTMLs.map((slideHTML, index) => {
+    // 最初のスライドにactiveクラスを追加
+    if (index === 0) {
+      // <div class="slide" を <div class="slide active" に置換
+      return slideHTML.replace(/<div\s+class="slide"/, '<div class="slide active"');
+    }
+    return slideHTML;
+  }).join('\n\n');
+  
+  return `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Arial', 'Helvetica', 'Noto Sans JP', sans-serif;
+  overflow: hidden;
+}
+.slide-container {
+  width: 960px;
+  height: 540px;
+  position: relative;
+  overflow: hidden;
+}
+.slide {
+  width: 960px;
+  height: 540px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: none;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+.slide.active {
+  display: flex;
+  opacity: 1;
+}
+.nav-button {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255,255,255,0.9);
+  border: none;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 24px;
+  color: #333;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  z-index: 100;
+  transition: all 0.3s;
+}
+.nav-button:hover { background: white; box-shadow: 0 6px 20px rgba(0,0,0,0.25); }
+.prev-btn { left: 20px; }
+.next-btn { right: 20px; }
+.slide-counter {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  background: rgba(0,0,0,0.6);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  z-index: 100;
+}
+</style>
+</head>
+<body>
+<div class="slide-container">
+
+${slidesHTML}
+
+<button class="nav-button prev-btn" onclick="changeSlide(-1)">‹</button>
+<button class="nav-button next-btn" onclick="changeSlide(1)">›</button>
+<div class="slide-counter"><span id="current">1</span> / <span id="total">${totalCount}</span></div>
+</div>
+
+<script>
+let currentSlide = 0;
+const slides = document.querySelectorAll('.slide');
+const totalSlides = slides.length;
+document.getElementById('total').textContent = totalSlides;
+
+function showSlide(n) {
+  slides[currentSlide].classList.remove('active');
+  currentSlide = (n + totalSlides) % totalSlides;
+  slides[currentSlide].classList.add('active');
+  document.getElementById('current').textContent = currentSlide + 1;
+}
+
+function changeSlide(direction) {
+  showSlide(currentSlide + direction);
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowLeft') changeSlide(-1);
+  if (e.key === 'ArrowRight') changeSlide(1);
+});
+</script>
+</body>
+</html>`;
+}
 

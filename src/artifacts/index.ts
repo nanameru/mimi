@@ -174,7 +174,10 @@ export async function sendSlideArtifact(
   room: Room,
   content: string,
   isDelta: boolean = false,
-  streamId?: string
+  streamId?: string,
+  slides?: import('./types').SingleSlide[],
+  currentSlideIndex?: number,
+  totalSlides?: number
 ): Promise<void> {
   // ストリーミングの場合、同じstreamIdには同じtimestampを使用
   let timestamp: number;
@@ -197,6 +200,9 @@ export async function sendSlideArtifact(
     kind: 'slide',
     content,
     timestamp,
+    slides,
+    currentSlideIndex,
+    totalSlides,
   };
 
   await sendArtifact(room, artifact);

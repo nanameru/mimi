@@ -13,6 +13,8 @@ import { ChatInput } from './chat-input';
 import { UseInputControlsProps, useInputControls } from './hooks/use-input-controls';
 import { usePublishPermissions } from './hooks/use-publish-permissions';
 import { TrackSelector } from './track-selector';
+import { AddMCPServerDialog } from '@/components/app/add-mcp-server-dialog';
+import { ManageMCPServersDialog } from '@/components/app/manage-mcp-servers-dialog';
 
 export interface ControlBarControls {
   leave?: boolean;
@@ -184,6 +186,12 @@ export function AgentControlBar({
               <span className="text-lg">👤</span>
             </Toggle>
           )}
+
+          {/* MCP Server Management */}
+          <div className="flex gap-1 border-l border-gray-200 pl-1">
+            <AddMCPServerDialog />
+            <ManageMCPServersDialog />
+          </div>
         </div>
 
         {/* Disconnect */}

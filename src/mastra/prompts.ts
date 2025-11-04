@@ -36,6 +36,93 @@ export const textPrompt = `
 Write about the given topic. Markdown is supported. Use headings wherever appropriate.
 `;
 
+/**
+ * スライドアウトライン生成プロンプト
+ * スライド構成を決定するために使用
+ */
+export const slideOutlinePrompt = `
+You are a presentation outline generator. Create a structured outline for a slide deck.
+
+Output ONLY a JSON array of slide outlines. Each slide should have:
+- title: The slide title (in Japanese if the prompt is in Japanese)
+- description: Brief description of the slide content
+- layoutType: One of 'title', 'content', 'two-column', 'full-image', 'conclusion'
+
+Guidelines:
+- Create 5-15 slides based on the topic complexity
+- First slide should always be a title slide (layoutType: 'title')
+- Last slide should be a conclusion/summary (layoutType: 'conclusion')
+- Vary the layout types for visual interest
+- Keep descriptions concise (1-2 sentences)
+
+Example output:
+[
+  {
+    "title": "AIエージェントが社会にもたらす革新",
+    "description": "タイトルスライド - プレゼンテーションの導入",
+    "layoutType": "title"
+  },
+  {
+    "title": "AIエージェントとは",
+    "description": "AIエージェントの定義と基本概念を説明",
+    "layoutType": "content"
+  },
+  {
+    "title": "市場動向と未来展望",
+    "description": "2025年の市場規模と成長予測をグラフで表示",
+    "layoutType": "two-column"
+  }
+]
+
+Output ONLY the JSON array, no other text.
+`;
+
+/**
+ * 1枚のスライド生成プロンプト
+ */
+export const singleSlidePrompt = `
+You are an HTML slide generator. Generate a single beautiful slide (960px × 540px) as a standalone HTML fragment.
+
+⚠️ CRITICAL RULES - MUST FOLLOW EXACTLY:
+1. Output ONLY the slide div HTML - NO complete HTML document, NO <!DOCTYPE>, NO <html>, NO <head>, NO <body>
+2. The slide MUST be EXACTLY 960px width × 540px height (16:9 landscape ratio)
+3. Start directly with <div class="slide" style="..."> and end with </div>
+4. All styles MUST be inline (style="...") - NO external CSS
+5. Use visually rich, modern designs: gradients, icons, professional layouts
+6. Support Japanese text with web-safe fonts
+
+EXAMPLE OUTPUT:
+<div class="slide" style="width: 960px; height: 540px; display: flex; align-items: center; justify-content: center; flex-direction: column; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); font-family: 'Arial', 'Helvetica', 'Noto Sans JP', sans-serif;">
+  <h1 style="font-size: 72px; font-weight: bold; color: white; text-shadow: 0 4px 20px rgba(0,0,0,0.3); margin-bottom: 20px; text-align: center; margin: 0;">タイトル</h1>
+  <p style="font-size: 28px; color: rgba(255,255,255,0.9); text-align: center; margin: 20px 0 0 0;">サブタイトル</p>
+</div>
+
+LAYOUT TYPES:
+- title: Large centered title with subtitle (use gradient background)
+- content: Title with bullet points (use white card on gradient background)
+- two-column: Split layout with title and two content columns
+- full-image: Text overlay on colored background with decorative elements
+- conclusion: Summary with call-to-action
+
+DESIGN TIPS:
+- Use different gradient combinations: purple (#667eea, #764ba2), pink (#f093fb, #f5576c), blue (#4facfe, #00f2fe), green (#43e97b, #38f9d7)
+- Large typography (48-72px for titles, 24-32px for content)
+- Icons using Unicode symbols: ✓ ● ★ → ← ↑ ↓ ◆ ◇ ■ □
+- White space and padding for readability
+- Box shadows for depth: 0 20px 60px rgba(0,0,0,0.3)
+- All CSS properties must be inline
+
+⚠️ ABSOLUTE REQUIREMENTS:
+- Output ONLY the single slide div (no complete HTML document)
+- The slide MUST be exactly 960px × 540px
+- All styles MUST be inline
+- Support Japanese text
+
+START WITH: <div class="slide"
+END WITH: </div>
+OUTPUT NOTHING ELSE.
+`;
+
 export const slidePrompt = `
 You are an HTML presentation deck generator. Generate a beautiful, modern slide deck with multiple slides and navigation.
 

@@ -42,9 +42,19 @@ export type SheetArtifact = ArtifactData & {
   content: string;
 };
 
+export type SingleSlide = {
+  id: string;          // 'slide-1', 'slide-2', ...
+  title: string;       // スライドのタイトル
+  content: string;     // 各スライドのHTML（960×540px固定）
+  order: number;       // 表示順序
+};
+
 export type SlideArtifact = ArtifactData & {
   kind: 'slide';
-  content: string;
+  content: string;     // 全スライドを結合したHTML（後方互換性のため残す）
+  slides?: SingleSlide[]; // 個別スライドの配列
+  currentSlideIndex?: number; // 現在表示中のスライド
+  totalSlides?: number; // 総スライド数
 };
 
 export type LoadingArtifact = ArtifactData & {
