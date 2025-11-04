@@ -1,6 +1,6 @@
 /**
  * アーティファクトメインコンテナ
- * 画面中央に配置され、様々な種類のアーティファクトを表示
+ * 画面右側に配置され、様々な種類のアーティファクトを表示
  */
 
 'use client';
@@ -19,16 +19,9 @@ export function ArtifactContainer() {
   }
 
   return (
-    <div className="fixed inset-0 z-40 pointer-events-none flex items-center justify-center">
-      {/* 背景オーバーレイ（半透明） */}
-      <AnimatePresence>
-        {artifact && (
-          <div className="absolute inset-0 bg-black/20 backdrop-blur-sm pointer-events-auto" />
-        )}
-      </AnimatePresence>
-
+    <div className="fixed right-4 top-20 z-30 pointer-events-none">
       {/* アーティファクトコンテンツ */}
-      <div className="relative z-50 pointer-events-auto">
+      <div className="pointer-events-auto">
         <AnimatePresence mode="wait">
           {artifact.kind === 'weather' && (
             <WeatherCard
