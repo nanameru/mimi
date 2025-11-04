@@ -142,7 +142,7 @@ export const SessionView = ({
               damping: 30,
             },
           }}
-          className="fixed left-0 top-0 z-[60] h-dvh w-[400px] shrink-0 bg-muted dark:bg-background"
+          className="fixed left-0 top-0 z-[60] h-dvh w-[400px] shrink-0 pointer-events-none"
           exit={{
             opacity: 0,
             x: 0,
@@ -151,13 +151,36 @@ export const SessionView = ({
           }}
           initial={{ opacity: 0, x: 10, scale: 1 }}
         >
-          <div className="flex h-full flex-col">
+          <div className="flex h-full flex-col pointer-events-auto">
             {/* チャットメッセージエリア */}
             <div className="relative flex-1 overflow-y-auto">
               <Fade top className="absolute inset-x-4 top-0 h-40 z-10" />
-              <div className="h-full px-4 pt-20 pb-4">
-                <div className="space-y-3">
-                  <ChatTranscript messages={messages} />
+              <div className="h-full px-4 pt-40 pb-[150px]">
+                <div className="space-y-3 max-w-2xl">
+                  {messages.map(({ id, timestamp, from, message, editTimestamp }) => {
+                    const locale = navigator?.language ?? 'en-US';
+                    const messageOrigin = from?.isLocal ? 'local' : 'remote';
+                    const hasBeenEdited = !!editTimestamp;
+
+                    return (
+                      <div key={id} className="animate-in fade-in slide-in-from-bottom-2">
+                        <div className={cn(
+                          "rounded-lg p-3 backdrop-blur-xl shadow-lg",
+                          messageOrigin === 'local' 
+                            ? "bg-cyan-500/25 border border-cyan-400/30 ml-auto max-w-[80%]"
+                            : "bg-white/10 border border-white/20 mr-auto max-w-[80%]"
+                        )}>
+                          <div className="text-sm text-white/90">{message}</div>
+                          <div className="text-xs text-white/50 mt-1">
+                            {new Date(timestamp).toLocaleTimeString(locale, {
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>
