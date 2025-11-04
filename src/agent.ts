@@ -1085,9 +1085,7 @@ export default defineAgent({
 });
 
 // APIサーバーを起動（PPTXエクスポート用）
-// メインプロセスでのみ起動（ジョブプロセスでは起動しない）
-if (!process.env.LIVEKIT_AGENT_JOB_ID) {
-  startApiServer();
-}
+// ポート衝突時はエラーハンドリングで無視される
+startApiServer();
 
 cli.runApp(new WorkerOptions({ agent: fileURLToPath(import.meta.url) }));

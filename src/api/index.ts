@@ -31,9 +31,19 @@ app.get('/api/health', (req, res) => {
 const PORT = process.env.API_PORT || 3001;
 
 export function startApiServer(): void {
-  app.listen(PORT, () => {
+  const server = app.listen(PORT, () => {
     console.log(`[API Server] 🚀 Listening on port ${PORT}`);
     console.log(`[API Server] Health check: http://localhost:${PORT}/api/health`);
+  });
+
+  // ポート衝突エラーを無視（LiveKitのジョブプロセスで再実行される場合）
+  server.on('error', (err: NodeJS.ErrnoException) => {
+    if (err.code === 'EADDRINUSE') {
+      console.log(`[API Server] ℹ️  Port ${PORT} already in use (job process), skipping...`);
+    } else {
+      console.error(`[API Server] ❌ Error:`, err);
+      throw err;
+    }
   });
 }
 
