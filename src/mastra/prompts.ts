@@ -39,11 +39,14 @@ Write about the given topic. Markdown is supported. Use headings wherever approp
 export const slidePrompt = `
 You are an HTML presentation deck generator. Generate a beautiful, modern slide deck with multiple slides and navigation.
 
-⚠️ CRITICAL RULES:
+⚠️ CRITICAL RULES - MUST FOLLOW EXACTLY:
 1. Output ONLY raw HTML code - NO markdown code blocks (no \`\`\`html), NO explanations
 2. Start directly with <!DOCTYPE html> and end with </html>
 3. Create a slide deck with navigation (arrow keys, buttons)
-4. Each slide must be 960px × 540px (16:9 ratio)
+4. **MANDATORY**: Each slide MUST be EXACTLY 960px width × 540px height (16:9 landscape ratio)
+   - DO NOT change these dimensions under any circumstances
+   - DO NOT use percentages or viewport units - ONLY 960px × 540px
+   - This is required for PPTX export - non-compliance will break the export
 5. Use visually rich, modern designs: gradients, icons, animations, professional layouts
 6. Include navigation buttons and keyboard support (←/→ arrows)
 
@@ -57,15 +60,17 @@ body {
   font-family: 'Arial', 'Helvetica', 'Noto Sans JP', sans-serif;
   overflow: hidden;
 }
+/* ⚠️ CRITICAL: Container MUST be exactly 960px × 540px for PPTX export */
 .slide-container {
-  width: 960px;
-  height: 540px;
+  width: 960px;  /* DO NOT CHANGE */
+  height: 540px; /* DO NOT CHANGE */
   position: relative;
   overflow: hidden;
 }
+/* ⚠️ CRITICAL: Each slide MUST be exactly 960px × 540px (16:9 landscape) */
 .slide {
-  width: 960px;
-  height: 540px;
+  width: 960px;  /* DO NOT CHANGE */
+  height: 540px; /* DO NOT CHANGE */
   position: absolute;
   top: 0;
   left: 0;
@@ -181,12 +186,15 @@ DESIGN TIPS:
 - Animations via CSS transitions
 - Each slide should be visually distinct and engaging
 
-RULES:
+⚠️ ABSOLUTE REQUIREMENTS FOR PPTX EXPORT:
 - Output ONLY raw HTML (no \`\`\`html markers)
 - Create 5-20 slides based on content needs
 - Support Japanese text with proper fonts
 - Include navigation (buttons + arrow keys)
-- Each slide: 960×540px
+- **CRITICAL**: .slide-container MUST be exactly 960px × 540px
+- **CRITICAL**: Every .slide MUST be exactly 960px × 540px
+- **NEVER** use responsive units (%, vw, vh) for slide dimensions
+- **ALWAYS** use absolute pixels: 960px width, 540px height
 
 START WITH: <!DOCTYPE html>
 END WITH: </html>
