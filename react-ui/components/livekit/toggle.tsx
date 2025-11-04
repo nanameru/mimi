@@ -19,14 +19,14 @@ const toggleVariants = cva(
     variants: {
       variant: {
         default:
-          'bg-white/10 backdrop-blur-xl border border-white/20 text-white hover:bg-white/15 focus:bg-white/15 shadow-[0_8px_32px_rgba(0,0,0,0.2)]',
+          'bg-white border border-gray-200 text-gray-900 hover:bg-gray-50 focus:bg-gray-50 shadow-sm',
         primary:
-          'text-white bg-white/10 backdrop-blur-xl border border-white/20 hover:bg-white/15 focus:bg-white/15 shadow-[0_8px_32px_rgba(0,0,0,0.2)] data-[state=off]:bg-rose-500/25 hover:data-[state=off]:bg-rose-500/35 data-[state=off]:text-rose-100 data-[state=off]:border-rose-400/30 data-[state=off]:shadow-[0_8px_32px_rgba(251,113,133,0.25)]',
+          'text-gray-900 bg-white border border-gray-200 hover:bg-gray-50 focus:bg-gray-50 shadow-sm data-[state=off]:bg-rose-500/25 hover:data-[state=off]:bg-rose-500/35 data-[state=off]:text-rose-100 data-[state=off]:border-rose-400/30 data-[state=off]:shadow-[0_8px_32px_rgba(251,113,133,0.25)]',
         secondary:
-          'text-white bg-white/10 backdrop-blur-xl border border-white/20 hover:bg-white/15 focus:bg-white/15 shadow-[0_8px_32px_rgba(0,0,0,0.2)] data-[state=on]:bg-cyan-500/25 hover:data-[state=on]:bg-cyan-500/35 data-[state=on]:text-cyan-50 data-[state=on]:border-cyan-400/30 data-[state=on]:shadow-[0_8px_32px_rgba(34,211,238,0.25)]',
+          'text-gray-900 bg-white border border-gray-200 hover:bg-gray-50 focus:bg-gray-50 shadow-sm data-[state=on]:bg-cyan-500/25 hover:data-[state=on]:bg-cyan-500/35 data-[state=on]:text-cyan-50 data-[state=on]:border-cyan-400/30 data-[state=on]:shadow-[0_8px_32px_rgba(34,211,238,0.25)]',
         outline: [
-          'border border-white/20 bg-transparent backdrop-blur-xl text-white shadow-[0_8px_32px_rgba(0,0,0,0.2)]',
-          'hover:bg-white/10 focus:bg-white/10',
+          'border border-gray-200 bg-transparent text-gray-900 shadow-sm',
+          'hover:bg-gray-50 focus:bg-gray-50',
         ],
       },
       size: {

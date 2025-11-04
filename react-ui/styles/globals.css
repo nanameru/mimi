@@ -212,7 +212,7 @@
   }
   body {
     @apply text-foreground;
-    background: linear-gradient(180deg, #1a2f45 0%, #2c4a65 100%);
+    background: #f7f7f8;
     background-attachment: fixed;
   }
 }

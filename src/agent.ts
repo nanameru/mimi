@@ -859,6 +859,7 @@ export default defineAgent({
 
     // LLMの出力を監視してタイムスタンプを記録 + motion-tagを検出して実行（高速化版）
     session.on(voice.AgentSessionEventTypes.ConversationItemAdded, async (ev) => {
+      // アシスタントの応答時：モーション処理のみ
       if (ev.item.role === 'assistant') {
         const llmOutputTime = Date.now();
         const content = ev.item.content;
@@ -926,20 +927,26 @@ export default defineAgent({
           const motionTagEndTime = Date.now();
           console.error(`[Motion Tag] Error after ${motionTagEndTime - llmOutputTime}ms:`, error);
         });
-
+      }
+      
+      // ユーザーのメッセージ時：タスクエージェントを実行
+      if (ev.item.role === 'user') {
+        const taskStartTime = Date.now();
+        
         // 会話履歴を取得して Mastra の taskAgent を実行
         // taskAgent 自身が会話履歴を分析して、タスク実行が必要かどうかを判断する
         const conversationHistory = session.history?.items || [];
         
-        console.log(`[Task Agent] Executing taskAgent to analyze conversation...`);
+        console.log(`[Task Agent] ★★★ Executing taskAgent to analyze user message... ★★★`);
+        console.log(`[Task Agent] Conversation history length: ${conversationHistory.length}`);
         
         // 非同期でタスクエージェントを実行（ブロックしない）
         handleTaskAgent(conversationHistory, ctx.room).then(() => {
           const taskEndTime = Date.now();
-          console.log(`[Task Agent] Completed in ${taskEndTime - llmOutputTime}ms`);
+          console.log(`[Task Agent] ★★★ Completed in ${taskEndTime - taskStartTime}ms ★★★`);
         }).catch((error) => {
           const taskEndTime = Date.now();
-          console.error(`[Task Agent] Error after ${taskEndTime - llmOutputTime}ms:`, error);
+          console.error(`[Task Agent] ★★★ Error after ${taskEndTime - taskStartTime}ms ★★★:`, error);
         });
       }
     });

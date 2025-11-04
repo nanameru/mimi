@@ -23,11 +23,11 @@ import type {
 import { Button } from '@/components/livekit/button';
 
 export function ArtifactContainer() {
-  const { artifact, setArtifact } = useArtifactChannel();
+  const { artifact, setArtifact, isVisible, setIsVisible, setUserClosed } = useArtifactChannel();
   const { width: windowWidth, height: windowHeight } = useWindowSize();
   const isMobile = windowWidth ? windowWidth < 768 : false;
 
-  // アーティファクトがない、または空のローディング状態なら何も表示しない
+  // アーティファクトがない、または空のローディング状態の場合は何も表示しない
   if (!artifact || (artifact.kind === 'loading' && !artifact.message)) {
     return null;
   }
@@ -49,7 +49,7 @@ export function ArtifactContainer() {
 
   return (
     <AnimatePresence>
-      {artifact && (
+      {artifact && isVisible && (
         <motion.div
           animate={{ opacity: 1 }}
           className="fixed top-0 left-0 z-50 flex h-dvh w-dvw flex-row bg-transparent"
@@ -61,7 +61,7 @@ export function ArtifactContainer() {
           {!isMobile && (
             <motion.div
               animate={{ width: windowWidth, right: 0 }}
-              className="fixed h-dvh bg-background"
+              className="fixed h-dvh bg-[#f7f7f8]"
               exit={{
                 width: windowWidth,
                 right: 0,
@@ -110,7 +110,7 @@ export function ArtifactContainer() {
                     },
                   }
             }
-            className="fixed flex h-dvh flex-col overflow-y-scroll border-zinc-200 bg-background md:border-l dark:border-zinc-700 dark:bg-muted"
+            className="fixed flex h-dvh flex-col overflow-y-scroll border-gray-200 bg-white md:border-l dark:border-gray-200 z-[60] shadow-lg"
             exit={{
               opacity: 0,
               scale: 0.5,
@@ -148,6 +148,10 @@ export function ArtifactContainer() {
                 className="h-fit p-2 dark:hover:bg-zinc-700"
                 data-testid="artifact-close-button"
                 onClick={() => {
+                  console.log('[ArtifactContainer] Close button clicked');
+                  // アーティファクトを完全に閉じる
+                  setIsVisible(false);
+                  setUserClosed(true);
                   setArtifact(null);
                 }}
                 variant="outline"
@@ -168,8 +172,8 @@ export function ArtifactContainer() {
               </Button>
 
               <div className="flex flex-col">
-                <div className="font-medium">{artifactTitle}</div>
-                <div className="text-muted-foreground text-sm">
+                <div className="font-medium text-gray-900">{artifactTitle}</div>
+                <div className="text-gray-500 text-sm">
                   {`Updated ${formatDistance(artifactTimestamp, new Date(), {
                     addSuffix: true,
                   })}`}
@@ -179,7 +183,7 @@ export function ArtifactContainer() {
           </div>
 
           {/* コンテンツエリア */}
-          <div className="h-full max-w-full items-center overflow-y-scroll bg-background dark:bg-muted">
+          <div className="h-full max-w-full items-center overflow-y-scroll bg-white">
             <AnimatePresence mode="wait">
               {artifact.kind === 'weather' && (
                 <div className="p-4">

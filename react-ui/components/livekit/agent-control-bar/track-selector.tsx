@@ -35,7 +35,7 @@ export function TrackSelector({
   onActiveDeviceChange,
 }: TrackSelectorProps) {
   return (
-    <div className={cn('flex items-center gap-0 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.2)]', className)}>
+    <div className={cn('flex items-center gap-0 rounded-full bg-white border border-gray-200 shadow-sm', className)}>
       <TrackToggle
         size="icon"
         variant="primary"
@@ -56,14 +56,14 @@ export function TrackSelector({
             <span
               className={cn([
                 'h-full w-0.5 origin-center rounded-2xl',
-                'group-data-[state=on]/track:bg-foreground group-data-[state=off]/track:bg-destructive',
-                'data-lk-muted:bg-muted',
+                'group-data-[state=on]/track:bg-gray-900 group-data-[state=off]/track:bg-destructive',
+                'data-lk-muted:bg-gray-200',
               ])}
             />
           </BarVisualizer>
         )}
       </TrackToggle>
-      <hr className="bg-border peer-data-[state=off]/track:bg-destructive/20 relative z-10 -mr-px hidden h-4 w-px border-none has-[~_button]:block" />
+      <hr className="bg-gray-200 peer-data-[state=off]/track:bg-destructive/20 relative z-10 -mr-px hidden h-4 w-px border-none has-[~_button]:block" />
       <TrackDeviceSelect
         size="sm"
         kind={kind}

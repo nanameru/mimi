@@ -5,6 +5,12 @@
         },
         {
             "path": "../../../../ai-chatbot-5"
+        },
+        {
+            "path": "../../../../Open-LLM-VTuber"
+        },
+        {
+            "path": "../../../../handcrafted-persona-engine"
         }
     ]
 }

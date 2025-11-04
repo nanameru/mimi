@@ -79,7 +79,7 @@ export const taskAgent = new Agent({
 ユーザー: 「こんにちは」
 あなた: ツールを実行せず、応答もしない（タスク実行が不要なため）
   `,
-  model: openai('gpt-4o-mini'),
+  model: openai('gpt-5'),
   tools: {
     weatherTool,
     createDocumentTool,

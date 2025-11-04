@@ -65,10 +65,10 @@ export function ChatInput({
       inert={!chatOpen}
       {...MOTION_PROPS}
       animate={chatOpen ? 'visible' : 'hidden'}
-      className="flex w-full items-start overflow-hidden border-b border-white/20"
+      className="flex w-full items-start overflow-hidden border-b border-gray-100"
     >
       <form onSubmit={handleSubmit} className="mb-3 flex grow items-end gap-2 text-sm">
-        <div className="flex flex-1 items-center gap-2 rounded-full border border-white/20 bg-white/10 px-5 py-2.5 shadow-[0_8px_32px_rgba(0,0,0,0.2)] backdrop-blur-xl">
+        <div className="flex flex-1 items-center gap-2 rounded-full border border-gray-200 bg-white px-5 py-2.5 shadow-sm">
           <input
             autoFocus
             ref={inputRef}
@@ -77,7 +77,7 @@ export function ChatInput({
             disabled={!chatOpen}
             placeholder="なんでも聞いてみて。"
             onChange={(e) => setMessage(e.target.value)}
-            className="flex-1 bg-transparent text-white placeholder:text-white/40 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex-1 bg-transparent text-gray-900 placeholder:text-gray-400 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
           />
         </div>
         <Button

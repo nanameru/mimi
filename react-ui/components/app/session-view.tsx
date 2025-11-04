@@ -72,7 +72,7 @@ export function Fade({ top = false, bottom = false, className }: FadeProps) {
   return (
     <div
       className={cn(
-        'from-background pointer-events-none h-4 bg-linear-to-b to-transparent',
+        'from-[#f7f7f8] pointer-events-none h-4 bg-linear-to-b to-transparent',
         top && 'bg-linear-to-b',
         bottom && 'bg-linear-to-t',
         className
@@ -121,7 +121,7 @@ export const SessionView = ({
   };
 
   return (
-    <section className="bg-background relative z-10 h-full w-full overflow-hidden" {...props}>
+    <section className="bg-[#f7f7f8] relative z-10 h-full w-full overflow-hidden" {...props}>
       {/* Live2D背景レイヤー */}
       {showLive2D && <Live2DBackground agentState={agentState} />}
 
@@ -165,13 +165,19 @@ export const SessionView = ({
                     return (
                       <div key={id} className="animate-in fade-in slide-in-from-bottom-2">
                         <div className={cn(
-                          "rounded-lg p-3 backdrop-blur-xl shadow-lg",
+                          "rounded-lg p-3 shadow-sm",
                           messageOrigin === 'local' 
-                            ? "bg-cyan-500/25 border border-cyan-400/30 ml-auto max-w-[80%]"
-                            : "bg-white/10 border border-white/20 mr-auto max-w-[80%]"
+                            ? "bg-[#343541] ml-auto max-w-[80%]"
+                            : "bg-white border border-gray-200 mr-auto max-w-[80%]"
                         )}>
-                          <div className="text-sm text-white/90">{message}</div>
-                          <div className="text-xs text-white/50 mt-1">
+                          <div className={cn(
+                            "text-sm",
+                            messageOrigin === 'local' ? "text-white" : "text-gray-900"
+                          )}>{message}</div>
+                          <div className={cn(
+                            "text-xs mt-1",
+                            messageOrigin === 'local' ? "text-gray-300" : "text-gray-500"
+                          )}>
                             {new Date(timestamp).toLocaleTimeString(locale, {
                               hour: '2-digit',
                               minute: '2-digit'

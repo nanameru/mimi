@@ -2,7 +2,6 @@
 
 import { python } from '@codemirror/lang-python';
 import { EditorState, Transaction } from '@codemirror/state';
-import { oneDark } from '@codemirror/theme-one-dark';
 import { EditorView } from '@codemirror/view';
 import { basicSetup } from 'codemirror';
 import { memo, useEffect, useRef } from 'react';
@@ -23,7 +22,14 @@ function PureCodeEditor({ content, status = 'idle' }: CodeEditorProps) {
         extensions: [
           basicSetup,
           python(),
-          oneDark,
+          EditorView.theme({
+            '&': { backgroundColor: '#ffffff' },
+            '.cm-content': { color: '#000000' },
+            '.cm-gutters': { backgroundColor: '#f7f7f8', color: '#6b7280' },
+            '.cm-activeLineGutter': { backgroundColor: '#e5e7eb' },
+            '.cm-cursor': { borderLeftColor: '#000000' },
+            '.cm-selectionBackground': { backgroundColor: '#e0e0e0' },
+          }),
           EditorView.editable.of(false), // 読み取り専用
         ],
       });

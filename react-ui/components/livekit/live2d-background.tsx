@@ -210,7 +210,7 @@ export function Live2DBackground({ agentState, className }: Live2DBackgroundProp
   return (
     <div
       className={cn(
-        'fixed inset-0 z-10',
+        'fixed inset-0 z-[55]',
         'flex items-end justify-end',
         'pointer-events-none',
         className

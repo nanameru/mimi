@@ -95,7 +95,7 @@ export function AgentControlBar({
     <div
       aria-label="Voice assistant controls"
       className={cn(
-        'flex flex-col rounded-[31px] border border-white/20 bg-white/10 p-3 shadow-[0_8px_32px_rgba(0,0,0,0.2)] backdrop-blur-xl',
+        'flex flex-col rounded-2xl border border-gray-200 bg-white p-3 shadow-md',
         className
       )}
       {...props}
