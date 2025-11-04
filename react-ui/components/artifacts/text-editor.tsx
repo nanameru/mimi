@@ -74,7 +74,9 @@ function PureTextEditor({ content, status = 'idle' }: TextEditorProps) {
   }, [content, status]);
 
   return (
-    <div className="prose dark:prose-invert relative max-w-none px-4 py-8 md:p-20" ref={containerRef} />
+    <div className="flex flex-row px-4 py-8 md:p-20">
+      <div className="prose dark:prose-invert relative" ref={containerRef} />
+    </div>
   );
 }
 

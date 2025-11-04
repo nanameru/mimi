@@ -5,7 +5,7 @@
 
 'use client';
 
-import { AnimatePresence } from 'motion/react';
+import { AnimatePresence, motion } from 'motion/react';
 import { useArtifactChannel } from '@/hooks/use-artifact-channel';
 import { WeatherCard } from './weather-card';
 import { TextEditor } from './text-editor';
@@ -43,40 +43,58 @@ export function ArtifactContainer() {
           )}
 
           {artifact.kind === 'text' && (
-            <div
+            <motion.div
               key="text"
-              className="w-full bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl overflow-hidden"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              className="w-full bg-background dark:bg-muted border border-zinc-200 dark:border-zinc-700 overflow-hidden shadow-lg"
             >
-              <TextEditor
-                content={(artifact as TextArtifact).content || ''}
-                status={isStreaming ? 'streaming' : 'idle'}
-              />
-            </div>
+              <div className="h-full max-w-full overflow-y-scroll bg-background dark:bg-muted">
+                <TextEditor
+                  content={(artifact as TextArtifact).content || ''}
+                  status={isStreaming ? 'streaming' : 'idle'}
+                />
+              </div>
+            </motion.div>
           )}
 
           {artifact.kind === 'code' && (
-            <div
+            <motion.div
               key="code"
-              className="w-full bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl overflow-hidden"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              className="w-full bg-background dark:bg-muted border border-zinc-200 dark:border-zinc-700 overflow-hidden shadow-lg"
             >
-              <CodeEditor
-                content={(artifact as CodeArtifact).content || ''}
-                status={isStreaming ? 'streaming' : 'idle'}
-              />
-            </div>
+              <div className="h-full max-w-full overflow-y-scroll bg-background dark:bg-muted">
+                <CodeEditor
+                  content={(artifact as CodeArtifact).content || ''}
+                  status={isStreaming ? 'streaming' : 'idle'}
+                />
+              </div>
+            </motion.div>
           )}
 
           {artifact.kind === 'sheet' && (
-            <div
+            <motion.div
               key="sheet"
-              className="w-full bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl overflow-hidden"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              className="w-full bg-background dark:bg-muted border border-zinc-200 dark:border-zinc-700 overflow-hidden shadow-lg"
               style={{ height: '600px' }}
             >
-              <SheetEditor
-                content={(artifact as SheetArtifact).content || ''}
-                status={isStreaming ? 'streaming' : 'idle'}
-              />
-            </div>
+              <div className="h-full max-w-full overflow-y-scroll bg-background dark:bg-muted">
+                <SheetEditor
+                  content={(artifact as SheetArtifact).content || ''}
+                  status={isStreaming ? 'streaming' : 'idle'}
+                />
+              </div>
+            </motion.div>
           )}
 
           {artifact.kind === 'loading' && (
