@@ -142,7 +142,7 @@ export const SessionView = ({
               damping: 30,
             },
           }}
-          className="fixed left-0 top-0 z-40 h-dvh w-[400px] shrink-0 bg-muted dark:bg-background"
+          className="fixed left-0 top-0 z-[60] h-dvh w-[400px] shrink-0 bg-muted dark:bg-background"
           exit={{
             opacity: 0,
             x: 0,
@@ -151,16 +151,15 @@ export const SessionView = ({
           }}
           initial={{ opacity: 0, x: 10, scale: 1 }}
         >
-          <div className="flex h-full flex-col items-center justify-between">
+          <div className="flex h-full flex-col">
             {/* チャットメッセージエリア */}
-            <div className="flex h-full flex-col items-center gap-4 overflow-y-scroll px-4 pt-20 w-full">
-              <Fade top className="absolute inset-x-4 top-0 h-40" />
-              <ScrollArea className="w-full px-4 pt-0 pb-[150px] md:px-6 md:pb-[180px]">
-                <ChatTranscript
-                  messages={messages}
-                  className="mx-auto max-w-full space-y-3 transition-all duration-300 ease-out"
-                />
-              </ScrollArea>
+            <div className="relative flex-1 overflow-y-auto">
+              <Fade top className="absolute inset-x-4 top-0 h-40 z-10" />
+              <div className="h-full px-4 pt-20 pb-4">
+                <div className="space-y-3">
+                  <ChatTranscript messages={messages} />
+                </div>
+              </div>
             </div>
           </div>
         </motion.div>

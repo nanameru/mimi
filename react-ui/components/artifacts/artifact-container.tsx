@@ -73,32 +73,7 @@ export function ArtifactContainer() {
             />
           )}
 
-          {/* 左側のチャットパネル（400px幅）- ai-chatbot-5と同じ */}
-          {!isMobile && (
-            <motion.div
-              animate={{
-                opacity: 1,
-                x: 0,
-                scale: 1,
-                transition: {
-                  delay: 0.1,
-                  type: 'spring',
-                  stiffness: 300,
-                  damping: 30,
-                },
-              }}
-              className="relative h-dvh w-[400px] shrink-0 bg-muted dark:bg-background"
-              exit={{
-                opacity: 0,
-                x: 0,
-                scale: 1,
-                transition: { duration: 0 },
-              }}
-              initial={{ opacity: 0, x: 10, scale: 1 }}
-            >
-              {/* 左側のチャットパネルは空（session-viewで管理） */}
-            </motion.div>
-          )}
+          {/* 左側のチャットパネル（400px幅）はsession-viewで管理 */}
 
           {/* 右側のアーティファクトパネル */}
           <motion.div
