@@ -27,6 +27,15 @@ const Live2DBackground = dynamic(
   { ssr: false }
 );
 
+// ArtifactContainerをクライアントサイドのみで読み込む
+const ArtifactContainer = dynamic(
+  () =>
+    import('@/components/artifacts/artifact-container').then((mod) => ({
+      default: mod.ArtifactContainer,
+    })),
+  { ssr: false }
+);
+
 const MotionBottom = motion.create('div');
 
 const IN_DEVELOPMENT = process.env.NODE_ENV !== 'production';
@@ -98,6 +107,9 @@ export const SessionView = ({
     <section className="bg-background relative z-10 h-full w-full overflow-hidden" {...props}>
       {/* Live2D背景レイヤー */}
       {showLive2D && <Live2DBackground agentState={agentState} />}
+
+      {/* アーティファクトコンテナ（中央配置） */}
+      <ArtifactContainer />
 
       {/* Chat Transcript */}
       <div

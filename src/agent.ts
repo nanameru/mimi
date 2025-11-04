@@ -4,6 +4,7 @@ import {
   WorkerOptions,
   cli,
   defineAgent,
+  llm,
   metrics,
   voice,
 } from '@livekit/agents';
@@ -11,6 +12,7 @@ import * as livekit from '@livekit/agents-plugin-livekit';
 import * as openai from '@livekit/agents-plugin-openai';
 import * as silero from '@livekit/agents-plugin-silero';
 import { BackgroundVoiceCancellation } from '@livekit/noise-cancellation-node';
+import { z } from 'zod';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'node:url';
 import * as fs from 'fs';
@@ -19,6 +21,74 @@ import { FishAudioTTS } from './custom-fish-tts.js';
 import { mastra } from './mastra/index.js';
 
 dotenv.config({ path: '.env.local' });
+
+/**
+ * タスクエージェントを呼び出してツールを実行（天気、ドキュメント作成など）
+ * Mastra の taskAgent が会話履歴を分析して、タスク実行が必要かどうかを判断する
+ */
+async function handleTaskAgent(
+  conversationHistory: any[],
+  room: any,
+): Promise<void> {
+  console.log(`[Task Agent] Starting task execution...`);
+  
+  try {
+    const taskAgent = mastra.getAgent('taskAgent');
+
+    // 会話履歴からユーザーの最後のメッセージを取得
+    const lastUserMessage = conversationHistory
+      .filter((item: any) => item.role === 'user')
+      .slice(-1)[0];
+
+    if (!lastUserMessage) {
+      console.log('[Task Agent] No user message found in history, skipping task execution');
+      return;
+    }
+
+    const userContent = typeof lastUserMessage.content === 'string'
+      ? lastUserMessage.content
+      : Array.isArray(lastUserMessage.content)
+        ? lastUserMessage.content.map((c: any) => typeof c === 'string' ? c : c.text || '').join('')
+        : String(lastUserMessage.content || '');
+
+    console.log(`[Task Agent] User message: "${userContent}"`);
+
+    // タスクエージェントに会話履歴を渡す（最後の数件のみ）
+    const recentHistory = conversationHistory.slice(-5); // 最後の5件
+    
+    const messages = recentHistory.map((item: any) => {
+      const content = typeof item.content === 'string'
+        ? item.content
+        : Array.isArray(item.content)
+          ? item.content.map((c: any) => typeof c === 'string' ? c : c.text || '').join('')
+          : String(item.content || '');
+      
+      return {
+        role: item.role === 'user' ? 'user' : 'assistant',
+        content,
+      };
+    }) as Array<{ role: 'user' | 'assistant'; content: string }>;
+
+    // タスクエージェントを実行
+    const response = await taskAgent.generate(
+      messages as any, // Mastra の型定義に合わせるため
+      {
+        // runtimeContextにroomを渡すことで、toolがアーティファクトを送信できる
+        runtimeContext: {
+          room,
+        } as any, // RuntimeContext に room を追加するため
+      }
+    );
+
+    const responseText = response.text || '';
+    console.log(`[Task Agent] Response: "${responseText}"`);
+    
+    // レスポンスは返さない（非同期で実行するため）
+  } catch (error) {
+    console.error(`[Task Agent] Error:`, error);
+    // エラーが発生しても処理を続行する（非同期実行のため）
+  }
+}
 
 /**
  * モーションエージェントを呼び出してモーションを実行
@@ -505,26 +575,9 @@ IMPORTANT: Always respond in Japanese (日本語で応答してください).
 </placement>
 </rules>`,
 
-      // To add tools, specify `tools` in the constructor.
-      // Here's an example that adds a simple weather tool.
-      // You also have to add `import { llm } from '@livekit/agents' and `import { z } from 'zod'` to the top of this file
-      // tools: {
-      //   getWeather: llm.tool({
-      //     description: `Use this tool to look up current weather information in the given location.
-      //
-      //     If the location is not supported by the weather service, the tool will indicate this. You must tell the user the location's weather is unavailable.`,
-      //     parameters: z.object({
-      //       location: z
-      //         .string()
-      //         .describe('The location to look up weather information for (e.g. city name)'),
-      //     }),
-      //     execute: async ({ location }) => {
-      //       console.log(`Looking up weather for ${location}`);
-      //
-      //       return 'sunny with a temperature of 70 degrees.';
-      //     },
-      //   }),
-      // },
+      // ツールは Mastra のタスクエージェント経由で実行されるため、ここではツールを定義しない
+      // LLMの応答完了後に、ConversationItemAdded イベントでタスク実行が必要かどうかを判断し、
+      // 必要なら Mastra の taskAgent が実行される
     });
   }
 }
@@ -793,6 +846,21 @@ export default defineAgent({
         }).catch((error) => {
           const motionTagEndTime = Date.now();
           console.error(`[Motion Tag] Error after ${motionTagEndTime - llmOutputTime}ms:`, error);
+        });
+
+        // 会話履歴を取得して Mastra の taskAgent を実行
+        // taskAgent 自身が会話履歴を分析して、タスク実行が必要かどうかを判断する
+        const conversationHistory = session.history?.items || [];
+        
+        console.log(`[Task Agent] Executing taskAgent to analyze conversation...`);
+        
+        // 非同期でタスクエージェントを実行（ブロックしない）
+        handleTaskAgent(conversationHistory, ctx.room).then(() => {
+          const taskEndTime = Date.now();
+          console.log(`[Task Agent] Completed in ${taskEndTime - llmOutputTime}ms`);
+        }).catch((error) => {
+          const taskEndTime = Date.now();
+          console.error(`[Task Agent] Error after ${taskEndTime - llmOutputTime}ms:`, error);
         });
       }
     });
