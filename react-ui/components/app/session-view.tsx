@@ -233,21 +233,86 @@ export const SessionView = ({
 
       {/* Chat Transcript - アーティファクトがない場合の通常表示 */}
       {!hasArtifact && (
-        <div
-          className={cn(
+      <div
+        className={cn(
             'fixed inset-0 grid grid-cols-1 grid-rows-1 transition-all duration-300 ease-out',
-            !chatOpen && 'pointer-events-none'
-          )}
-        >
-          <Fade top className="absolute inset-x-4 top-0 h-40" />
-          <ScrollArea className="px-4 pt-40 pb-[150px] md:px-6 md:pb-[180px]">
-            <ChatTranscript
-              hidden={!chatOpen}
-              messages={messages}
-              className="mx-auto max-w-2xl space-y-3 transition-all duration-300 ease-out"
-            />
-          </ScrollArea>
-        </div>
+          !chatOpen && 'pointer-events-none'
+        )}
+      >
+        <Fade top className="absolute inset-x-4 top-0 h-40" />
+        <ScrollArea className="px-4 pt-40 pb-[150px] md:px-6 md:pb-[180px]">
+            <div className={cn(
+              "mx-auto max-w-2xl space-y-3 transition-all duration-300 ease-out",
+              chatOpen ? "opacity-100" : "opacity-0"
+            )}>
+              {(() => {
+                const locale = navigator?.language ?? 'en-US';
+                
+                // メッセージと通知を統合
+                const items: Array<{ type: 'message' | 'notification'; timestamp: number; data: any }> = [
+                  ...messages.map(msg => ({ type: 'message' as const, timestamp: msg.timestamp, data: msg })),
+                  ...notifications.map(notif => ({ type: 'notification' as const, timestamp: notif.timestamp, data: notif })),
+                ];
+                
+                // タイムスタンプ順にソート
+                items.sort((a, b) => a.timestamp - b.timestamp);
+                
+                return items.map((item) => {
+                  if (item.type === 'message') {
+                    const { id, timestamp, from, message, editTimestamp } = item.data;
+                    const messageOrigin = from?.isLocal ? 'local' : 'remote';
+                    const hasBeenEdited = !!editTimestamp;
+                    
+                    return (
+                      <div key={id} className="animate-in fade-in slide-in-from-bottom-2">
+                        <div className={cn(
+                          "rounded-lg p-3 shadow-sm",
+                          messageOrigin === 'local' 
+                            ? "bg-[#343541] ml-auto max-w-[80%]"
+                            : "bg-white border border-gray-200 mr-auto max-w-[80%]"
+                        )}>
+                          <div className={cn(
+                            "text-sm",
+                            messageOrigin === 'local' ? "text-white" : "text-gray-900"
+                          )}>{message}</div>
+                          <div className={cn(
+                            "text-xs mt-1",
+                            messageOrigin === 'local' ? "text-gray-300" : "text-gray-500"
+                          )}>
+                            {new Date(timestamp).toLocaleTimeString(locale, {
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  } else {
+                    // 通知（プレビューカード）
+                    const notification = item.data;
+                    return (
+                      <div key={notification.timestamp} className="animate-in fade-in slide-in-from-bottom-2 mr-auto max-w-[80%]">
+                        <ArtifactPreviewCard
+                          artifactType={notification.artifactType}
+                          title={notification.title}
+                          preview={notification.preview}
+                          timestamp={notification.timestamp}
+                          streamId={notification.streamId}
+                          progress={notification.progress}
+                          onClick={() => {
+                            console.log('[SessionView] Preview card clicked (normal view), showing artifact');
+                            setIsVisible(true);
+                            setUserClosed(false);
+                          }}
+                        />
+                      </div>
+                    );
+                  }
+                });
+              })()}
+            </div>
+        </ScrollArea>
+      </div>
       )}
 
       {/* Media Tiles */}

@@ -124,18 +124,18 @@ OUTPUT NOTHING ELSE.
 `;
 
 export const slidePrompt = `
-You are an HTML presentation deck generator. Generate a beautiful, modern slide deck with multiple slides and navigation.
+You are an HTML presentation deck generator. Generate a beautiful, modern slide deck with multiple slides in vertical scroll format.
 
 ⚠️ CRITICAL RULES - MUST FOLLOW EXACTLY:
 1. Output ONLY raw HTML code - NO markdown code blocks (no \`\`\`html), NO explanations
 2. Start directly with <!DOCTYPE html> and end with </html>
-3. Create a slide deck with navigation (arrow keys, buttons)
+3. Create slides that stack vertically (NO navigation buttons needed)
 4. **MANDATORY**: Each slide MUST be EXACTLY 960px width × 540px height (16:9 landscape ratio)
    - DO NOT change these dimensions under any circumstances
    - DO NOT use percentages or viewport units - ONLY 960px × 540px
    - This is required for PPTX export - non-compliance will break the export
 5. Use visually rich, modern designs: gradients, icons, animations, professional layouts
-6. Include navigation buttons and keyboard support (←/→ arrows)
+6. Slides will be displayed in vertical scroll format (one after another)
 
 <!DOCTYPE html>
 <html>
@@ -145,50 +145,26 @@ You are an HTML presentation deck generator. Generate a beautiful, modern slide 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
   font-family: 'Arial', 'Helvetica', 'Noto Sans JP', sans-serif;
-  overflow: hidden;
+  background: #f7f7f8;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
-/* ⚠️ CRITICAL: Container MUST be exactly 960px × 540px for PPTX export */
 .slide-container {
-  width: 960px;  /* DO NOT CHANGE */
-  height: 540px; /* DO NOT CHANGE */
-  position: relative;
-  overflow: hidden;
+  width: 960px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
 }
 /* ⚠️ CRITICAL: Each slide MUST be exactly 960px × 540px (16:9 landscape) */
 .slide {
   width: 960px;  /* DO NOT CHANGE */
-  height: 540px; /* DO NOT CHANGE */
-  position: absolute;
-  top: 0;
-  left: 0;
-  display: none;
-  opacity: 0;
-  transition: opacity 0.5s ease;
+  min-height: 540px; /* DO NOT CHANGE */
+  position: relative;
+  margin-bottom: 0;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
 }
-.slide.active {
-  display: flex;
-  opacity: 1;
-}
-.nav-button {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  background: rgba(255,255,255,0.9);
-  border: none;
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 24px;
-  color: #333;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  z-index: 100;
-  transition: all 0.3s;
-}
-.nav-button:hover { background: white; box-shadow: 0 6px 20px rgba(0,0,0,0.25); }
-.prev-btn { left: 20px; }
-.next-btn { right: 20px; }
-.slide-counter {
+.slide-number {
   position: absolute;
   bottom: 20px;
   right: 20px;
@@ -205,14 +181,15 @@ body {
 <div class="slide-container">
 
 <!-- Slide 1: Title Slide -->
-<div class="slide active" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); align-items: center; justify-content: center; flex-direction: column;">
+<div class="slide" style="display: flex; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); align-items: center; justify-content: center; flex-direction: column;">
   <h1 style="font-size: 72px; font-weight: bold; color: white; text-shadow: 0 4px 20px rgba(0,0,0,0.3); margin-bottom: 20px; text-align: center;">Your Title Here</h1>
   <p style="font-size: 28px; color: rgba(255,255,255,0.9); text-align: center;">Subtitle or tagline</p>
+  <div class="slide-number">1 / 2</div>
 </div>
 
 <!-- Slide 2: Content Slide -->
-<div class="slide" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 60px;">
-  <div style="background: white; border-radius: 20px; padding: 50px; height: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+<div class="slide" style="display: flex; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 60px;">
+  <div style="background: white; border-radius: 20px; padding: 50px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
     <h2 style="font-size: 48px; color: #f5576c; margin-bottom: 30px; border-left: 6px solid #f5576c; padding-left: 20px;">Section Title</h2>
     <ul style="list-style: none; font-size: 24px; line-height: 2; color: #333;">
       <li style="margin-bottom: 15px; padding-left: 30px; position: relative;">
@@ -229,38 +206,12 @@ body {
       </li>
     </ul>
   </div>
+  <div class="slide-number">2 / 2</div>
 </div>
 
-<!-- Add more slides following this pattern -->
+<!-- Add more slides following this pattern (vertically stacked) -->
 
-<!-- Navigation -->
-<button class="nav-button prev-btn" onclick="changeSlide(-1)">‹</button>
-<button class="nav-button next-btn" onclick="changeSlide(1)">›</button>
-<div class="slide-counter"><span id="current">1</span> / <span id="total">2</span></div>
 </div>
-
-<script>
-let currentSlide = 0;
-const slides = document.querySelectorAll('.slide');
-const totalSlides = slides.length;
-document.getElementById('total').textContent = totalSlides;
-
-function showSlide(n) {
-  slides[currentSlide].classList.remove('active');
-  currentSlide = (n + totalSlides) % totalSlides;
-  slides[currentSlide].classList.add('active');
-  document.getElementById('current').textContent = currentSlide + 1;
-}
-
-function changeSlide(direction) {
-  showSlide(currentSlide + direction);
-}
-
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'ArrowLeft') changeSlide(-1);
-  if (e.key === 'ArrowRight') changeSlide(1);
-});
-</script>
 </body>
 </html>
 

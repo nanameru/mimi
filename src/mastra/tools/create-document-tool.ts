@@ -307,17 +307,14 @@ Generate a single slide div with inline styles.
 });
 
 /**
- * 個別のスライドHTMLを結合して完全なHTMLドキュメントを作成
+ * 個別のスライドHTMLを結合して完全なHTMLドキュメントを作成（縦スクロール対応）
  */
 function buildSlideHTML(slideHTMLs: string[], currentCount: number, totalCount: number): string {
-  // スライドHTML断片をactiveクラスを付けて結合
+  // スライドHTML断片を縦に並べて結合（activeクラスは不要）
   const slidesHTML = slideHTMLs.map((slideHTML, index) => {
-    // 最初のスライドにactiveクラスを追加
-    if (index === 0) {
-      // <div class="slide" を <div class="slide active" に置換
-      return slideHTML.replace(/<div\s+class="slide"/, '<div class="slide active"');
-    }
-    return slideHTML;
+    // 各スライドにマージンを追加して縦に並べる
+    const slideNumberTag = `<div class="slide-number">${index + 1} / ${totalCount}</div>`;
+    return `${slideHTML}${slideNumberTag}`;
   }).join('\n\n');
   
   return `<!DOCTYPE html>
@@ -328,48 +325,25 @@ function buildSlideHTML(slideHTMLs: string[], currentCount: number, totalCount: 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
   font-family: 'Arial', 'Helvetica', 'Noto Sans JP', sans-serif;
-  overflow: hidden;
+  background: #f7f7f8;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 .slide-container {
   width: 960px;
-  height: 540px;
-  position: relative;
-  overflow: hidden;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
 }
 .slide {
   width: 960px;
-  height: 540px;
-  position: absolute;
-  top: 0;
-  left: 0;
-  display: none;
-  opacity: 0;
-  transition: opacity 0.5s ease;
+  min-height: 540px;
+  position: relative;
+  margin-bottom: 0;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
 }
-.slide.active {
-  display: flex;
-  opacity: 1;
-}
-.nav-button {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  background: rgba(255,255,255,0.9);
-  border: none;
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 24px;
-  color: #333;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  z-index: 100;
-  transition: all 0.3s;
-}
-.nav-button:hover { background: white; box-shadow: 0 6px 20px rgba(0,0,0,0.25); }
-.prev-btn { left: 20px; }
-.next-btn { right: 20px; }
-.slide-counter {
+.slide-number {
   position: absolute;
   bottom: 20px;
   right: 20px;
@@ -387,33 +361,7 @@ body {
 
 ${slidesHTML}
 
-<button class="nav-button prev-btn" onclick="changeSlide(-1)">‹</button>
-<button class="nav-button next-btn" onclick="changeSlide(1)">›</button>
-<div class="slide-counter"><span id="current">1</span> / <span id="total">${totalCount}</span></div>
 </div>
-
-<script>
-let currentSlide = 0;
-const slides = document.querySelectorAll('.slide');
-const totalSlides = slides.length;
-document.getElementById('total').textContent = totalSlides;
-
-function showSlide(n) {
-  slides[currentSlide].classList.remove('active');
-  currentSlide = (n + totalSlides) % totalSlides;
-  slides[currentSlide].classList.add('active');
-  document.getElementById('current').textContent = currentSlide + 1;
-}
-
-function changeSlide(direction) {
-  showSlide(currentSlide + direction);
-}
-
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'ArrowLeft') changeSlide(-1);
-  if (e.key === 'ArrowRight') changeSlide(1);
-});
-</script>
 </body>
 </html>`;
 }

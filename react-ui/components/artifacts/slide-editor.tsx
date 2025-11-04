@@ -46,13 +46,14 @@ export function SlideEditor({ content }: SlideEditorProps) {
     }
   }, [content]);
 
-  // スライドのアスペクト比を維持しながらスケーリング
+  // スライドのアスペクト比を維持しながらスケーリング（画面幅いっぱいに表示）
   useEffect(() => {
     const updateScale = () => {
       if (containerRef.current) {
         const containerWidth = containerRef.current.clientWidth;
-        const slideWidth = 960; // スライドの幅（16:9 の場合）
-        const newScale = Math.min(containerWidth / slideWidth, 1);
+        const slideWidth = 960; // スライドの基準幅（16:9 の場合）
+        // 画面いっぱいに表示するため、containerWidthを最大限使用
+        const newScale = containerWidth / slideWidth;
         setScale(newScale);
       }
     };
@@ -63,24 +64,23 @@ export function SlideEditor({ content }: SlideEditorProps) {
   }, []);
 
   return (
-    <div ref={containerRef} className="flex h-full w-full items-center justify-center overflow-auto bg-[#f7f7f8] p-8">
+    <div ref={containerRef} className="h-full w-full overflow-y-auto bg-[#f7f7f8]">
       <div
-        className="shadow-lg"
+        className="w-full"
         style={{
           transform: `scale(${scale})`,
-          transformOrigin: 'top center',
+          transformOrigin: 'top left',
           width: '960px',
-          height: '540px',
         }}
       >
         <iframe
           ref={iframeRef}
           title="Slide Preview"
-          className="h-full w-full border-0"
-          sandbox="allow-same-origin"
+          className="w-full border-0"
+          sandbox="allow-same-origin allow-scripts"
           style={{
             width: '960px',
-            height: '540px',
+            minHeight: '540px',
             background: 'white',
           }}
         />
