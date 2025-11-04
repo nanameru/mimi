@@ -126,7 +126,7 @@ export const SessionView = ({
           !chatOpen && 'pointer-events-none'
         )}
         style={{
-          paddingRight: hasArtifact ? `${artifactWidth}px` : '0',
+          transform: hasArtifact ? `translateX(-${artifactWidth}px)` : 'translateX(0)',
         }}
       >
         <Fade top className="absolute inset-x-4 top-0 h-40" />
@@ -153,7 +153,7 @@ export const SessionView = ({
         <div 
           className="relative mx-auto max-w-2xl pb-3 md:pb-12 transition-all duration-300 ease-out"
           style={{
-            marginRight: hasArtifact ? `${artifactWidth}px` : '0',
+            transform: hasArtifact ? `translateX(-${artifactWidth}px)` : 'translateX(0)',
           }}
         >
           <AgentControlBar
