@@ -49,6 +49,9 @@ export async function sendWeatherArtifact(
   });
 }
 
+// ストリーミング用のtimestampキャッシュ
+let streamingTimestamps: Map<string, number> = new Map();
+
 /**
  * テキストアーティファクトを送信（ストリーミング対応）
  * delta（差分）を送信する場合は、既存のcontentに追加される
@@ -56,13 +59,32 @@ export async function sendWeatherArtifact(
 export async function sendTextArtifact(
   room: Room,
   content: string,
-  isDelta: boolean = false
+  isDelta: boolean = false,
+  streamId?: string
 ): Promise<void> {
+  // ストリーミングの場合、同じstreamIdには同じtimestampを使用
+  let timestamp: number;
+  const cacheKey = streamId || 'text-default';
+  
+  if (isDelta && streamId) {
+    // ストリーミング中の場合、既存のtimestampを使用または新規作成
+    if (!streamingTimestamps.has(cacheKey)) {
+      timestamp = Date.now();
+      streamingTimestamps.set(cacheKey, timestamp);
+    } else {
+      timestamp = streamingTimestamps.get(cacheKey)!;
+    }
+  } else {
+    // 完了または新規の場合、新しいtimestampを生成
+    timestamp = Date.now();
+    streamingTimestamps.delete(cacheKey);
+  }
+
   const artifact: TextArtifact = {
     type: 'artifact',
     kind: 'text',
     content,
-    timestamp: Date.now(),
+    timestamp,
   };
 
   await sendArtifact(room, artifact);
@@ -74,13 +96,30 @@ export async function sendTextArtifact(
 export async function sendCodeArtifact(
   room: Room,
   content: string,
-  isDelta: boolean = false
+  isDelta: boolean = false,
+  streamId?: string
 ): Promise<void> {
+  // ストリーミングの場合、同じstreamIdには同じtimestampを使用
+  let timestamp: number;
+  const cacheKey = streamId || 'code-default';
+  
+  if (isDelta && streamId) {
+    if (!streamingTimestamps.has(cacheKey)) {
+      timestamp = Date.now();
+      streamingTimestamps.set(cacheKey, timestamp);
+    } else {
+      timestamp = streamingTimestamps.get(cacheKey)!;
+    }
+  } else {
+    timestamp = Date.now();
+    streamingTimestamps.delete(cacheKey);
+  }
+
   const artifact: CodeArtifact = {
     type: 'artifact',
     kind: 'code',
     content,
-    timestamp: Date.now(),
+    timestamp,
   };
 
   await sendArtifact(room, artifact);
@@ -92,13 +131,30 @@ export async function sendCodeArtifact(
 export async function sendSheetArtifact(
   room: Room,
   content: string,
-  isDelta: boolean = false
+  isDelta: boolean = false,
+  streamId?: string
 ): Promise<void> {
+  // ストリーミングの場合、同じstreamIdには同じtimestampを使用
+  let timestamp: number;
+  const cacheKey = streamId || 'sheet-default';
+  
+  if (isDelta && streamId) {
+    if (!streamingTimestamps.has(cacheKey)) {
+      timestamp = Date.now();
+      streamingTimestamps.set(cacheKey, timestamp);
+    } else {
+      timestamp = streamingTimestamps.get(cacheKey)!;
+    }
+  } else {
+    timestamp = Date.now();
+    streamingTimestamps.delete(cacheKey);
+  }
+
   const artifact: SheetArtifact = {
     type: 'artifact',
     kind: 'sheet',
     content,
-    timestamp: Date.now(),
+    timestamp,
   };
 
   await sendArtifact(room, artifact);

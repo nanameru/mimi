@@ -40,6 +40,9 @@ export const createDocumentTool = createTool({
 
     console.log(`[Create Document Tool] Creating ${type} document with prompt: "${prompt}"`);
 
+    // ストリーミング用の一意なID（このツール実行中は同じIDを使用）
+    const streamId = `create-${type}-${Date.now()}`;
+
     // ローディング状態を送信
     await sendLoadingArtifact(room, `Creating ${type} document...`);
 
@@ -58,8 +61,8 @@ export const createDocumentTool = createTool({
           if (delta.type === 'text-delta') {
             draftContent += delta.text;
 
-            // ストリーミングでフロントエンドに送信
-            await sendTextArtifact(room, draftContent, true);
+            // ストリーミングでフロントエンドに送信（同じstreamIdを使用）
+            await sendTextArtifact(room, draftContent, true, streamId);
           }
         }
       } else if (type === 'code') {
@@ -80,8 +83,8 @@ export const createDocumentTool = createTool({
 
             if (code) {
               draftContent = code;
-              // ストリーミングでフロントエンドに送信
-              await sendCodeArtifact(room, draftContent, true);
+              // ストリーミングでフロントエンドに送信（同じstreamIdを使用）
+              await sendCodeArtifact(room, draftContent, true, streamId);
             }
           }
         }
@@ -103,15 +106,15 @@ export const createDocumentTool = createTool({
 
             if (csv) {
               draftContent = csv;
-              // ストリーミングでフロントエンドに送信
-              await sendSheetArtifact(room, draftContent, true);
+              // ストリーミングでフロントエンドに送信（同じstreamIdを使用）
+              await sendSheetArtifact(room, draftContent, true, streamId);
             }
           }
         }
 
-        // スプレッドシートの場合は最後にもう一度送信
+        // スプレッドシートの場合は最後にもう一度送信（完了を通知）
         if (draftContent) {
-          await sendSheetArtifact(room, draftContent, false);
+          await sendSheetArtifact(room, draftContent, false, streamId);
         }
       }
 
