@@ -52,3 +52,15 @@ export type LoadingArtifact = ArtifactData & {
   message: string;
 };
 
+/**
+ * アーティファクト通知（プレビュー用）
+ */
+export type ArtifactNotification = {
+  type: 'artifact-notification';
+  artifactType: 'text' | 'code' | 'sheet' | 'slide';
+  title: string;
+  preview: string;
+  timestamp: number;
+  streamId?: string; // アーティファクトとの紐付け用
+};
+

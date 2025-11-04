@@ -16,6 +16,7 @@ import { useChatMessages } from '@/hooks/useChatMessages';
 import { useConnectionTimeout } from '@/hooks/useConnectionTimout';
 import { useDebugMode } from '@/hooks/useDebug';
 import { useArtifactChannel } from '@/hooks/use-artifact-channel';
+import { ArtifactPreviewCard } from '@/components/artifacts/artifact-preview-card';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '../livekit/scroll-area/scroll-area';
 import { useWindowSize } from 'usehooks-ts';
@@ -95,7 +96,7 @@ export const SessionView = ({
   const messages = useChatMessages();
   const [chatOpen, setChatOpen] = useState(false);
   const [showLive2D, setShowLive2D] = useState(false);
-  const { artifact, setArtifact } = useArtifactChannel();
+  const { artifact, setArtifact, setIsVisible, setUserClosed, notifications } = useArtifactChannel();
   const { width: windowWidth } = useWindowSize();
   const isMobile = windowWidth ? windowWidth < 768 : false;
   
@@ -187,6 +188,24 @@ export const SessionView = ({
                       </div>
                     );
                   })}
+                  
+                  {/* アーティファクト通知（プレビューカード） */}
+                  {notifications.map((notification) => (
+                    <div key={notification.timestamp} className="animate-in fade-in slide-in-from-bottom-2 mr-auto max-w-[80%]">
+                      <ArtifactPreviewCard
+                        artifactType={notification.artifactType}
+                        title={notification.title}
+                        preview={notification.preview}
+                        timestamp={notification.timestamp}
+                        streamId={notification.streamId}
+                        onClick={() => {
+                          console.log('[SessionView] Preview card clicked, showing artifact');
+                          setIsVisible(true);
+                          setUserClosed(false);
+                        }}
+                      />
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>

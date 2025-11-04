@@ -8,6 +8,7 @@ import {
   sendSheetArtifact,
   sendSlideArtifact,
   sendLoadingArtifact,
+  sendArtifactNotification,
 } from '../../artifacts/index.js';
 import { codePrompt, sheetPrompt, textPrompt, slidePrompt } from '../prompts.js';
 
@@ -52,6 +53,16 @@ export const createDocumentTool = createTool({
     // ローディング状態を送信
     console.log(`[Create Document Tool] ⏳ Sending loading state... (ID: ${toolExecutionId})`);
     await sendLoadingArtifact(room, `Creating ${type} document...`);
+    
+    // プレビュー通知を送信（開始時）
+    const typeEmoji = { text: '📄', code: '💻', sheet: '📊', slide: '🎬' };
+    await sendArtifactNotification(
+      room,
+      type,
+      `${typeEmoji[type]} Creating ${type}...`,
+      prompt,
+      streamId
+    );
 
     try {
       let draftContent = '';
@@ -178,6 +189,15 @@ export const createDocumentTool = createTool({
       }
 
       console.log(`[Create Document Tool] 🎉 Successfully created ${type} document (${draftContent.length} chars) (ID: ${toolExecutionId})`);
+
+      // プレビュー通知を送信（完了時）
+      await sendArtifactNotification(
+        room,
+        type,
+        `${typeEmoji[type]} ${type.charAt(0).toUpperCase() + type.slice(1)} Ready`,
+        draftContent,
+        streamId
+      );
 
       return {
         success: true,

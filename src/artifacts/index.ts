@@ -11,6 +11,7 @@ import type {
   SheetArtifact,
   SlideArtifact,
   LoadingArtifact,
+  ArtifactNotification,
 } from './types';
 
 /**
@@ -230,5 +231,40 @@ export async function clearArtifact(room: Room): Promise<void> {
   };
 
   await sendArtifact(room, artifact);
+}
+
+/**
+ * アーティファクト通知を送信（プレビュー用）
+ */
+export async function sendArtifactNotification(
+  room: Room,
+  artifactType: 'text' | 'code' | 'sheet' | 'slide',
+  title: string,
+  preview: string,
+  streamId?: string
+): Promise<void> {
+  try {
+    const notification: ArtifactNotification = {
+      type: 'artifact-notification',
+      artifactType,
+      title,
+      preview: preview.substring(0, 200), // 最大200文字まで
+      timestamp: Date.now(),
+      streamId,
+    };
+
+    const dataPacket = JSON.stringify(notification);
+    const encoder = new TextEncoder();
+    const uint8Data = encoder.encode(dataPacket);
+
+    await room.localParticipant?.publishData(uint8Data, {
+      reliable: true,
+      topic: 'artifact',
+    });
+
+    console.log(`[Artifact Notification] Sent ${artifactType} notification:`, { title, preview: preview.substring(0, 50) });
+  } catch (error) {
+    console.error('[Artifact Notification] Failed to send:', error);
+  }
 }
 
