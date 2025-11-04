@@ -86,7 +86,7 @@ export function ChatInput({
           disabled={isDisabled}
           variant={isDisabled ? 'secondary' : 'primary'}
           title={isSending ? 'Sending...' : 'Send'}
-          className="flex-shrink-0"
+          className="flex-shrink-0 bg-black text-white border-black hover:bg-gray-800 focus:bg-gray-800"
         >
           {isSending ? (
             <SpinnerIcon className="animate-spin" weight="bold" />
