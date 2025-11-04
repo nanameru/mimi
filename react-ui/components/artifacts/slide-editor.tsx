@@ -14,8 +14,9 @@ export function SlideEditor({ content }: SlideEditorProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [scale, setScale] = useState(1);
   const containerRef = useRef<HTMLDivElement>(null);
+  const previousSlideCountRef = useRef<number>(0);
 
-  // コンテンツをiframeに注入
+  // コンテンツをiframeに注入（スクロール位置の賢い管理付き）
   useEffect(() => {
     if (iframeRef.current && content) {
       const iframe = iframeRef.current;
@@ -39,9 +40,43 @@ export function SlideEditor({ content }: SlideEditorProps) {
           console.warn('[SlideEditor] Content does not appear to be valid HTML:', cleanedContent.substring(0, 100));
         }
         
+        // 更新前の状態を保存
+        const previousScrollY = doc.documentElement?.scrollTop || 0;
+        const previousSlideCount = previousSlideCountRef.current;
+        
+        // コンテンツを更新
         doc.open();
         doc.write(cleanedContent);
         doc.close();
+        
+        // 更新後の状態を取得
+        const slides = doc.querySelectorAll('.slide');
+        const newSlideCount = slides.length;
+        
+        console.log(`[SlideEditor] Slides: ${previousSlideCount} → ${newSlideCount}, ScrollY: ${previousScrollY}`);
+        
+        // スライドが増えた場合は最新スライドまでスムーズにスクロール
+        if (newSlideCount > previousSlideCount && newSlideCount > 0) {
+          // 最後のスライドの位置を計算（各スライドは540px高さ）
+          const lastSlide = slides[newSlideCount - 1] as HTMLElement;
+          if (lastSlide) {
+            const slideTop = lastSlide.offsetTop;
+            console.log(`[SlideEditor] 📜 New slide added, scrolling to slide ${newSlideCount} at ${slideTop}px`);
+            
+            // スムーズスクロール
+            doc.documentElement?.scrollTo({
+              top: slideTop,
+              behavior: 'smooth',
+            });
+          }
+        } else if (previousSlideCount > 0) {
+          // スライドが増えていない場合は元の位置を復元
+          console.log(`[SlideEditor] 📍 Restoring scroll position to ${previousScrollY}px`);
+          doc.documentElement.scrollTop = previousScrollY;
+        }
+        
+        // 現在のスライド数を保存
+        previousSlideCountRef.current = newSlideCount;
       }
     }
   }, [content]);
