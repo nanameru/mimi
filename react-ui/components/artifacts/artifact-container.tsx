@@ -23,6 +23,7 @@ import type {
   LoadingArtifact,
 } from './types';
 import { Button } from '@/components/livekit/button';
+import { ExportButton } from './export-button';
 
 export function ArtifactContainer() {
   const { artifact, setArtifact, isVisible, setIsVisible, setUserClosed } = useArtifactChannel();
@@ -189,6 +190,14 @@ export function ArtifactContainer() {
                 </div>
               </div>
             </div>
+            
+            {/* エクスポートボタン（スライドの場合のみ表示） */}
+            {artifact.kind === 'slide' && (
+              <ExportButton 
+                htmlContent={(artifact as SlideArtifact).content} 
+                disabled={!artifact.content || isStreaming}
+              />
+            )}
           </div>
 
           {/* コンテンツエリア */}

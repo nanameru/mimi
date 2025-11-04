@@ -41,83 +41,287 @@ Write about the given topic. Markdown is supported. Use headings wherever approp
  * スライド構成を決定するために使用
  */
 export const slideOutlinePrompt = `
-You are a presentation outline generator. Create a structured outline for a slide deck.
+You are a professional business presentation outline generator. Create a structured outline for a corporate slide deck.
 
 Output ONLY a JSON array of slide outlines. Each slide should have:
 - title: The slide title (in Japanese if the prompt is in Japanese)
-- description: Brief description of the slide content
-- layoutType: One of 'title', 'content', 'two-column', 'full-image', 'conclusion'
+- description: Brief description of the slide content and key points
+- layoutType: One of the business layout types below
 
-Guidelines:
-- Create 5-15 slides based on the topic complexity
-- First slide should always be a title slide (layoutType: 'title')
-- Last slide should be a conclusion/summary (layoutType: 'conclusion')
-- Vary the layout types for visual interest
-- Keep descriptions concise (1-2 sentences)
+🏢 BUSINESS LAYOUT TYPES:
+- 'title': Title slide with company name, presentation title, date
+- 'bullet': Bullet points slide with 3-6 key points
+- 'process': Process flow diagram (図解) showing steps/workflow
+- 'table': Comparison table showing data/features
+- 'three-column': 3-column card layout for features/benefits
+- 'chart': Chart/graph showing metrics or percentages
+- 'conclusion': Summary slide with key takeaways and call-to-action
 
-Example output:
+📋 GUIDELINES:
+- Create 6-12 slides for a complete business presentation
+- First slide MUST be layoutType: 'title' (company intro)
+- Last slide MUST be layoutType: 'conclusion' (summary)
+- Use 'process' or 'chart' for at least 1-2 slides (visual diagrams)
+- Use 'table' when comparing options or showing structured data
+- Vary layout types for professional visual flow
+- Keep descriptions actionable and specific
+
+📊 EXAMPLE OUTPUT:
 [
   {
-    "title": "AIエージェントが社会にもたらす革新",
-    "description": "タイトルスライド - プレゼンテーションの導入",
+    "title": "2025年 マーケティング戦略",
+    "description": "タイトルスライド - 会社名、プレゼンタイトル、発表日を表示",
     "layoutType": "title"
   },
   {
-    "title": "AIエージェントとは",
-    "description": "AIエージェントの定義と基本概念を説明",
-    "layoutType": "content"
+    "title": "市場分析",
+    "description": "現状の市場規模、競合状況、成長機会を箇条書きで説明",
+    "layoutType": "bullet"
   },
   {
-    "title": "市場動向と未来展望",
-    "description": "2025年の市場規模と成長予測をグラフで表示",
-    "layoutType": "two-column"
+    "title": "戦略実行プロセス",
+    "description": "4段階のプロセスフロー図: ①分析 → ②計画 → ③実行 → ④評価",
+    "layoutType": "process"
+  },
+  {
+    "title": "施策比較表",
+    "description": "3つの施策のコスト、期間、効果を比較表で表示",
+    "layoutType": "table"
+  },
+  {
+    "title": "期待される成果",
+    "description": "売上増加率、顧客獲得数、ROIをチャートで可視化",
+    "layoutType": "chart"
+  },
+  {
+    "title": "まとめと次のステップ",
+    "description": "重要ポイントの要約と具体的なアクションアイテム",
+    "layoutType": "conclusion"
   }
 ]
 
-Output ONLY the JSON array, no other text.
+⚠️ CRITICAL: Output ONLY the JSON array, NO other text or explanations.
 `;
 
 /**
  * 1枚のスライド生成プロンプト
  */
 export const singleSlidePrompt = `
-You are an HTML slide generator. Generate a single beautiful slide (960px × 540px) as a standalone HTML fragment.
+You are a professional business presentation slide generator. Generate a single corporate-style slide (960px × 540px) as HTML.
 
 ⚠️ CRITICAL RULES - MUST FOLLOW EXACTLY:
 1. Output ONLY the slide div HTML - NO complete HTML document, NO <!DOCTYPE>, NO <html>, NO <head>, NO <body>
 2. The slide MUST be EXACTLY 960px width × 540px height (16:9 landscape ratio)
 3. Start directly with <div class="slide" style="..."> and end with </div>
 4. All styles MUST be inline (style="...") - NO external CSS
-5. Use visually rich, modern designs: gradients, icons, professional layouts
+5. Use PROFESSIONAL BUSINESS DESIGN: clean, corporate, minimal
 6. Support Japanese text with web-safe fonts
 
-EXAMPLE OUTPUT:
-<div class="slide" style="width: 960px; min-height: 540px; display: flex; align-items: center; justify-content: center; flex-direction: column; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); font-family: 'Arial', 'Helvetica', 'Noto Sans JP', sans-serif; position: relative;">
-  <h1 style="font-size: 72px; font-weight: bold; color: white; text-shadow: 0 4px 20px rgba(0,0,0,0.3); margin-bottom: 20px; text-align: center; margin: 0;">タイトル</h1>
-  <p style="font-size: 28px; color: rgba(255,255,255,0.9); text-align: center; margin: 20px 0 0 0;">サブタイトル</p>
+🏢 BUSINESS DESIGN PRINCIPLES:
+- **Colors**: Professional palette only
+  - Primary: Navy (#1e3a8a), Corporate Blue (#2563eb), Steel Blue (#3b82f6)
+  - Accent: Green (#059669), Orange (#ea580c), Red (#dc2626)
+  - Neutrals: White (#ffffff), Light Gray (#f3f4f6), Gray (#6b7280), Dark (#1f2937)
+- **Typography**: Clean and readable
+  - Titles: 48-64px, Bold, Dark colors
+  - Headings: 32-40px, SemiBold
+  - Body: 20-24px, Regular, Gray
+- **Layout**: Professional structure with header/footer
+
+📐 MANDATORY SLIDE STRUCTURE:
+Every slide MUST include:
+
+1. **HEADER** (top 60px):
+   <div style="position: absolute; top: 0; left: 0; right: 0; height: 60px; background: #1e3a8a; display: flex; align-items: center; justify-content: space-between; padding: 0 40px;">
+     <div style="font-size: 18px; font-weight: bold; color: white;">会社名 / プロジェクト名</div>
+     <div style="font-size: 14px; color: rgba(255,255,255,0.8);">2025年1月</div>
+   </div>
+
+2. **FOOTER** (bottom 40px):
+   <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 40px; background: #f3f4f6; border-top: 2px solid #e5e7eb; display: flex; align-items: center; justify-content: space-between; padding: 0 40px;">
+     <div style="font-size: 12px; color: #6b7280;">Confidential</div>
+     <div style="font-size: 12px; color: #6b7280;">1 / 10</div>
+   </div>
+
+3. **CONTENT AREA** (between header and footer, 60px to 500px):
+   Main content goes here with padding: 80px 60px 60px 60px
+
+📊 LAYOUT TEMPLATES (Choose based on layoutType):
+
+**TEMPLATE 1: Title Slide (layoutType: 'title')**
+<div class="slide" style="width: 960px; min-height: 540px; background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); font-family: 'Arial', 'Helvetica', 'Noto Sans JP', sans-serif; position: relative; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 80px 60px 60px 60px;">
+  <!-- Header -->
+  <div style="position: absolute; top: 0; left: 0; right: 0; height: 60px; background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: space-between; padding: 0 40px;">
+    <div style="font-size: 18px; font-weight: bold; color: white;">Your Company Name</div>
+    <div style="font-size: 14px; color: rgba(255,255,255,0.8);">2025年1月</div>
+  </div>
+  <!-- Content -->
+  <h1 style="font-size: 64px; font-weight: bold; color: white; text-align: center; margin: 0 0 20px 0;">プレゼンテーションタイトル</h1>
+  <p style="font-size: 28px; color: rgba(255,255,255,0.9); text-align: center; margin: 0;">サブタイトル・発表者</p>
+  <!-- Footer -->
+  <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 40px; background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: space-between; padding: 0 40px;">
+    <div style="font-size: 12px; color: rgba(255,255,255,0.8);">Confidential</div>
+    <div style="font-size: 12px; color: rgba(255,255,255,0.8);">1 / 10</div>
+  </div>
 </div>
 
-LAYOUT TYPES:
-- title: Large centered title with subtitle (use gradient background)
-- content: Title with bullet points (use white card on gradient background)
-- two-column: Split layout with title and two content columns
-- full-image: Text overlay on colored background with decorative elements
-- conclusion: Summary with call-to-action
+**TEMPLATE 2: Bullet Points (layoutType: 'bullet')**
+<div class="slide" style="width: 960px; min-height: 540px; background: white; font-family: 'Arial', 'Helvetica', 'Noto Sans JP', sans-serif; position: relative; padding: 80px 60px 60px 60px;">
+  <!-- Header (same as above) -->
+  <div style="position: absolute; top: 0; left: 0; right: 0; height: 60px; background: #1e3a8a; display: flex; align-items: center; justify-content: space-between; padding: 0 40px;">
+    <div style="font-size: 18px; font-weight: bold; color: white;">Your Company Name</div>
+    <div style="font-size: 14px; color: rgba(255,255,255,0.8);">2025年1月</div>
+  </div>
+  <!-- Content -->
+  <h2 style="font-size: 40px; font-weight: bold; color: #1f2937; margin: 0 0 30px 0; border-left: 6px solid #2563eb; padding-left: 20px;">スライドタイトル</h2>
+  <ul style="list-style: none; margin: 0; padding: 0;">
+    <li style="font-size: 22px; color: #374151; margin-bottom: 20px; padding-left: 40px; position: relative; line-height: 1.6;">
+      <span style="position: absolute; left: 0; top: 0; color: #2563eb; font-size: 28px;">✓</span>
+      ポイント1: 具体的な内容を記載
+    </li>
+    <li style="font-size: 22px; color: #374151; margin-bottom: 20px; padding-left: 40px; position: relative; line-height: 1.6;">
+      <span style="position: absolute; left: 0; top: 0; color: #2563eb; font-size: 28px;">✓</span>
+      ポイント2: 具体的な内容を記載
+    </li>
+    <li style="font-size: 22px; color: #374151; padding-left: 40px; position: relative; line-height: 1.6;">
+      <span style="position: absolute; left: 0; top: 0; color: #2563eb; font-size: 28px;">✓</span>
+      ポイント3: 具体的な内容を記載
+    </li>
+  </ul>
+  <!-- Footer (same as above) -->
+  <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 40px; background: #f3f4f6; border-top: 2px solid #e5e7eb; display: flex; align-items: center; justify-content: space-between; padding: 0 40px;">
+    <div style="font-size: 12px; color: #6b7280;">Confidential</div>
+    <div style="font-size: 12px; color: #6b7280;">2 / 10</div>
+  </div>
+</div>
 
-DESIGN TIPS:
-- Use different gradient combinations: purple (#667eea, #764ba2), pink (#f093fb, #f5576c), blue (#4facfe, #00f2fe), green (#43e97b, #38f9d7)
-- Large typography (48-72px for titles, 24-32px for content)
-- Icons using Unicode symbols: ✓ ● ★ → ← ↑ ↓ ◆ ◇ ■ □
-- White space and padding for readability
-- Box shadows for depth: 0 20px 60px rgba(0,0,0,0.3)
-- All CSS properties must be inline
+**TEMPLATE 3: Process Flow (layoutType: 'process')**
+<div class="slide" style="width: 960px; min-height: 540px; background: white; font-family: 'Arial', 'Helvetica', 'Noto Sans JP', sans-serif; position: relative; padding: 80px 60px 60px 60px;">
+  <!-- Header + Footer (same structure) -->
+  <h2 style="font-size: 36px; font-weight: bold; color: #1f2937; margin: 0 0 40px 0; border-left: 6px solid #2563eb; padding-left: 20px;">プロセスフロー</h2>
+  <div style="display: flex; align-items: center; justify-content: space-between; gap: 15px;">
+    <div style="background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); padding: 30px 20px; border-radius: 12px; flex: 1; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+      <div style="font-size: 42px; font-weight: bold; color: #1e3a8a; margin-bottom: 10px;">①</div>
+      <div style="font-size: 20px; font-weight: bold; color: #1f2937; margin-bottom: 8px;">ステップ1</div>
+      <div style="font-size: 14px; color: #6b7280;">説明文</div>
+    </div>
+    <div style="font-size: 36px; color: #2563eb; font-weight: bold;">→</div>
+    <div style="background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); padding: 30px 20px; border-radius: 12px; flex: 1; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+      <div style="font-size: 42px; font-weight: bold; color: #1e3a8a; margin-bottom: 10px;">②</div>
+      <div style="font-size: 20px; font-weight: bold; color: #1f2937; margin-bottom: 8px;">ステップ2</div>
+      <div style="font-size: 14px; color: #6b7280;">説明文</div>
+    </div>
+    <div style="font-size: 36px; color: #2563eb; font-weight: bold;">→</div>
+    <div style="background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); padding: 30px 20px; border-radius: 12px; flex: 1; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+      <div style="font-size: 42px; font-weight: bold; color: #1e3a8a; margin-bottom: 10px;">③</div>
+      <div style="font-size: 20px; font-weight: bold; color: #1f2937; margin-bottom: 8px;">ステップ3</div>
+      <div style="font-size: 14px; color: #6b7280;">説明文</div>
+    </div>
+  </div>
+</div>
+
+**TEMPLATE 4: Comparison Table (layoutType: 'table')**
+<div class="slide" style="width: 960px; min-height: 540px; background: white; font-family: 'Arial', 'Helvetica', 'Noto Sans JP', sans-serif; position: relative; padding: 80px 60px 60px 60px;">
+  <!-- Header + Footer (same) -->
+  <h2 style="font-size: 36px; font-weight: bold; color: #1f2937; margin: 0 0 30px 0; border-left: 6px solid #2563eb; padding-left: 20px;">比較表</h2>
+  <table style="width: 100%; border-collapse: collapse; margin: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+    <thead>
+      <tr style="background: #1e3a8a;">
+        <th style="padding: 18px 20px; color: white; text-align: left; font-size: 20px; font-weight: bold; border: 1px solid #ddd;">項目</th>
+        <th style="padding: 18px 20px; color: white; text-align: left; font-size: 20px; font-weight: bold; border: 1px solid #ddd;">内容A</th>
+        <th style="padding: 18px 20px; color: white; text-align: left; font-size: 20px; font-weight: bold; border: 1px solid #ddd;">内容B</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="background: #f9fafb;">
+        <td style="padding: 16px 20px; font-size: 18px; color: #374151; border: 1px solid #e5e7eb; font-weight: 600;">項目1</td>
+        <td style="padding: 16px 20px; font-size: 18px; color: #6b7280; border: 1px solid #e5e7eb;">データ1</td>
+        <td style="padding: 16px 20px; font-size: 18px; color: #6b7280; border: 1px solid #e5e7eb;">データ2</td>
+      </tr>
+      <tr style="background: white;">
+        <td style="padding: 16px 20px; font-size: 18px; color: #374151; border: 1px solid #e5e7eb; font-weight: 600;">項目2</td>
+        <td style="padding: 16px 20px; font-size: 18px; color: #6b7280; border: 1px solid #e5e7eb;">データ3</td>
+        <td style="padding: 16px 20px; font-size: 18px; color: #6b7280; border: 1px solid #e5e7eb;">データ4</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+**TEMPLATE 5: Three-Column (layoutType: 'three-column')**
+<div class="slide" style="width: 960px; min-height: 540px; background: white; font-family: 'Arial', 'Helvetica', 'Noto Sans JP', sans-serif; position: relative; padding: 80px 60px 60px 60px;">
+  <!-- Header + Footer (same) -->
+  <h2 style="font-size: 36px; font-weight: bold; color: #1f2937; margin: 0 0 35px 0; border-left: 6px solid #2563eb; padding-left: 20px;">3つの特徴</h2>
+  <div style="display: flex; gap: 25px; justify-content: space-between;">
+    <div style="flex: 1; background: #f9fafb; border: 2px solid #e5e7eb; border-radius: 12px; padding: 25px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+      <div style="font-size: 48px; color: #2563eb; margin-bottom: 15px;">◆</div>
+      <h3 style="font-size: 22px; font-weight: bold; color: #1f2937; margin: 0 0 12px 0;">特徴1</h3>
+      <p style="font-size: 16px; color: #6b7280; margin: 0; line-height: 1.6;">説明文がここに入ります</p>
+    </div>
+    <div style="flex: 1; background: #f9fafb; border: 2px solid #e5e7eb; border-radius: 12px; padding: 25px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+      <div style="font-size: 48px; color: #059669; margin-bottom: 15px;">★</div>
+      <h3 style="font-size: 22px; font-weight: bold; color: #1f2937; margin: 0 0 12px 0;">特徴2</h3>
+      <p style="font-size: 16px; color: #6b7280; margin: 0; line-height: 1.6;">説明文がここに入ります</p>
+    </div>
+    <div style="flex: 1; background: #f9fafb; border: 2px solid #e5e7eb; border-radius: 12px; padding: 25px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+      <div style="font-size: 48px; color: #ea580c; margin-bottom: 15px;">✓</div>
+      <h3 style="font-size: 22px; font-weight: bold; color: #1f2937; margin: 0 0 12px 0;">特徴3</h3>
+      <p style="font-size: 16px; color: #6b7280; margin: 0; line-height: 1.6;">説明文がここに入ります</p>
+    </div>
+  </div>
+</div>
+
+**TEMPLATE 6: Chart (layoutType: 'chart')**
+<div class="slide" style="width: 960px; min-height: 540px; background: white; font-family: 'Arial', 'Helvetica', 'Noto Sans JP', sans-serif; position: relative; padding: 80px 60px 60px 60px;">
+  <!-- Header + Footer (same) -->
+  <h2 style="font-size: 36px; font-weight: bold; color: #1f2937; margin: 0 0 40px 0; border-left: 6px solid #2563eb; padding-left: 20px;">実績推移</h2>
+  <div style="display: flex; align-items: flex-end; justify-content: space-around; height: 280px; border-bottom: 3px solid #1f2937; padding: 0 20px;">
+    <div style="text-align: center; display: flex; flex-direction: column; justify-content: flex-end;">
+      <div style="background: linear-gradient(180deg, #2563eb 0%, #1e3a8a 100%); width: 80px; height: 120px; border-radius: 8px 8px 0 0; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: bold;">60%</div>
+      <div style="font-size: 18px; color: #6b7280; font-weight: 600;">2023</div>
+    </div>
+    <div style="text-align: center; display: flex; flex-direction: column; justify-content: flex-end;">
+      <div style="background: linear-gradient(180deg, #2563eb 0%, #1e3a8a 100%); width: 80px; height: 180px; border-radius: 8px 8px 0 0; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: bold;">85%</div>
+      <div style="font-size: 18px; color: #6b7280; font-weight: 600;">2024</div>
+    </div>
+    <div style="text-align: center; display: flex; flex-direction: column; justify-content: flex-end;">
+      <div style="background: linear-gradient(180deg, #059669 0%, #047857 100%); width: 80px; height: 240px; border-radius: 8px 8px 0 0; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: bold;">95%</div>
+      <div style="font-size: 18px; color: #059669; font-weight: 600;">2025 (目標)</div>
+    </div>
+  </div>
+</div>
+
+**TEMPLATE 7: Conclusion (layoutType: 'conclusion')**
+<div class="slide" style="width: 960px; min-height: 540px; background: linear-gradient(135deg, #f9fafb 0%, #e5e7eb 100%); font-family: 'Arial', 'Helvetica', 'Noto Sans JP', sans-serif; position: relative; padding: 80px 60px 60px 60px;">
+  <!-- Header + Footer (same) -->
+  <h2 style="font-size: 40px; font-weight: bold; color: #1f2937; margin: 0 0 30px 0; text-align: center;">まとめ</h2>
+  <div style="background: white; border-radius: 12px; padding: 35px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); border-left: 6px solid #2563eb;">
+    <ul style="list-style: none; margin: 0 0 30px 0; padding: 0;">
+      <li style="font-size: 20px; color: #374151; margin-bottom: 18px; padding-left: 35px; position: relative; line-height: 1.6;">
+        <span style="position: absolute; left: 0; top: 0; color: #2563eb; font-size: 26px;">✓</span>
+        キーポイント1
+      </li>
+      <li style="font-size: 20px; color: #374151; margin-bottom: 18px; padding-left: 35px; position: relative; line-height: 1.6;">
+        <span style="position: absolute; left: 0; top: 0; color: #2563eb; font-size: 26px;">✓</span>
+        キーポイント2
+      </li>
+      <li style="font-size: 20px; color: #374151; padding-left: 35px; position: relative; line-height: 1.6;">
+        <span style="position: absolute; left: 0; top: 0; color: #2563eb; font-size: 26px;">✓</span>
+        キーポイント3
+      </li>
+    </ul>
+    <div style="background: #2563eb; color: white; padding: 18px 30px; border-radius: 8px; text-align: center; font-size: 22px; font-weight: bold;">次のステップ: アクションを起こしましょう</div>
+  </div>
+</div>
 
 ⚠️ ABSOLUTE REQUIREMENTS:
-- Output ONLY the single slide div (no complete HTML document)
-- The slide MUST be 960px width × 540px min-height
-- All styles MUST be inline (including display: flex, position: relative)
-- ALWAYS include position: relative for the slide div
-- Support Japanese text
+- Output ONLY the single slide div
+- Slide: 960px × 540px (min-height: 540px)
+- ALWAYS include Header (60px top) + Footer (40px bottom)
+- Content area: 80px-500px (440px height available)
+- All styles inline
+- position: relative on slide div
+- Professional colors only (blue, gray, white)
+- Include diagrams/visuals when appropriate
 
 START WITH: <div class="slide"
 END WITH: </div>

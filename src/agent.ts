@@ -19,6 +19,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { FishAudioTTS } from './custom-fish-tts.js';
 import { mastra } from './mastra/index.js';
+import { startApiServer } from './api/index.js';
 
 dotenv.config({ path: '.env.local' });
 
@@ -1082,5 +1083,8 @@ export default defineAgent({
     console.log('[Agent] Initial greeting completed');
   },
 });
+
+// APIサーバーを起動（PPTXエクスポート用）
+startApiServer();
 
 cli.runApp(new WorkerOptions({ agent: fileURLToPath(import.meta.url) }));
