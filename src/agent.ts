@@ -23,6 +23,23 @@ import { mastra } from './mastra/index.js';
 dotenv.config({ path: '.env.local' });
 
 /**
+ * 実行済みタスクの履歴を記録する型定義
+ */
+interface ExecutedTask {
+  timestamp: number;
+  userMessage: string;
+  toolName: string;
+  toolArgs: any;
+  result: string;
+}
+
+/**
+ * セッション全体で共有される実行済みタスクの履歴
+ * key: roomName, value: タスク履歴の配列
+ */
+const executedTasksHistory = new Map<string, ExecutedTask[]>();
+
+/**
  * タスクエージェントを呼び出してツールを実行（天気、ドキュメント作成など）
  * Mastra の taskAgent が会話履歴を分析して、タスク実行が必要かどうかを判断する
  */
@@ -34,6 +51,7 @@ async function handleTaskAgent(
   
   try {
     const taskAgent = mastra.getAgent('taskAgent');
+    const roomName = room.name || 'default';
 
     // 会話履歴からユーザーの最後のメッセージを取得
     const lastUserMessage = conversationHistory
@@ -53,8 +71,12 @@ async function handleTaskAgent(
 
     console.log(`[Task Agent] User message: "${userContent}"`);
 
+    // 実行済みタスクの履歴を取得
+    const roomTaskHistory = executedTasksHistory.get(roomName) || [];
+    console.log(`[Task Agent] Found ${roomTaskHistory.length} previously executed tasks`);
+
     // タスクエージェントに会話履歴を渡す（最後の数件のみ）
-    const recentHistory = conversationHistory.slice(-5); // 最後の5件
+    const recentHistory = conversationHistory.slice(-10); // 最後の10件に増やす
     
     const messages = recentHistory.map((item: any) => {
       const content = typeof item.content === 'string'
@@ -68,6 +90,23 @@ async function handleTaskAgent(
         content,
       };
     }) as Array<{ role: 'user' | 'assistant'; content: string }>;
+
+    // 実行済みタスクの履歴をシステムメッセージとして追加
+    if (roomTaskHistory.length > 0) {
+      const taskHistoryText = roomTaskHistory
+        .map((task, idx) => {
+          const date = new Date(task.timestamp).toLocaleString('ja-JP');
+          return `${idx + 1}. [${date}] ユーザー: "${task.userMessage}" → ツール: ${task.toolName} → 結果: ${task.result}`;
+        })
+        .join('\n');
+
+      messages.unshift({
+        role: 'user',
+        content: `【重要】以下は既に実行済みのタスクです。同じタスクを再度実行しないでください：\n${taskHistoryText}`,
+      });
+      
+      console.log(`[Task Agent] Added task history context:\n${taskHistoryText}`);
+    }
 
     // タスクエージェントを実行
     console.log(`[Task Agent] Calling taskAgent.generate() with ${messages.length} messages`);
@@ -88,7 +127,34 @@ async function handleTaskAgent(
     
     // ツールが実行されたかどうかを確認
     if ((response as any).toolCalls && (response as any).toolCalls.length > 0) {
-      console.log(`[Task Agent] Tool calls executed:`, (response as any).toolCalls);
+      const toolCalls = (response as any).toolCalls;
+      console.log(`[Task Agent] Tool calls executed:`, toolCalls);
+      
+      // 実行されたタスクを履歴に記録
+      if (!executedTasksHistory.has(roomName)) {
+        executedTasksHistory.set(roomName, []);
+      }
+      
+      const history = executedTasksHistory.get(roomName)!;
+      
+      for (const toolCall of toolCalls) {
+        const executedTask: ExecutedTask = {
+          timestamp: Date.now(),
+          userMessage: userContent,
+          toolName: toolCall.toolName || 'unknown',
+          toolArgs: toolCall.args || {},
+          result: responseText || 'completed',
+        };
+        
+        history.push(executedTask);
+        console.log(`[Task Agent] Recorded executed task: ${executedTask.toolName} for message: "${userContent}"`);
+      }
+      
+      // 履歴が長くなりすぎないように制限（最新20件まで）
+      if (history.length > 20) {
+        history.splice(0, history.length - 20);
+        console.log(`[Task Agent] Trimmed task history to 20 most recent tasks`);
+      }
     } else {
       console.log(`[Task Agent] No tool calls executed`);
     }

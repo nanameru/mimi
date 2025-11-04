@@ -66,18 +66,23 @@ export async function sendTextArtifact(
   let timestamp: number;
   const cacheKey = streamId || 'text-default';
   
+  console.log(`[sendTextArtifact] isDelta=${isDelta}, streamId=${streamId}, cacheKey=${cacheKey}`);
+  
   if (isDelta && streamId) {
     // ストリーミング中の場合、既存のtimestampを使用または新規作成
     if (!streamingTimestamps.has(cacheKey)) {
       timestamp = Date.now();
       streamingTimestamps.set(cacheKey, timestamp);
+      console.log(`[sendTextArtifact] NEW timestamp created: ${timestamp} for ${cacheKey}`);
     } else {
       timestamp = streamingTimestamps.get(cacheKey)!;
+      console.log(`[sendTextArtifact] REUSING timestamp: ${timestamp} for ${cacheKey}`);
     }
   } else {
     // 完了または新規の場合、新しいtimestampを生成
     timestamp = Date.now();
     streamingTimestamps.delete(cacheKey);
+    console.log(`[sendTextArtifact] FINAL timestamp: ${timestamp}, cleared cache for ${cacheKey}`);
   }
 
   const artifact: TextArtifact = {
