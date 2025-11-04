@@ -13,6 +13,8 @@ export function useArtifactChannel() {
   const [isVisible, setIsVisible] = useState(true);
   const [userClosed, setUserClosed] = useState(false);
   const [notifications, setNotifications] = useState<ArtifactNotification[]>([]);
+  // streamIdとアーティファクトのマッピング（通知クリック時にアーティファクトを復元するため）
+  const [artifactMap, setArtifactMap] = useState<Map<string, ArtifactData>>(new Map());
 
   // LiveKit Data Channelから 'artifact' トピックを受信
   useDataChannel('artifact', (payload) => {
