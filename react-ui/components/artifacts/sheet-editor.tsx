@@ -2,7 +2,7 @@
 
 import { parse } from 'papaparse';
 import { memo, useEffect, useMemo, useState } from 'react';
-import DataGrid from 'react-data-grid';
+import { DataGrid } from 'react-data-grid';
 import { cn } from '@/lib/utils';
 
 import 'react-data-grid/lib/styles.css';
