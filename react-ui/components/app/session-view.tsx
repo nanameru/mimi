@@ -15,6 +15,7 @@ import { MediaTiles } from '@/components/livekit/media-tiles';
 import { useChatMessages } from '@/hooks/useChatMessages';
 import { useConnectionTimeout } from '@/hooks/useConnectionTimout';
 import { useDebugMode } from '@/hooks/useDebug';
+import { useArtifactChannel } from '@/hooks/use-artifact-channel';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '../livekit/scroll-area/scroll-area';
 
@@ -93,6 +94,13 @@ export const SessionView = ({
   const messages = useChatMessages();
   const [chatOpen, setChatOpen] = useState(false);
   const [showLive2D, setShowLive2D] = useState(false);
+  const artifact = useArtifactChannel();
+  
+  // アーティファクトが表示されているかどうか
+  const hasArtifact = artifact && !(artifact.kind === 'loading' && !artifact.message);
+  
+  // アーティファクトの幅 + マージン（w-96 = 384px + right-4 = 16px + 余白 = 約420px）
+  const artifactWidth = hasArtifact ? 420 : 0;
 
   const controls: ControlBarControls = {
     leave: true,
@@ -114,16 +122,19 @@ export const SessionView = ({
       {/* Chat Transcript */}
       <div
         className={cn(
-          'fixed inset-0 grid grid-cols-1 grid-rows-1',
+          'fixed inset-0 grid grid-cols-1 grid-rows-1 transition-all duration-300 ease-out',
           !chatOpen && 'pointer-events-none'
         )}
+        style={{
+          paddingRight: hasArtifact ? `${artifactWidth}px` : '0',
+        }}
       >
         <Fade top className="absolute inset-x-4 top-0 h-40" />
         <ScrollArea className="px-4 pt-40 pb-[150px] md:px-6 md:pb-[180px]">
           <ChatTranscript
             hidden={!chatOpen}
             messages={messages}
-            className="mx-auto max-w-2xl space-y-3 transition-opacity duration-300 ease-out"
+            className="mx-auto max-w-2xl space-y-3 transition-all duration-300 ease-out"
           />
         </ScrollArea>
       </div>
@@ -139,7 +150,12 @@ export const SessionView = ({
         {appConfig.isPreConnectBufferEnabled && (
           <PreConnectMessage messages={messages} className="pb-4" />
         )}
-        <div className="relative mx-auto max-w-2xl pb-3 md:pb-12">
+        <div 
+          className="relative mx-auto max-w-2xl pb-3 md:pb-12 transition-all duration-300 ease-out"
+          style={{
+            marginRight: hasArtifact ? `${artifactWidth}px` : '0',
+          }}
+        >
           <AgentControlBar
             controls={controls}
             onChatOpenChange={setChatOpen}
