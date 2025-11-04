@@ -20,11 +20,18 @@ const ICONS = {
   slide: '🎬',
 };
 
-const TYPE_COLORS = {
-  text: 'border-blue-200 hover:border-blue-300 hover:bg-blue-50',
-  code: 'border-purple-200 hover:border-purple-300 hover:bg-purple-50',
-  sheet: 'border-green-200 hover:border-green-300 hover:bg-green-50',
-  slide: 'border-pink-200 hover:border-pink-300 hover:bg-pink-50',
+const TYPE_GRADIENTS = {
+  text: 'bg-gradient-to-br from-blue-50 to-blue-100',
+  code: 'bg-gradient-to-br from-purple-50 to-purple-100',
+  sheet: 'bg-gradient-to-br from-green-50 to-green-100',
+  slide: 'bg-gradient-to-br from-pink-50 to-pink-100',
+};
+
+const PROGRESS_COLORS = {
+  text: 'bg-blue-500',
+  code: 'bg-purple-500',
+  sheet: 'bg-green-500',
+  slide: 'bg-pink-500',
 };
 
 export function ArtifactPreviewCard({
@@ -38,47 +45,55 @@ export function ArtifactPreviewCard({
     <button
       onClick={onClick}
       className={cn(
-        'w-full rounded-lg border-2 bg-white p-4 shadow-sm transition-all',
-        'hover:shadow-md active:scale-[0.98]',
-        'flex items-start gap-3 text-left',
-        TYPE_COLORS[artifactType]
+        'w-full rounded-2xl p-5 shadow-md transition-all',
+        'hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]',
+        'flex flex-col gap-3 text-left relative overflow-hidden',
+        TYPE_GRADIENTS[artifactType]
       )}
     >
-      {/* アイコン */}
-      <div className="flex-shrink-0 text-3xl">
-        {ICONS[artifactType]}
+      {/* ヘッダー（アイコン + タイトル + 矢印） */}
+      <div className="flex items-start gap-3">
+        {/* アイコン */}
+        <div className="flex-shrink-0 text-4xl">
+          {ICONS[artifactType]}
+        </div>
+
+        {/* タイトルとサブタイトル */}
+        <div className="flex-1 min-w-0">
+          <h4 className="font-semibold text-gray-900 text-base mb-1 truncate">
+            {title}
+          </h4>
+          <p className="text-sm text-gray-600 line-clamp-1">
+            {preview}
+          </p>
+        </div>
+
+        {/* 矢印アイコン */}
+        <div className="flex-shrink-0 text-gray-500 text-2xl">
+          →
+        </div>
       </div>
 
-      {/* コンテンツ */}
-      <div className="flex-1 min-w-0">
-        <h4 className="font-medium text-gray-900 text-sm mb-1 truncate">
-          {title}
-        </h4>
-        <p className="text-xs text-gray-500 line-clamp-2">
-          {preview}
-        </p>
-        {/* 進捗バー（スライドなど） */}
-        {progress && (
-          <div className="mt-2">
-            <div className="flex items-center gap-2">
-              <div className="flex-1 bg-gray-200 rounded-full h-1.5 overflow-hidden">
-                <div 
-                  className="bg-blue-500 h-full transition-all duration-300"
-                  style={{ width: `${(progress.current / progress.total) * 100}%` }}
-                />
-              </div>
-              <span className="text-xs text-gray-500 font-medium">
-                {progress.current}/{progress.total}
-              </span>
-            </div>
+      {/* 進捗バー（スライドなど） */}
+      {progress && (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-gray-700 font-medium">進捗</span>
+            <span className="text-gray-600 font-semibold">
+              {progress.current}/{progress.total}
+            </span>
           </div>
-        )}
-      </div>
-
-      {/* 矢印アイコン */}
-      <div className="flex-shrink-0 text-gray-400 text-xl">
-        →
-      </div>
+          <div className="bg-white/60 rounded-full h-2 overflow-hidden backdrop-blur-sm">
+            <div 
+              className={cn(
+                'h-full transition-all duration-500 ease-out rounded-full',
+                PROGRESS_COLORS[artifactType]
+              )}
+              style={{ width: `${(progress.current / progress.total) * 100}%` }}
+            />
+          </div>
+        </div>
+      )}
     </button>
   );
 }
