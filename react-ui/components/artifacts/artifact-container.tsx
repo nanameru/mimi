@@ -13,11 +13,13 @@ import { WeatherCard } from './weather-card';
 import { TextEditor } from './text-editor';
 import { CodeEditor } from './code-editor';
 import { SheetEditor } from './sheet-editor';
+import { SlideEditor } from './slide-editor';
 import type {
   WeatherArtifact,
   TextArtifact,
   CodeArtifact,
   SheetArtifact,
+  SlideArtifact,
   LoadingArtifact,
 } from './types';
 import { Button } from '@/components/livekit/button';
@@ -40,6 +42,7 @@ export function ArtifactContainer() {
     if (artifact.kind === 'text') return 'Text Document';
     if (artifact.kind === 'code') return 'Code Document';
     if (artifact.kind === 'sheet') return 'Spreadsheet';
+    if (artifact.kind === 'slide') return 'Presentation Slide';
     if (artifact.kind === 'weather') return 'Weather';
     return 'Loading...';
   };
@@ -210,6 +213,14 @@ export function ArtifactContainer() {
                   <SheetEditor
                     content={(artifact as SheetArtifact).content || ''}
                     status={isStreaming ? 'streaming' : 'idle'}
+                  />
+                </div>
+              )}
+
+              {artifact.kind === 'slide' && (
+                <div style={{ height: 'calc(100vh - 80px)' }}>
+                  <SlideEditor
+                    content={(artifact as SlideArtifact).content || ''}
                   />
                 </div>
               )}

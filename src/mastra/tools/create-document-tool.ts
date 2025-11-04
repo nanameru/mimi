@@ -6,9 +6,10 @@ import {
   sendTextArtifact,
   sendCodeArtifact,
   sendSheetArtifact,
+  sendSlideArtifact,
   sendLoadingArtifact,
 } from '../../artifacts/index.js';
-import { codePrompt, sheetPrompt, textPrompt } from '../prompts.js';
+import { codePrompt, sheetPrompt, textPrompt, slidePrompt } from '../prompts.js';
 
 /**
  * ドキュメント作成ツール
@@ -17,9 +18,9 @@ import { codePrompt, sheetPrompt, textPrompt } from '../prompts.js';
 export const createDocumentTool = createTool({
   id: 'create-document',
   description:
-    'Create a document (text, code, or spreadsheet) based on user request. The document will be displayed in real-time as it is generated.',
+    'Create a document (text, code, spreadsheet, or slide) based on user request. The document will be displayed in real-time as it is generated.',
   inputSchema: z.object({
-    type: z.enum(['text', 'code', 'sheet']).describe('Type of document to create'),
+    type: z.enum(['text', 'code', 'sheet', 'slide']).describe('Type of document to create'),
     prompt: z.string().describe('User request or description of what to create'),
   }),
   outputSchema: z.object({
@@ -147,6 +148,30 @@ export const createDocumentTool = createTool({
           await sendSheetArtifact(room, draftContent, false, streamId);
         }
         console.log(`[Create Document Tool] ✅ SHEET streaming completed: ${chunkCount} chunks, ${draftContent.length} chars (ID: ${toolExecutionId})`);
+      } else if (type === 'slide') {
+        console.log(`[Create Document Tool] 🎬 Generating SLIDE document... (ID: ${toolExecutionId})`);
+        // スライドドキュメントの生成（ストリーミング）
+        const { fullStream } = streamText({
+          model: openai('gpt-4o-mini'),
+          system: slidePrompt,
+          prompt,
+        });
+
+        let chunkCount = 0;
+        for await (const delta of fullStream) {
+          if (delta.type === 'text-delta') {
+            draftContent += delta.text;
+            chunkCount++;
+
+            // ストリーミングでフロントエンドに送信（同じstreamIdを使用）
+            await sendSlideArtifact(room, draftContent, true, streamId);
+            
+            if (chunkCount % 10 === 0) {
+              console.log(`[Create Document Tool] 📡 Streamed ${chunkCount} chunks, ${draftContent.length} chars (ID: ${toolExecutionId})`);
+            }
+          }
+        }
+        console.log(`[Create Document Tool] ✅ SLIDE streaming completed: ${chunkCount} chunks, ${draftContent.length} chars (ID: ${toolExecutionId})`);
       }
 
       console.log(`[Create Document Tool] 🎉 Successfully created ${type} document (${draftContent.length} chars) (ID: ${toolExecutionId})`);

@@ -2,7 +2,7 @@
  * アーティファクトの型定義（フロントエンド）
  */
 
-export type ArtifactKind = 'weather' | 'text' | 'code' | 'sheet' | 'loading';
+export type ArtifactKind = 'weather' | 'text' | 'code' | 'sheet' | 'slide' | 'loading';
 
 export type WeatherData = {
   location: string;
@@ -39,6 +39,11 @@ export type CodeArtifact = ArtifactData & {
 
 export type SheetArtifact = ArtifactData & {
   kind: 'sheet';
+  content: string;
+};
+
+export type SlideArtifact = ArtifactData & {
+  kind: 'slide';
   content: string;
 };
 

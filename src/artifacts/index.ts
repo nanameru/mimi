@@ -9,6 +9,7 @@ import type {
   TextArtifact,
   CodeArtifact,
   SheetArtifact,
+  SlideArtifact,
   LoadingArtifact,
 } from './types';
 
@@ -158,6 +159,41 @@ export async function sendSheetArtifact(
   const artifact: SheetArtifact = {
     type: 'artifact',
     kind: 'sheet',
+    content,
+    timestamp,
+  };
+
+  await sendArtifact(room, artifact);
+}
+
+/**
+ * スライドアーティファクトを送信（ストリーミング対応）
+ */
+export async function sendSlideArtifact(
+  room: Room,
+  content: string,
+  isDelta: boolean = false,
+  streamId?: string
+): Promise<void> {
+  // ストリーミングの場合、同じstreamIdには同じtimestampを使用
+  let timestamp: number;
+  const cacheKey = streamId || 'slide-default';
+  
+  if (isDelta && streamId) {
+    if (!streamingTimestamps.has(cacheKey)) {
+      timestamp = Date.now();
+      streamingTimestamps.set(cacheKey, timestamp);
+    } else {
+      timestamp = streamingTimestamps.get(cacheKey)!;
+    }
+  } else {
+    timestamp = Date.now();
+    streamingTimestamps.delete(cacheKey);
+  }
+
+  const artifact: SlideArtifact = {
+    type: 'artifact',
+    kind: 'slide',
     content,
     timestamp,
   };
