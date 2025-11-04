@@ -72,5 +72,6 @@ export type ArtifactNotification = {
   preview: string;
   timestamp: number;
   streamId?: string;
+  progress?: { current: number; total: number }; // 進捗情報（スライドなど）
 };
 

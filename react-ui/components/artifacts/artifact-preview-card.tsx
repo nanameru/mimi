@@ -9,6 +9,7 @@ type ArtifactPreviewCardProps = {
   preview: string;
   timestamp: number;
   streamId?: string;
+  progress?: { current: number; total: number };
   onClick: () => void;
 };
 
@@ -30,6 +31,7 @@ export function ArtifactPreviewCard({
   artifactType,
   title,
   preview,
+  progress,
   onClick,
 }: ArtifactPreviewCardProps) {
   return (
@@ -55,6 +57,22 @@ export function ArtifactPreviewCard({
         <p className="text-xs text-gray-500 line-clamp-2">
           {preview}
         </p>
+        {/* 進捗バー（スライドなど） */}
+        {progress && (
+          <div className="mt-2">
+            <div className="flex items-center gap-2">
+              <div className="flex-1 bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                <div 
+                  className="bg-blue-500 h-full transition-all duration-300"
+                  style={{ width: `${(progress.current / progress.total) * 100}%` }}
+                />
+              </div>
+              <span className="text-xs text-gray-500 font-medium">
+                {progress.current}/{progress.total}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 矢印アイコン */}

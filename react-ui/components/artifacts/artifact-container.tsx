@@ -177,9 +177,15 @@ export function ArtifactContainer() {
               <div className="flex flex-col">
                 <div className="font-medium text-gray-900">{artifactTitle}</div>
                 <div className="text-gray-500 text-sm">
-                  {`Updated ${formatDistance(artifactTimestamp, new Date(), {
-                    addSuffix: true,
-                  })}`}
+                  {artifact.kind === 'slide' && (artifact as SlideArtifact).totalSlides ? (
+                    <>
+                      {`スライド ${((artifact as SlideArtifact).currentSlideIndex || 0) + 1}/${(artifact as SlideArtifact).totalSlides} 生成中...`}
+                    </>
+                  ) : (
+                    `Updated ${formatDistance(artifactTimestamp, new Date(), {
+                      addSuffix: true,
+                    })}`
+                  )}
                 </div>
               </div>
             </div>

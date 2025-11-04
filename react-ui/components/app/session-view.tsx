@@ -158,54 +158,72 @@ export const SessionView = ({
               <Fade top className="absolute inset-x-4 top-0 h-40 z-10" />
               <div className="h-full px-4 pt-40 pb-[150px]">
                 <div className="space-y-3 max-w-2xl">
-                  {messages.map(({ id, timestamp, from, message, editTimestamp }) => {
+                  {/* メッセージと通知を統合してタイムスタンプ順に表示 */}
+                  {(() => {
                     const locale = navigator?.language ?? 'en-US';
-                    const messageOrigin = from?.isLocal ? 'local' : 'remote';
-                    const hasBeenEdited = !!editTimestamp;
-
-                    return (
-                      <div key={id} className="animate-in fade-in slide-in-from-bottom-2">
-                        <div className={cn(
-                          "rounded-lg p-3 shadow-sm",
-                          messageOrigin === 'local' 
-                            ? "bg-[#343541] ml-auto max-w-[80%]"
-                            : "bg-white border border-gray-200 mr-auto max-w-[80%]"
-                        )}>
-                          <div className={cn(
-                            "text-sm",
-                            messageOrigin === 'local' ? "text-white" : "text-gray-900"
-                          )}>{message}</div>
-                          <div className={cn(
-                            "text-xs mt-1",
-                            messageOrigin === 'local' ? "text-gray-300" : "text-gray-500"
-                          )}>
-                            {new Date(timestamp).toLocaleTimeString(locale, {
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
+                    
+                    // メッセージと通知を統合
+                    const items: Array<{ type: 'message' | 'notification'; timestamp: number; data: any }> = [
+                      ...messages.map(msg => ({ type: 'message' as const, timestamp: msg.timestamp, data: msg })),
+                      ...notifications.map(notif => ({ type: 'notification' as const, timestamp: notif.timestamp, data: notif })),
+                    ];
+                    
+                    // タイムスタンプ順にソート
+                    items.sort((a, b) => a.timestamp - b.timestamp);
+                    
+                    return items.map((item) => {
+                      if (item.type === 'message') {
+                        const { id, timestamp, from, message, editTimestamp } = item.data;
+                        const messageOrigin = from?.isLocal ? 'local' : 'remote';
+                        const hasBeenEdited = !!editTimestamp;
+                        
+                        return (
+                          <div key={id} className="animate-in fade-in slide-in-from-bottom-2">
+                            <div className={cn(
+                              "rounded-lg p-3 shadow-sm",
+                              messageOrigin === 'local' 
+                                ? "bg-[#343541] ml-auto max-w-[80%]"
+                                : "bg-white border border-gray-200 mr-auto max-w-[80%]"
+                            )}>
+                              <div className={cn(
+                                "text-sm",
+                                messageOrigin === 'local' ? "text-white" : "text-gray-900"
+                              )}>{message}</div>
+                              <div className={cn(
+                                "text-xs mt-1",
+                                messageOrigin === 'local' ? "text-gray-300" : "text-gray-500"
+                              )}>
+                                {new Date(timestamp).toLocaleTimeString(locale, {
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                  
-                  {/* アーティファクト通知（プレビューカード） */}
-                  {notifications.map((notification) => (
-                    <div key={notification.timestamp} className="animate-in fade-in slide-in-from-bottom-2 mr-auto max-w-[80%]">
-                      <ArtifactPreviewCard
-                        artifactType={notification.artifactType}
-                        title={notification.title}
-                        preview={notification.preview}
-                        timestamp={notification.timestamp}
-                        streamId={notification.streamId}
-                        onClick={() => {
-                          console.log('[SessionView] Preview card clicked, showing artifact');
-                          setIsVisible(true);
-                          setUserClosed(false);
-                        }}
-                      />
-                    </div>
-                  ))}
+                        );
+                      } else {
+                        // 通知（プレビューカード）
+                        const notification = item.data;
+                        return (
+                          <div key={notification.timestamp} className="animate-in fade-in slide-in-from-bottom-2 mr-auto max-w-[80%]">
+                            <ArtifactPreviewCard
+                              artifactType={notification.artifactType}
+                              title={notification.title}
+                              preview={notification.preview}
+                              timestamp={notification.timestamp}
+                              streamId={notification.streamId}
+                              progress={notification.progress}
+                              onClick={() => {
+                                console.log('[SessionView] Preview card clicked, showing artifact');
+                                setIsVisible(true);
+                                setUserClosed(false);
+                              }}
+                            />
+                          </div>
+                        );
+                      }
+                    });
+                  })()}
                 </div>
               </div>
             </div>

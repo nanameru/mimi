@@ -247,7 +247,8 @@ export async function sendArtifactNotification(
   artifactType: 'text' | 'code' | 'sheet' | 'slide',
   title: string,
   preview: string,
-  streamId?: string
+  streamId?: string,
+  progress?: { current: number; total: number }
 ): Promise<void> {
   try {
     const notification: ArtifactNotification = {
@@ -257,6 +258,7 @@ export async function sendArtifactNotification(
       preview: preview.substring(0, 200), // 最大200文字まで
       timestamp: Date.now(),
       streamId,
+      progress,
     };
 
     const dataPacket = JSON.stringify(notification);
@@ -268,7 +270,11 @@ export async function sendArtifactNotification(
       topic: 'artifact',
     });
 
-    console.log(`[Artifact Notification] Sent ${artifactType} notification:`, { title, preview: preview.substring(0, 50) });
+    console.log(`[Artifact Notification] Sent ${artifactType} notification:`, { 
+      title, 
+      preview: preview.substring(0, 50),
+      progress,
+    });
   } catch (error) {
     console.error('[Artifact Notification] Failed to send:', error);
   }

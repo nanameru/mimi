@@ -256,6 +256,16 @@ Generate a single slide div with inline styles.
           // 現在までのスライドを結合したHTMLを生成
           const partialHTML = buildSlideHTML(slideHTMLs, slideNumber, outline.length);
           await sendSlideArtifact(room, partialHTML, true, streamId, slides, slideNumber - 1, outline.length);
+          
+          // プレビュー通知を送信（進捗付き）
+          await sendArtifactNotification(
+            room,
+            'slide',
+            `🎬 スライド生成中 (${slideNumber}/${outline.length})`,
+            slideOutline.title,
+            streamId,
+            { current: slideNumber, total: outline.length }
+          );
         }
         
         // ステップ3: 全スライドを結合して完全なHTMLドキュメントを作成
