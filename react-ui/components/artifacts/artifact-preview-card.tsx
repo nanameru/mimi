@@ -125,24 +125,6 @@ export function ArtifactPreviewCard({
         <div className="text-sm text-gray-600 dark:text-gray-400 line-clamp-[14]">
           {preview}
         </div>
-        
-        {/* 進捗バー */}
-        {progress && (
-          <div className="absolute bottom-4 left-4 right-4 bg-white/90 dark:bg-zinc-800/90 backdrop-blur-sm rounded-lg p-3 shadow-md">
-            <div className="flex items-center justify-between text-sm mb-2">
-              <span className="text-gray-700 dark:text-gray-300 font-medium">進捗</span>
-              <span className="text-gray-600 dark:text-gray-400 font-semibold">
-                {progress.current}/{progress.total}
-              </span>
-            </div>
-            <div className="bg-gray-200 dark:bg-zinc-700 rounded-full h-2 overflow-hidden">
-              <div 
-                className="bg-blue-500 h-full transition-all duration-500 ease-out"
-                style={{ width: `${(progress.current / progress.total) * 100}%` }}
-              />
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
