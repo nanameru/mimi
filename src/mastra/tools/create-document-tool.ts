@@ -242,8 +242,8 @@ Generate a single slide div with inline styles.
               slideHTML += delta.text;
               chunkCount++;
               
-              // 100チャンクごとに途中経過を送信（頻度を減らしてタイムアウトを回避）
-              if (chunkCount % 100 === 0) {
+              // 10チャンクごとに途中経過を送信（リアルタイム生成）
+              if (chunkCount % 10 === 0) {
                 try {
                   // 生成中のスライドも含めて一時的なHTMLを作成
                   const tempSlideHTML = slideHTML.replace(/```html\s*/g, '').replace(/```\s*/g, '').trim();
