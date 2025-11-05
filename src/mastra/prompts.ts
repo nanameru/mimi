@@ -69,7 +69,7 @@ Output ONLY a JSON array of slide outlines. Each slide should have:
 - 'conclusion': Summary slide with key takeaways and call-to-action
 
 📋 GUIDELINES:
-- Create 6-12 slides for a complete business presentation
+- Create 5-10 slides for a complete business presentation
 - First slide MUST be layoutType: 'title' (company intro)
 - Last slide MUST be layoutType: 'conclusion' (summary)
 - Use 'process' or 'chart' for at least 1-2 slides (visual diagrams)
@@ -513,7 +513,7 @@ DESIGN TIPS:
 
 ⚠️ ABSOLUTE REQUIREMENTS FOR PPTX EXPORT:
 - Output ONLY raw HTML (no \`\`\`html markers)
-- Create 5-20 slides based on content needs (stacked vertically)
+- Create 5-10 slides based on content needs (stacked vertically)
 - Support Japanese text with proper fonts
 - NO navigation buttons needed (vertical scroll)
 - **CRITICAL**: .slide-container MUST be 960px width
