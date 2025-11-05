@@ -67,7 +67,12 @@ export function ExportButton({ htmlContent, disabled = false }: ExportButtonProp
   
   return (
     <Button
-      onClick={handleExport}
+      type="button"
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        handleExport();
+      }}
       disabled={disabled || isExporting}
       variant="outline"
       className="flex items-center gap-2 px-3 py-2"
