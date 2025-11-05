@@ -242,15 +242,20 @@ Generate a single slide div with inline styles.
               slideHTML += delta.text;
               chunkCount++;
               
-              // 10チャンクごとに途中経過を送信（リアルタイム生成）
-              if (chunkCount % 10 === 0) {
-                // 生成中のスライドも含めて一時的なHTMLを作成
-                const tempSlideHTML = slideHTML.replace(/```html\s*/g, '').replace(/```\s*/g, '').trim();
-                const tempSlideHTMLs = [...slideHTMLs, tempSlideHTML];
-                const partialHTML = buildSlideHTML(tempSlideHTMLs, slideNumber, outline.length);
-                
-                console.log(`[Create Document Tool] 📡 Streaming slide ${slideNumber}, chunk ${chunkCount} (${slideHTML.length} chars) (ID: ${toolExecutionId})`);
-                await sendSlideArtifact(room, partialHTML, true, streamId, slides, slideNumber - 1, outline.length);
+              // 100チャンクごとに途中経過を送信（頻度を減らしてタイムアウトを回避）
+              if (chunkCount % 100 === 0) {
+                try {
+                  // 生成中のスライドも含めて一時的なHTMLを作成
+                  const tempSlideHTML = slideHTML.replace(/```html\s*/g, '').replace(/```\s*/g, '').trim();
+                  const tempSlideHTMLs = [...slideHTMLs, tempSlideHTML];
+                  const partialHTML = buildSlideHTML(tempSlideHTMLs, slideNumber, outline.length);
+                  
+                  console.log(`[Create Document Tool] 📡 Streaming slide ${slideNumber}, chunk ${chunkCount} (${slideHTML.length} chars) (ID: ${toolExecutionId})`);
+                  await sendSlideArtifact(room, partialHTML, true, streamId, slides, slideNumber - 1, outline.length);
+                } catch (error) {
+                  // 送信エラーは無視して続行（最終版で送信されるため）
+                  console.warn(`[Create Document Tool] ⚠️ Failed to stream chunk ${chunkCount}, continuing... (ID: ${toolExecutionId})`);
+                }
               }
             }
           }
