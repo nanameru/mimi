@@ -321,13 +321,13 @@ export const SessionView = ({
       {/* Bottom */}
       <MotionBottom
         {...BOTTOM_VIEW_MOTION_PROPS}
-        className="fixed inset-x-3 bottom-0 z-50 md:inset-x-12"
+        className="fixed inset-x-3 bottom-0 z-[9999] md:inset-x-12"
       >
         {appConfig.isPreConnectBufferEnabled && (
           <PreConnectMessage messages={messages} className="pb-4" />
         )}
         <div 
-          className="relative z-20 mx-auto max-w-2xl pb-3 md:pb-12 transition-all duration-300 ease-out"
+          className="relative z-[9999] mx-auto max-w-2xl pb-3 md:pb-12 transition-all duration-300 ease-out"
         >
           <AgentControlBar
             controls={controls}
