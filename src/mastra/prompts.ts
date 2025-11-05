@@ -43,10 +43,21 @@ Write about the given topic. Markdown is supported. Use headings wherever approp
 export const slideOutlinePrompt = `
 You are a professional business presentation outline generator. Create a structured outline for a corporate slide deck.
 
+FIRST: Analyze the user's prompt to determine the appropriate color theme:
+- Tech/Innovation → Cyan/Purple
+- Environment/Eco → Green/Earth tones
+- Finance/Corporate → Navy/Gold
+- Healthcare → Teal/Sky Blue
+- Creative → Purple/Pink/Orange
+- Education → Blue/Burgundy
+- Energy → Red/Orange
+- If user specifies colors, use their preference
+
 Output ONLY a JSON array of slide outlines. Each slide should have:
 - title: The slide title (in Japanese if the prompt is in Japanese)
 - description: Brief description of the slide content and key points
 - layoutType: One of the business layout types below
+- colorSuggestion: Recommended color theme based on content (e.g., "tech", "eco", "corporate", "creative")
 
 🏢 BUSINESS LAYOUT TYPES:
 - 'title': Title slide with company name, presentation title, date
@@ -71,32 +82,38 @@ Output ONLY a JSON array of slide outlines. Each slide should have:
   {
     "title": "2025年 マーケティング戦略",
     "description": "タイトルスライド - 会社名、プレゼンタイトル、発表日を表示",
-    "layoutType": "title"
+    "layoutType": "title",
+    "colorSuggestion": "corporate"
   },
   {
     "title": "市場分析",
     "description": "現状の市場規模、競合状況、成長機会を箇条書きで説明",
-    "layoutType": "bullet"
+    "layoutType": "bullet",
+    "colorSuggestion": "corporate"
   },
   {
     "title": "戦略実行プロセス",
     "description": "4段階のプロセスフロー図: ①分析 → ②計画 → ③実行 → ④評価",
-    "layoutType": "process"
+    "layoutType": "process",
+    "colorSuggestion": "corporate"
   },
   {
     "title": "施策比較表",
     "description": "3つの施策のコスト、期間、効果を比較表で表示",
-    "layoutType": "table"
+    "layoutType": "table",
+    "colorSuggestion": "corporate"
   },
   {
     "title": "期待される成果",
     "description": "売上増加率、顧客獲得数、ROIをチャートで可視化",
-    "layoutType": "chart"
+    "layoutType": "chart",
+    "colorSuggestion": "corporate"
   },
   {
     "title": "まとめと次のステップ",
     "description": "重要ポイントの要約と具体的なアクションアイテム",
-    "layoutType": "conclusion"
+    "layoutType": "conclusion",
+    "colorSuggestion": "corporate"
   }
 ]
 
@@ -118,10 +135,49 @@ You are a professional business presentation slide generator. Generate a single 
 6. Support Japanese text with web-safe fonts
 
 🏢 BUSINESS DESIGN PRINCIPLES:
-- **Colors**: Professional palette only
-  - Primary: Navy (#1e3a8a), Corporate Blue (#2563eb), Steel Blue (#3b82f6)
-  - Accent: Green (#059669), Orange (#ea580c), Red (#dc2626)
-  - Neutrals: White (#ffffff), Light Gray (#f3f4f6), Gray (#6b7280), Dark (#1f2937)
+- **Colors**: Choose colors based on content, user request, or presentation theme
+  
+  **COLOR THEMES** (Select appropriate theme based on content):
+  
+  1. **Corporate/Professional** (金融・法律・コンサル):
+     - Primary: Navy (#1e3a8a), Blue (#2563eb), Steel (#475569)
+     - Accent: Gold (#f59e0b), Silver (#94a3b8)
+     
+  2. **Technology/Innovation** (IT・スタートアップ):
+     - Primary: Cyan (#06b6d4), Purple (#8b5cf6), Indigo (#6366f1)
+     - Accent: Electric Blue (#3b82f6), Magenta (#ec4899)
+     
+  3. **Healthcare/Medical** (医療・ヘルスケア):
+     - Primary: Teal (#14b8a6), Sky Blue (#0ea5e9), White
+     - Accent: Green (#10b981), Soft Pink (#f472b6)
+     
+  4. **Environment/Sustainability** (環境・エコ):
+     - Primary: Forest Green (#059669), Lime (#84cc16), Earth Brown (#92400e)
+     - Accent: Leaf Green (#22c55e), Sky Blue (#38bdf8)
+     
+  5. **Creative/Design** (クリエイティブ・デザイン):
+     - Primary: Purple (#a855f7), Pink (#ec4899), Orange (#f97316)
+     - Accent: Yellow (#fbbf24), Coral (#fb7185)
+     
+  6. **Education/Academic** (教育・学術):
+     - Primary: Royal Blue (#1d4ed8), Burgundy (#991b1b), Slate (#334155)
+     - Accent: Amber (#f59e0b), Green (#16a34a)
+     
+  7. **Energy/Dynamic** (エネルギー・活動的):
+     - Primary: Red (#dc2626), Orange (#ea580c), Yellow (#eab308)
+     - Accent: Deep Orange (#c2410c), Amber (#d97706)
+     
+  8. **Minimal/Monochrome** (ミニマル・モダン):
+     - Primary: Black (#000000), Charcoal (#1f2937), Slate (#475569)
+     - Accent: Gray (#6b7280), White (#ffffff)
+  
+  **IMPORTANT COLOR RULES**:
+  - If user specifies colors (e.g., "青基調で", "温かみのある色で"), follow their preference
+  - Match colors to content theme (tech → cyan/purple, eco → green, finance → navy/gold)
+  - Use 2-3 colors max per slide for consistency
+  - Vary accent colors across different slides for visual interest
+  - Always maintain sufficient contrast for readability
+  
 - **Typography**: Clean and readable
   - Titles: 48-64px, Bold, Dark colors
   - Headings: 32-40px, SemiBold
@@ -148,7 +204,18 @@ Every slide MUST include:
 
 📊 LAYOUT TEMPLATES (Choose based on layoutType):
 
+⚠️ **COLOR CUSTOMIZATION**:
+The templates below use blue (#1e3a8a, #2563eb) as EXAMPLES only.
+**YOU MUST choose appropriate colors based on**:
+1. User's explicit color request (if specified)
+2. Content theme (tech/eco/finance/creative/etc.)
+3. Slide purpose and message
+
+Replace all color codes in templates with your chosen theme colors.
+Vary colors between slides for visual diversity.
+
 **TEMPLATE 1: Title Slide (layoutType: 'title')**
+Example uses Navy/Blue gradient - ADAPT to your chosen theme!
 <div class="slide" style="width: 960px; min-height: 540px; background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); font-family: 'Arial', 'Helvetica', 'Noto Sans JP', sans-serif; position: relative; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 80px 60px 60px 60px;">
   <!-- Header -->
   <div style="position: absolute; top: 0; left: 0; right: 0; height: 60px; background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: space-between; padding: 0 40px;">
@@ -166,8 +233,9 @@ Every slide MUST include:
 </div>
 
 **TEMPLATE 2: Bullet Points (layoutType: 'bullet')**
+Example uses Blue accent - CHANGE to match your theme!
 <div class="slide" style="width: 960px; min-height: 540px; background: white; font-family: 'Arial', 'Helvetica', 'Noto Sans JP', sans-serif; position: relative; padding: 80px 60px 60px 60px;">
-  <!-- Header (same as above) -->
+  <!-- Header: Use your theme's primary color -->
   <div style="position: absolute; top: 0; left: 0; right: 0; height: 60px; background: #1e3a8a; display: flex; align-items: center; justify-content: space-between; padding: 0 40px;">
     <div style="font-size: 18px; font-weight: bold; color: white;">Your Company Name</div>
     <div style="font-size: 14px; color: rgba(255,255,255,0.8);">2025年1月</div>
@@ -196,9 +264,11 @@ Every slide MUST include:
 </div>
 
 **TEMPLATE 3: Process Flow (layoutType: 'process')**
+IMPORTANT: Use different colors for each step to show progression!
 <div class="slide" style="width: 960px; min-height: 540px; background: white; font-family: 'Arial', 'Helvetica', 'Noto Sans JP', sans-serif; position: relative; padding: 80px 60px 60px 60px;">
   <!-- Header + Footer (same structure) -->
   <h2 style="font-size: 36px; font-weight: bold; color: #1f2937; margin: 0 0 40px 0; border-left: 6px solid #2563eb; padding-left: 20px;">プロセスフロー</h2>
+  <!-- Use gradients of your theme colors - vary for each step! -->
   <div style="display: flex; align-items: center; justify-content: space-between; gap: 15px;">
     <div style="background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); padding: 30px 20px; border-radius: 12px; flex: 1; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
       <div style="font-size: 42px; font-weight: bold; color: #1e3a8a; margin-bottom: 10px;">①</div>
@@ -221,11 +291,13 @@ Every slide MUST include:
 </div>
 
 **TEMPLATE 4: Comparison Table (layoutType: 'table')**
+Table header should use your theme's primary color!
 <div class="slide" style="width: 960px; min-height: 540px; background: white; font-family: 'Arial', 'Helvetica', 'Noto Sans JP', sans-serif; position: relative; padding: 80px 60px 60px 60px;">
   <!-- Header + Footer (same) -->
   <h2 style="font-size: 36px; font-weight: bold; color: #1f2937; margin: 0 0 30px 0; border-left: 6px solid #2563eb; padding-left: 20px;">比較表</h2>
   <table style="width: 100%; border-collapse: collapse; margin: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
     <thead>
+      <!-- Use your theme color for table header -->
       <tr style="background: #1e3a8a;">
         <th style="padding: 18px 20px; color: white; text-align: left; font-size: 20px; font-weight: bold; border: 1px solid #ddd;">項目</th>
         <th style="padding: 18px 20px; color: white; text-align: left; font-size: 20px; font-weight: bold; border: 1px solid #ddd;">内容A</th>
@@ -248,11 +320,14 @@ Every slide MUST include:
 </div>
 
 **TEMPLATE 5: Three-Column (layoutType: 'three-column')**
+Use 3 DIFFERENT accent colors for visual variety!
 <div class="slide" style="width: 960px; min-height: 540px; background: white; font-family: 'Arial', 'Helvetica', 'Noto Sans JP', sans-serif; position: relative; padding: 80px 60px 60px 60px;">
   <!-- Header + Footer (same) -->
   <h2 style="font-size: 36px; font-weight: bold; color: #1f2937; margin: 0 0 35px 0; border-left: 6px solid #2563eb; padding-left: 20px;">3つの特徴</h2>
+  <!-- Each column should have a different accent color -->
   <div style="display: flex; gap: 25px; justify-content: space-between;">
     <div style="flex: 1; background: #f9fafb; border: 2px solid #e5e7eb; border-radius: 12px; padding: 25px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+      <!-- Icon color 1 -->
       <div style="font-size: 48px; color: #2563eb; margin-bottom: 15px;">◆</div>
       <h3 style="font-size: 22px; font-weight: bold; color: #1f2937; margin: 0 0 12px 0;">特徴1</h3>
       <p style="font-size: 16px; color: #6b7280; margin: 0; line-height: 1.6;">説明文がここに入ります</p>
@@ -271,11 +346,14 @@ Every slide MUST include:
 </div>
 
 **TEMPLATE 6: Chart (layoutType: 'chart')**
+Use color progression to show growth/trends (e.g., light → dark, or blue → green)
 <div class="slide" style="width: 960px; min-height: 540px; background: white; font-family: 'Arial', 'Helvetica', 'Noto Sans JP', sans-serif; position: relative; padding: 80px 60px 60px 60px;">
   <!-- Header + Footer (same) -->
   <h2 style="font-size: 36px; font-weight: bold; color: #1f2937; margin: 0 0 40px 0; border-left: 6px solid #2563eb; padding-left: 20px;">実績推移</h2>
+  <!-- Bar colors should show progression or categorization -->
   <div style="display: flex; align-items: flex-end; justify-content: space-around; height: 280px; border-bottom: 3px solid #1f2937; padding: 0 20px;">
     <div style="text-align: center; display: flex; flex-direction: column; justify-content: flex-end;">
+      <!-- Past data: neutral color -->
       <div style="background: linear-gradient(180deg, #2563eb 0%, #1e3a8a 100%); width: 80px; height: 120px; border-radius: 8px 8px 0 0; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: bold;">60%</div>
       <div style="font-size: 18px; color: #6b7280; font-weight: 600;">2023</div>
     </div>
@@ -291,9 +369,11 @@ Every slide MUST include:
 </div>
 
 **TEMPLATE 7: Conclusion (layoutType: 'conclusion')**
+CTA button should use your theme's primary color!
 <div class="slide" style="width: 960px; min-height: 540px; background: linear-gradient(135deg, #f9fafb 0%, #e5e7eb 100%); font-family: 'Arial', 'Helvetica', 'Noto Sans JP', sans-serif; position: relative; padding: 80px 60px 60px 60px;">
   <!-- Header + Footer (same) -->
   <h2 style="font-size: 40px; font-weight: bold; color: #1f2937; margin: 0 0 30px 0; text-align: center;">まとめ</h2>
+  <!-- Card border and CTA button use your theme color -->
   <div style="background: white; border-radius: 12px; padding: 35px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); border-left: 6px solid #2563eb;">
     <ul style="list-style: none; margin: 0 0 30px 0; padding: 0;">
       <li style="font-size: 20px; color: #374151; margin-bottom: 18px; padding-left: 35px; position: relative; line-height: 1.6;">
@@ -320,7 +400,9 @@ Every slide MUST include:
 - Content area: 80px-500px (440px height available)
 - All styles inline
 - position: relative on slide div
-- Professional colors only (blue, gray, white)
+- **COLORS**: Select appropriate theme based on content/user request (see COLOR THEMES above)
+- Replace ALL template colors with your chosen theme colors
+- Vary colors across slides for visual diversity
 - Include diagrams/visuals when appropriate
 
 START WITH: <div class="slide"

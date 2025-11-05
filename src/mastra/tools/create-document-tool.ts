@@ -185,7 +185,7 @@ export const createDocumentTool = createTool({
         let cleanedOutline = outlineText.trim();
         cleanedOutline = cleanedOutline.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
         
-        let outline: Array<{ title: string; description: string; layoutType: string }> = [];
+        let outline: Array<{ title: string; description: string; layoutType: string; colorSuggestion?: string }> = [];
         try {
           outline = JSON.parse(cleanedOutline);
           console.log(`[Create Document Tool] ✅ Outline parsed: ${outline.length} slides (ID: ${toolExecutionId})`);
@@ -194,9 +194,9 @@ export const createDocumentTool = createTool({
           console.error(`[Create Document Tool] Outline text:`, cleanedOutline);
           // フォールバック: デフォルトの構成を使用
           outline = [
-            { title: 'タイトル', description: 'タイトルスライド', layoutType: 'title' },
-            { title: '内容', description: 'メインコンテンツ', layoutType: 'content' },
-            { title: 'まとめ', description: '結論', layoutType: 'conclusion' },
+            { title: 'タイトル', description: 'タイトルスライド', layoutType: 'title', colorSuggestion: 'corporate' },
+            { title: '内容', description: 'メインコンテンツ', layoutType: 'content', colorSuggestion: 'corporate' },
+            { title: 'まとめ', description: '結論', layoutType: 'conclusion', colorSuggestion: 'corporate' },
           ];
         }
         
@@ -212,12 +212,17 @@ export const createDocumentTool = createTool({
           await sendLoadingArtifact(room, `スライド ${slideNumber}/${outline.length} を生成中: ${slideOutline.title}`);
           
           // 1枚のスライドを生成
+          const colorTheme = slideOutline.colorSuggestion || 'corporate';
           const slidePromptText = `
 Slide ${slideNumber} of ${outline.length}
 
 Title: ${slideOutline.title}
 Description: ${slideOutline.description}
 Layout Type: ${slideOutline.layoutType}
+Color Theme: ${colorTheme}
+
+IMPORTANT: Use the "${colorTheme}" color theme from the COLOR THEMES list in your system prompt.
+Replace ALL template colors (blue, navy, etc.) with appropriate colors from the ${colorTheme} theme.
 
 Generate a single slide div with inline styles.
 `;
