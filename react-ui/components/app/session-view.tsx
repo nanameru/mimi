@@ -96,12 +96,12 @@ export const SessionView = ({
   const messages = useChatMessages();
   const [chatOpen, setChatOpen] = useState(false);
   const [showLive2D, setShowLive2D] = useState(false);
-  const { artifact, setArtifact, setIsVisible, setUserClosed, notifications } = useArtifactChannel();
+  const { artifact, setArtifact, isVisible, setIsVisible, setUserClosed, notifications } = useArtifactChannel();
   const { width: windowWidth } = useWindowSize();
   const isMobile = windowWidth ? windowWidth < 768 : false;
   
-  // アーティファクトが表示されているかどうか
-  const hasArtifact = artifact && !(artifact.kind === 'loading' && !artifact.message);
+  // アーティファクトが表示されているかどうか（isVisibleも考慮）
+  const hasArtifact = artifact && isVisible && !(artifact.kind === 'loading' && !artifact.message);
 
   // チャットボタンがクリックされた時のハンドラー
   const handleChatOpenChange = (open: boolean) => {
