@@ -327,7 +327,7 @@ export const SessionView = ({
           <PreConnectMessage messages={messages} className="pb-4" />
         )}
         <div 
-          className="relative mx-auto max-w-2xl pb-3 md:pb-12 transition-all duration-300 ease-out"
+          className="relative z-20 mx-auto max-w-2xl pb-3 md:pb-12 transition-all duration-300 ease-out"
         >
           <AgentControlBar
             controls={controls}
