@@ -56,7 +56,7 @@ export function ArtifactContainer() {
       {artifact && isVisible && (
         <motion.div
           animate={{ opacity: 1 }}
-          className="fixed top-0 left-0 z-50 flex h-dvh w-dvw flex-row bg-transparent"
+          className="fixed top-0 left-0 z-[65] flex h-dvh w-dvw flex-row bg-transparent"
           data-testid="artifact"
           exit={{ opacity: 0, transition: { delay: 0.4 } }}
           initial={{ opacity: 1 }}
@@ -114,7 +114,7 @@ export function ArtifactContainer() {
                     },
                   }
             }
-            className="fixed flex h-dvh flex-col overflow-y-scroll border-gray-200 bg-white md:border-l dark:border-gray-200 z-[60] shadow-lg"
+            className="fixed flex h-dvh flex-col overflow-y-scroll border-gray-200 bg-white md:border-l dark:border-gray-200 z-[70] shadow-lg"
             exit={{
               opacity: 0,
               scale: 0.5,
