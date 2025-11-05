@@ -178,7 +178,7 @@ export const SessionView = ({
                         const hasBeenEdited = !!editTimestamp;
                         
                         return (
-                          <div key={id} className="animate-in fade-in slide-in-from-bottom-2">
+                          <div key={id} className="animate-in fade-in slide-in-from-bottom-2 relative z-10">
                             <div className={cn(
                               "rounded-lg p-3 shadow-sm",
                               messageOrigin === 'local' 
@@ -205,7 +205,7 @@ export const SessionView = ({
                         // 通知（プレビューカード）
                         const notification = item.data;
                         return (
-                          <div key={notification.timestamp} className="animate-in fade-in slide-in-from-bottom-2 mr-auto max-w-[80%]">
+                          <div key={notification.timestamp} className="animate-in fade-in slide-in-from-bottom-2 mr-auto max-w-[80%] relative z-10">
                             <ArtifactPreviewCard
                               artifactType={notification.artifactType}
                               title={notification.title}
@@ -264,7 +264,7 @@ export const SessionView = ({
                     const hasBeenEdited = !!editTimestamp;
                     
                     return (
-                      <div key={id} className="animate-in fade-in slide-in-from-bottom-2">
+                      <div key={id} className="animate-in fade-in slide-in-from-bottom-2 relative z-10">
                         <div className={cn(
                           "rounded-lg p-3 shadow-sm",
                           messageOrigin === 'local' 
@@ -291,7 +291,7 @@ export const SessionView = ({
                     // 通知（プレビューカード）
                     const notification = item.data;
                     return (
-                      <div key={notification.timestamp} className="animate-in fade-in slide-in-from-bottom-2 mr-auto max-w-[80%]">
+                      <div key={notification.timestamp} className="animate-in fade-in slide-in-from-bottom-2 mr-auto max-w-[80%] relative z-10">
                         <ArtifactPreviewCard
                           artifactType={notification.artifactType}
                           title={notification.title}

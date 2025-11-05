@@ -23,7 +23,7 @@ export function ArtifactPreviewCard({
   const isStreaming = progress && progress.current < progress.total;
 
   return (
-    <div className="relative w-full">
+    <div className="relative w-full z-10">
       {/* Hitbox Layer - フルスクリーンアイコン（クリック可能） */}
       <div
         className="absolute top-0 left-0 z-10 size-full rounded-2xl pointer-events-none"
