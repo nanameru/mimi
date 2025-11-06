@@ -47,6 +47,52 @@ const executedTasksHistory = new Map<string, ExecutedTask[]>();
 const runningTaskAgents = new Map<string, boolean>();
 
 /**
+ * 現在実行中のタスクの進行状態（ルームごと）
+ */
+interface TaskProgress {
+  taskType: 'slide' | 'document' | 'report' | 'email' | 'code' | 'text' | 'sheet';
+  status: 'starting' | 'generating' | 'finalizing' | 'completed';
+  progress: string; // 例: "5/10枚目のスライドを生成中"
+  topic: string;    // 例: "AIエージェントの未来について"
+  startedAt: number;
+  lastUpdatedAt: number;
+}
+
+const taskProgress = new Map<string, TaskProgress>();
+
+/**
+ * タスク状態を取得（30秒以上前のものは無視）
+ */
+function getCurrentTask(roomName: string): TaskProgress | null {
+  const task = taskProgress.get(roomName);
+  if (!task) return null;
+  
+  // 30秒以上前のタスクは完了とみなす
+  const elapsed = Date.now() - task.lastUpdatedAt;
+  if (elapsed > 30000) {
+    taskProgress.delete(roomName);
+    return null;
+  }
+  
+  return task;
+}
+
+/**
+ * タスク進捗を更新
+ */
+function updateTaskProgress(roomName: string, update: Partial<TaskProgress>): void {
+  const current = taskProgress.get(roomName);
+  if (current) {
+    taskProgress.set(roomName, {
+      ...current,
+      ...update,
+      lastUpdatedAt: Date.now(),
+    });
+    console.log(`[Task Progress] 📊 Updated: ${update.status || current.status} - ${update.progress || current.progress}`);
+  }
+}
+
+/**
  * タスクエージェントを呼び出してツールを実行（天気、ドキュメント作成など）
  * Mastra の taskAgent が会話履歴を分析して、タスク実行が必要かどうかを判断する
  */
@@ -69,6 +115,17 @@ async function handleTaskAgent(
   // 実行中フラグをtrueに設定
   runningTaskAgents.set(roomName, true);
   console.log(`[Task Agent] 🔒 Locked execution for room "${roomName}" (ID: ${executionId})`);
+  
+  // タスク開始状態を記録
+  taskProgress.set(roomName, {
+    taskType: 'text', // 後でツール実行時に更新
+    status: 'starting',
+    progress: 'タスクを開始しています...',
+    topic: 'processing request',
+    startedAt: Date.now(),
+    lastUpdatedAt: Date.now(),
+  });
+  console.log(`[Task Progress] 🚀 Task started for room "${roomName}" (ID: ${executionId})`);
   
   try {
     const taskAgent = mastra.getAgent('taskAgent');
@@ -143,10 +200,12 @@ async function handleTaskAgent(
     const response = await taskAgent.generate(
       messages as any, // Mastra の型定義に合わせるため
       {
-        // runtimeContextにroomを渡すことで、toolがアーティファクトを送信できる
+        // runtimeContextにroomとupdateTaskProgressを渡す
         runtimeContext: {
           room,
-        } as any, // RuntimeContext に room を追加するため
+          roomName,
+          updateTaskProgress: (update: Partial<TaskProgress>) => updateTaskProgress(roomName, update),
+        } as any, // RuntimeContext に追加するため
       }
     );
     const endTime = Date.now();
@@ -161,6 +220,20 @@ async function handleTaskAgent(
       toolCalls.forEach((tc: any, idx: number) => {
         console.log(`  ${idx + 1}. ${tc.toolName} with args:`, JSON.stringify(tc.args, null, 2));
       });
+      
+      // タスクの種類を判定して更新
+      const firstToolCall = toolCalls[0];
+      if (firstToolCall && firstToolCall.toolName === 'create-document') {
+        const taskType = firstToolCall.args?.type || 'text';
+        const topic = firstToolCall.args?.prompt || userContent;
+        
+        updateTaskProgress(roomName, {
+          taskType,
+          status: 'generating',
+          progress: `${taskType}を生成中...`,
+          topic: topic.substring(0, 100),
+        });
+      }
       
       // 実行されたタスクを履歴に記録
       if (!executedTasksHistory.has(roomName)) {
@@ -189,8 +262,19 @@ async function handleTaskAgent(
       }
       
       console.log(`[Task Agent] 📊 Total executed tasks in history: ${history.length} (ID: ${executionId})`);
+      
+      // タスク完了状態を記録
+      updateTaskProgress(roomName, {
+        status: 'completed',
+        progress: '完了しました',
+      });
+      
+      console.log(`[Task Progress] ✅ Task completed for room "${roomName}" (ID: ${executionId})`);
     } else {
       console.log(`[Task Agent] ⏭️ No tool calls executed (ID: ${executionId})`);
+      
+      // ツールが実行されなかった場合は状態をクリア
+      taskProgress.delete(roomName);
     }
     
     // レスポンス全体をログに出力（デバッグ用）
@@ -992,6 +1076,59 @@ export default defineAgent({
           userMessage = String((ev.item.content as any).text || '');
         } else {
           userMessage = String(ev.item.content || '');
+        }
+        
+        // 🔍 進捗問い合わせの検出
+        const userTextLower = userMessage.toLowerCase();
+        const isAskingProgress = 
+          userTextLower.includes('何やってる') ||
+          userTextLower.includes('進捗') ||
+          userTextLower.includes('今どう') ||
+          userTextLower.includes('どこまで') ||
+          userTextLower.includes('状況') ||
+          userTextLower.includes('どうなって');
+        
+        if (isAskingProgress) {
+          const roomName = ctx.room.name || 'default';
+          const currentTask = getCurrentTask(roomName);
+          
+          if (currentTask && currentTask.status !== 'completed') {
+            // 進行中のタスクがある場合、即座に音声で返答
+            const elapsed = Math.floor((Date.now() - currentTask.startedAt) / 1000);
+            const taskTypeJa = {
+              slide: 'スライド',
+              text: 'テキストドキュメント',
+              code: 'コード',
+              sheet: 'スプレッドシート',
+              document: 'ドキュメント',
+              report: 'レポート',
+              email: 'メール',
+            }[currentTask.taskType] || 'ドキュメント';
+            
+            const progressMessage = 
+              `(happy) <talk> <smile> 今、「${currentTask.topic}」についての${taskTypeJa}を生成してるよ！\n` +
+              `(confident) <explain> ${currentTask.progress}\n` +
+              `(relaxed) <chat> 開始から${elapsed}秒経ってるね！`;
+            
+            console.log(`[Voice AI] 📊 Reporting progress: ${progressMessage}`);
+            
+            // 即座に音声で返答（LLM応答をスキップ）
+            session.say(progressMessage);
+            
+            // タスクエージェントの実行をスキップ
+            return;
+          } else {
+            // タスクがない場合
+            const idleMessage = 
+              `(calm) <talk> <smile> 今は特にタスクを実行してないよ。\n` +
+              `(happy) <chat> 何かお手伝いできることある？`;
+            
+            console.log(`[Voice AI] 💬 No task running, asking for next task`);
+            session.say(idleMessage);
+            
+            // タスクエージェントの実行をスキップ
+            return;
+          }
         }
         
         // 会話履歴を取得して Mastra の taskAgent を実行

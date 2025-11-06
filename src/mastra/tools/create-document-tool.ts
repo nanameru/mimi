@@ -32,6 +32,7 @@ export const createDocumentTool = createTool({
   execute: async ({ context, runtimeContext }: any) => {
     const { type, prompt } = context;
     const room = runtimeContext?.room;
+    const updateTaskProgress = runtimeContext?.updateTaskProgress;
     const toolExecutionId = `${Date.now()}-${Math.random().toString(36).substring(7)}`;
 
     console.log(`[Create Document Tool] 🚀 Tool execution started (ID: ${toolExecutionId})`);
@@ -70,6 +71,15 @@ export const createDocumentTool = createTool({
 
       if (type === 'text') {
         console.log(`[Create Document Tool] 📝 Generating TEXT document... (ID: ${toolExecutionId})`);
+        
+        // タスク進捗を更新
+        if (updateTaskProgress) {
+          updateTaskProgress({
+            status: 'generating',
+            progress: 'テキストドキュメントを生成中...',
+          });
+        }
+        
         // テキストドキュメントの生成（ストリーミング）
         const { fullStream } = streamText({
           model: openai('gpt-4o-mini'),
@@ -88,12 +98,37 @@ export const createDocumentTool = createTool({
             
             if (chunkCount % 10 === 0) {
               console.log(`[Create Document Tool] 📡 Streamed ${chunkCount} chunks, ${draftContent.length} chars (ID: ${toolExecutionId})`);
+              
+              // 進捗を更新
+              if (updateTaskProgress) {
+                updateTaskProgress({
+                  progress: `テキスト生成中: ${draftContent.length}文字`,
+                });
+              }
             }
           }
         }
+        
+        // 完了
+        if (updateTaskProgress) {
+          updateTaskProgress({
+            status: 'completed',
+            progress: `テキストドキュメントが完了しました（${draftContent.length}文字）`,
+          });
+        }
+        
         console.log(`[Create Document Tool] ✅ TEXT streaming completed: ${chunkCount} chunks, ${draftContent.length} chars (ID: ${toolExecutionId})`);
       } else if (type === 'code') {
         console.log(`[Create Document Tool] 💻 Generating CODE document... (ID: ${toolExecutionId})`);
+        
+        // タスク進捗を更新
+        if (updateTaskProgress) {
+          updateTaskProgress({
+            status: 'generating',
+            progress: 'コードを生成中...',
+          });
+        }
+        
         // コードドキュメントの生成（ストリーミング）
         const { fullStream } = streamObject({
           model: openai('gpt-4o-mini'),
@@ -118,13 +153,38 @@ export const createDocumentTool = createTool({
               
               if (chunkCount % 10 === 0) {
                 console.log(`[Create Document Tool] 📡 Streamed ${chunkCount} chunks, ${draftContent.length} chars (ID: ${toolExecutionId})`);
+                
+                // 進捗を更新
+                if (updateTaskProgress) {
+                  updateTaskProgress({
+                    progress: `コード生成中: ${draftContent.length}文字`,
+                  });
+                }
               }
             }
           }
         }
+        
+        // 完了
+        if (updateTaskProgress) {
+          updateTaskProgress({
+            status: 'completed',
+            progress: `コード生成が完了しました（${draftContent.length}文字）`,
+          });
+        }
+        
         console.log(`[Create Document Tool] ✅ CODE streaming completed: ${chunkCount} chunks, ${draftContent.length} chars (ID: ${toolExecutionId})`);
       } else if (type === 'sheet') {
         console.log(`[Create Document Tool] 📊 Generating SPREADSHEET document... (ID: ${toolExecutionId})`);
+        
+        // タスク進捗を更新
+        if (updateTaskProgress) {
+          updateTaskProgress({
+            status: 'generating',
+            progress: 'スプレッドシートを生成中...',
+          });
+        }
+        
         // スプレッドシートドキュメントの生成（ストリーミング）
         const { fullStream } = streamObject({
           model: openai('gpt-4o-mini'),
@@ -149,6 +209,14 @@ export const createDocumentTool = createTool({
               
               if (chunkCount % 10 === 0) {
                 console.log(`[Create Document Tool] 📡 Streamed ${chunkCount} chunks, ${draftContent.length} chars (ID: ${toolExecutionId})`);
+                
+                // 進捗を更新
+                if (updateTaskProgress) {
+                  const rowCount = (draftContent.match(/\n/g) || []).length;
+                  updateTaskProgress({
+                    progress: `スプレッドシート生成中: ${rowCount}行`,
+                  });
+                }
               }
             }
           }
@@ -159,6 +227,16 @@ export const createDocumentTool = createTool({
           console.log(`[Create Document Tool] 📡 Sending final sheet artifact (ID: ${toolExecutionId})`);
           await sendSheetArtifact(room, draftContent, false, streamId);
         }
+        
+        // 完了
+        if (updateTaskProgress) {
+          const rowCount = (draftContent.match(/\n/g) || []).length;
+          updateTaskProgress({
+            status: 'completed',
+            progress: `スプレッドシート生成が完了しました（${rowCount}行）`,
+          });
+        }
+        
         console.log(`[Create Document Tool] ✅ SHEET streaming completed: ${chunkCount} chunks, ${draftContent.length} chars (ID: ${toolExecutionId})`);
       } else if (type === 'slide') {
         console.log(`[Create Document Tool] 🎬 Generating SLIDE deck... (ID: ${toolExecutionId})`);
@@ -211,6 +289,14 @@ export const createDocumentTool = createTool({
           console.log(`[Create Document Tool] 🎨 Step 2.${slideNumber}: Generating slide "${slideOutline.title}" (ID: ${toolExecutionId})`);
           await sendLoadingArtifact(room, `スライド ${slideNumber}/${outline.length} を生成中: ${slideOutline.title}`);
           
+          // タスク進捗を更新
+          if (updateTaskProgress) {
+            updateTaskProgress({
+              status: 'generating',
+              progress: `スライド ${slideNumber}/${outline.length} 枚目を生成中: ${slideOutline.title}`,
+            });
+          }
+          
           // 1枚のスライドを生成
           const colorTheme = slideOutline.colorSuggestion || 'corporate';
           const slidePromptText = `
@@ -240,8 +326,8 @@ Generate a single slide div with inline styles.
           for await (const delta of slideResponse.fullStream) {
             if (delta.type === 'text-delta') {
               slideHTML += delta.text;
-              chunkCount++;
-              
+            chunkCount++;
+
               // 10チャンクごとに途中経過を送信（リアルタイム生成）
               if (chunkCount % 10 === 0) {
                 try {
@@ -293,10 +379,27 @@ Generate a single slide div with inline styles.
         
         // ステップ3: 全スライドを結合して完全なHTMLドキュメントを作成
         console.log(`[Create Document Tool] 🔨 Step 3: Building final HTML document... (ID: ${toolExecutionId})`);
+        
+        // タスク進捗を更新
+        if (updateTaskProgress) {
+          updateTaskProgress({
+            status: 'finalizing',
+            progress: `スライドを最終調整中...`,
+          });
+        }
+        
         draftContent = buildSlideHTML(slideHTMLs, slideHTMLs.length, slideHTMLs.length);
         
         // 最終版を送信
         await sendSlideArtifact(room, draftContent, false, streamId, slides, 0, slides.length);
+        
+        // タスク完了を更新
+        if (updateTaskProgress) {
+          updateTaskProgress({
+            status: 'completed',
+            progress: `スライド生成が完了しました（全${slides.length}枚）`,
+          });
+        }
         
         console.log(`[Create Document Tool] ✅ SLIDE deck completed: ${slides.length} slides (ID: ${toolExecutionId})`);
       }
