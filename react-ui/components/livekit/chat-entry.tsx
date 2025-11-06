@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
+import { removeEmotionAndMotionTags } from '@/lib/remove-tags';
 
 export interface ChatEntryProps extends React.HTMLAttributes<HTMLLIElement> {
   /** The locale to use for the timestamp. */
@@ -28,6 +29,9 @@ export const ChatEntry = ({
 }: ChatEntryProps) => {
   const time = new Date(timestamp);
   const title = time.toLocaleTimeString(locale, { timeStyle: 'full' });
+  
+  // エモーションタグとモーションタグを除去
+  const cleanMessage = removeEmotionAndMotionTags(message);
 
   return (
     <li
@@ -56,7 +60,7 @@ export const ChatEntry = ({
             : 'mr-auto border border-gray-200 bg-white text-gray-900'
         )}
       >
-        {message}
+        {cleanMessage}
       </span>
     </li>
   );
