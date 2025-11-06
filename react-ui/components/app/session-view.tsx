@@ -20,6 +20,7 @@ import { ArtifactPreviewCard } from '@/components/artifacts/artifact-preview-car
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '../livekit/scroll-area/scroll-area';
 import { useWindowSize } from 'usehooks-ts';
+import { removeEmotionAndMotionTags } from '@/lib/remove-tags';
 
 // Live2DBackgroundをクライアントサイドのみで読み込む
 const Live2DBackground = dynamic(
@@ -188,7 +189,7 @@ export const SessionView = ({
                               <div className={cn(
                                 "text-sm",
                                 messageOrigin === 'local' ? "text-white" : "text-gray-900"
-                              )}>{message}</div>
+                              )}>{removeEmotionAndMotionTags(message)}</div>
                               <div className={cn(
                                 "text-xs mt-1",
                                 messageOrigin === 'local' ? "text-gray-300" : "text-gray-500"
