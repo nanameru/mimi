@@ -1078,57 +1078,48 @@ export default defineAgent({
           userMessage = String(ev.item.content || '');
         }
         
-        // 🔍 進捗問い合わせの検出
-        const userTextLower = userMessage.toLowerCase();
-        const isAskingProgress = 
-          userTextLower.includes('何やってる') ||
-          userTextLower.includes('進捗') ||
-          userTextLower.includes('今どう') ||
-          userTextLower.includes('どこまで') ||
-          userTextLower.includes('状況') ||
-          userTextLower.includes('どうなって');
+        // 🔍 タスク状態をLLMに渡すためのコンテキスト追加
+        const roomName = ctx.room.name || 'default';
+        const currentTask = getCurrentTask(roomName);
         
-        if (isAskingProgress) {
-          const roomName = ctx.room.name || 'default';
-          const currentTask = getCurrentTask(roomName);
+        if (currentTask && currentTask.status !== 'completed') {
+          // 進行中のタスクがある場合、Assistantのinstructionsを動的に更新
+          const elapsed = Math.floor((Date.now() - currentTask.startedAt) / 1000);
+          const taskTypeJa = {
+            slide: 'スライド',
+            text: 'テキストドキュメント',
+            code: 'コード',
+            sheet: 'スプレッドシート',
+            document: 'ドキュメント',
+            report: 'レポート',
+            email: 'メール',
+          }[currentTask.taskType] || 'ドキュメント';
           
-          if (currentTask && currentTask.status !== 'completed') {
-            // 進行中のタスクがある場合、即座に音声で返答
-            const elapsed = Math.floor((Date.now() - currentTask.startedAt) / 1000);
-            const taskTypeJa = {
-              slide: 'スライド',
-              text: 'テキストドキュメント',
-              code: 'コード',
-              sheet: 'スプレッドシート',
-              document: 'ドキュメント',
-              report: 'レポート',
-              email: 'メール',
-            }[currentTask.taskType] || 'ドキュメント';
-            
-            const progressMessage = 
-              `(happy) <talk> <smile> 今、「${currentTask.topic}」についての${taskTypeJa}を生成してるよ！\n` +
-              `(confident) <explain> ${currentTask.progress}\n` +
-              `(relaxed) <chat> 開始から${elapsed}秒経ってるね！`;
-            
-            console.log(`[Voice AI] 📊 Reporting progress: ${progressMessage}`);
-            
-            // 即座に音声で返答（LLM応答をスキップ）
-            session.say(progressMessage);
-            
-            // タスクエージェントの実行をスキップ
-            return;
-          } else {
-            // タスクがない場合
-            const idleMessage = 
-              `(calm) <talk> <smile> 今は特にタスクを実行してないよ。\n` +
-              `(happy) <chat> 何かお手伝いできることある？`;
-            
-            console.log(`[Voice AI] 💬 No task running, asking for next task`);
-            session.say(idleMessage);
-            
-            // タスクエージェントの実行をスキップ
-            return;
-          }
+          const taskContext = `
+
+<current_task>
+【重要】現在実行中のタスク情報：
+- タスク種類: ${taskTypeJa}
+- 内容: ${currentTask.topic}
+- 進捗状況: ${currentTask.progress}
+- ステータス: ${currentTask.status === 'generating' ? '生成中' : currentTask.status === 'finalizing' ? '最終調整中' : '開始中'}
+- 経過時間: ${elapsed}秒
+
+ユーザーが進捗や現在の作業について質問した場合（「今何やってるの？」「今なんのスライドを作っているの？」「どこまで進んだ？」など）は、この情報を使って自然に答えてください。
+具体的な進捗状況やスライドのタイトルなどを含めて、カジュアルな口調で答えてください。
+
+例:
+- ユーザー: 「今何やってるの？」
+- あなた: 「(happy) <talk> <smile> 今、『${currentTask.topic}』の${taskTypeJa}を作ってるよ！${currentTask.progress}」
+</current_task>`;
+          
+          // Assistantのinstructionsを更新
+          (assistant as any)._instructions = (assistant as any)._instructions.split('<current_task>')[0] + taskContext;
+          
+          console.log(`[Voice AI] 📊 Updated assistant instructions with task context: ${currentTask.progress}`);
+        } else {
+          // タスクがない場合は、current_taskセクションを削除
+          (assistant as any)._instructions = (assistant as any)._instructions.split('<current_task>')[0];
         }
         
         // 会話履歴を取得して Mastra の taskAgent を実行
