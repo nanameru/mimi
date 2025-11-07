@@ -133,8 +133,8 @@ export function SlideEditor({ content }: SlideEditorProps) {
   return (
     <div className="h-full w-full bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/20 flex flex-col">
       {/* メインスライドエリア */}
-      <div className="flex-1 flex items-center justify-center px-20 relative">
-        <div className="relative w-full max-w-6xl aspect-[16/9]">
+      <div className="flex-1 flex items-center justify-center px-8 md:px-12 relative pb-24">
+        <div className="relative w-full h-full max-w-7xl flex items-center justify-center">
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
               key={currentSlideIndex}
@@ -143,7 +143,7 @@ export function SlideEditor({ content }: SlideEditorProps) {
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: direction > 0 ? -1000 : 1000, opacity: 0 }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className="absolute inset-0 rounded-3xl shadow-2xl overflow-hidden bg-white"
+              className="w-full h-full max-h-[85vh] aspect-[16/9] rounded-3xl shadow-2xl overflow-hidden bg-white"
             >
               <iframe
                 ref={iframeRef}
@@ -164,9 +164,8 @@ export function SlideEditor({ content }: SlideEditorProps) {
         </div>
       </div>
 
-      {/* ナビゲーション */}
-      {slides.length > 1 && (
-        <div className="pb-12 flex items-center justify-center gap-8">
+      {/* ナビゲーション - 常に表示 */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center justify-center gap-8 z-50">
           {/* 前へボタン */}
           <motion.button
             onClick={prevSlide}
@@ -219,8 +218,7 @@ export function SlideEditor({ content }: SlideEditorProps) {
           >
             <ChevronRight className="w-6 h-6 text-gray-600" />
           </motion.button>
-        </div>
-      )}
+      </div>
     </div>
   );
 }

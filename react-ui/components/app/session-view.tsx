@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import dynamic from 'next/dynamic';
 import { motion } from 'motion/react';
+import { MessageSquare, X } from 'lucide-react';
 import { useVoiceAssistant } from '@livekit/components-react';
 import type { AppConfig } from '@/app-config';
 import { ChatTranscript } from '@/components/app/chat-transcript';
@@ -96,6 +97,7 @@ export const SessionView = ({
   const { state: agentState } = useVoiceAssistant();
   const messages = useChatMessages();
   const [chatOpen, setChatOpen] = useState(false);
+  const [artifactChatOpen, setArtifactChatOpen] = useState(false);
   const [showLive2D, setShowLive2D] = useState(false);
   const { artifact, setArtifact, isVisible, setIsVisible, setUserClosed, notifications } = useArtifactChannel();
   const { width: windowWidth } = useWindowSize();
@@ -130,8 +132,27 @@ export const SessionView = ({
       {/* アーティファクトコンテナ（全画面レイアウト） */}
       {hasArtifact && <ArtifactContainer />}
 
-      {/* Chat Transcript - アーティファクト表示時は右側に400px幅で配置 */}
+      {/* チャット開閉ボタン（アーティファクト表示時のみ） */}
       {hasArtifact && !isMobile && (
+        <motion.button
+          onClick={() => setArtifactChatOpen(!artifactChatOpen)}
+          className="fixed top-8 right-8 z-[70] w-12 h-12 rounded-full bg-white/80 backdrop-blur-sm border border-gray-200 flex items-center justify-center transition-colors hover:bg-white shadow-lg"
+          initial={{ opacity: 0, scale: 0 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0 }}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+        >
+          {artifactChatOpen ? (
+            <X className="w-5 h-5 text-gray-600" />
+          ) : (
+            <MessageSquare className="w-5 h-5 text-gray-600" />
+          )}
+        </motion.button>
+      )}
+
+      {/* Chat Transcript - アーティファクト表示時は右側に400px幅で配置 */}
+      {hasArtifact && !isMobile && artifactChatOpen && (
         <motion.div
           animate={{
             opacity: 1,
@@ -147,11 +168,11 @@ export const SessionView = ({
           className="fixed right-0 top-0 z-[60] h-dvh w-[400px] shrink-0 pointer-events-none"
           exit={{
             opacity: 0,
-            x: 0,
+            x: 400,
             scale: 1,
-            transition: { duration: 0 },
+            transition: { duration: 0.3 },
           }}
-          initial={{ opacity: 0, x: -10, scale: 1 }}
+          initial={{ opacity: 0, x: 400, scale: 1 }}
         >
           <div className="flex h-full flex-col pointer-events-auto">
             {/* チャットメッセージエリア */}
