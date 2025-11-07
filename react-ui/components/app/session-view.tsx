@@ -196,8 +196,8 @@ export const SessionView = ({
                                   <p className="whitespace-pre-wrap break-words leading-relaxed text-sm">
                                     {removeEmotionAndMotionTags(message)}
                                   </p>
-                                </div>
                               </div>
+                            </div>
                             )}
                           </div>
                         );
@@ -281,8 +281,8 @@ export const SessionView = ({
                               <p className="whitespace-pre-wrap break-words leading-relaxed text-sm">
                                 {removeEmotionAndMotionTags(message)}
                               </p>
-                            </div>
                           </div>
+                        </div>
                         )}
                       </div>
                     );
@@ -346,7 +346,7 @@ export const SessionView = ({
               {agentState === 'speaking' || agentState === 'listening' ? 'ACTIVE' : 'STANDBY'}
             </span>
           </motion.div>
-        </div>
+      </div>
       )}
 
       {/* Media Tiles */}
