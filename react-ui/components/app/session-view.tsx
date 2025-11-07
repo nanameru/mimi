@@ -314,6 +314,41 @@ export const SessionView = ({
       </div>
       )}
 
+      {/* ステータスインジケーター（アーティファクトがない時のみ表示） */}
+      {!hasArtifact && (
+        <div className="absolute top-8 left-8 z-[9998]">
+          <motion.div 
+            className="flex items-center gap-3 px-4 py-2 rounded-full backdrop-blur-sm"
+            style={{
+              background: 'rgba(255, 255, 255, 0.5)',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+            }}
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+          >
+            <motion.div 
+              className="w-2 h-2 rounded-full"
+              animate={{
+                backgroundColor: agentState === 'speaking' || agentState === 'listening'
+                  ? ['rgb(34, 197, 94)', 'rgb(74, 222, 128)', 'rgb(34, 197, 94)']
+                  : 'rgb(156, 163, 175)',
+                boxShadow: agentState === 'speaking' || agentState === 'listening'
+                  ? ['0 0 0 0 rgba(34, 197, 94, 0.4)', '0 0 0 8px rgba(34, 197, 94, 0)', '0 0 0 0 rgba(34, 197, 94, 0.4)']
+                  : 'none'
+              }}
+              transition={{
+                duration: 2,
+                repeat: (agentState === 'speaking' || agentState === 'listening') ? Infinity : 0,
+              }}
+            />
+            <span className="text-gray-600 text-sm font-medium">
+              {agentState === 'speaking' || agentState === 'listening' ? 'ACTIVE' : 'STANDBY'}
+            </span>
+          </motion.div>
+        </div>
+      )}
+
       {/* Media Tiles */}
       <MediaTiles chatOpen={chatOpen} showLive2D={showLive2D} />
 
