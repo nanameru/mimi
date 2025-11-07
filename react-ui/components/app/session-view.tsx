@@ -130,7 +130,7 @@ export const SessionView = ({
       {/* アーティファクトコンテナ（全画面レイアウト） */}
       {hasArtifact && <ArtifactContainer />}
 
-      {/* Chat Transcript - アーティファクト表示時は左側に400px幅で配置 */}
+      {/* Chat Transcript - アーティファクト表示時は右側に400px幅で配置 */}
       {hasArtifact && !isMobile && (
         <motion.div
           animate={{
@@ -144,14 +144,14 @@ export const SessionView = ({
               damping: 30,
             },
           }}
-          className="fixed left-0 top-0 z-[60] h-dvh w-[400px] shrink-0 pointer-events-none"
+          className="fixed right-0 top-0 z-[60] h-dvh w-[400px] shrink-0 pointer-events-none"
           exit={{
             opacity: 0,
             x: 0,
             scale: 1,
             transition: { duration: 0 },
           }}
-          initial={{ opacity: 0, x: 10, scale: 1 }}
+          initial={{ opacity: 0, x: -10, scale: 1 }}
         >
           <div className="flex h-full flex-col pointer-events-auto">
             {/* チャットメッセージエリア */}
@@ -180,26 +180,25 @@ export const SessionView = ({
                         
                         return (
                           <div key={id} className="animate-in fade-in slide-in-from-bottom-2 relative z-10">
-                            <div className={cn(
-                              "rounded-lg p-3 shadow-sm",
-                              messageOrigin === 'local' 
-                                ? "bg-[#343541] ml-auto max-w-[80%]"
-                                : "bg-white border border-gray-200 mr-auto max-w-[80%]"
-                            )}>
-                              <div className={cn(
-                                "text-sm",
-                                messageOrigin === 'local' ? "text-white" : "text-gray-900"
-                              )}>{removeEmotionAndMotionTags(message)}</div>
-                              <div className={cn(
-                                "text-xs mt-1",
-                                messageOrigin === 'local' ? "text-gray-300" : "text-gray-500"
-                              )}>
-                                {new Date(timestamp).toLocaleTimeString(locale, {
-                                  hour: '2-digit',
-                                  minute: '2-digit'
-                                })}
+                            {messageOrigin === 'local' ? (
+                              // ユーザーメッセージ（右寄せ、黒背景）
+                              <div className="flex justify-end">
+                                <div className="inline-block px-5 py-3 bg-black text-white rounded-3xl max-w-[85%]">
+                                  <p className="whitespace-pre-wrap break-words leading-relaxed text-sm">
+                                    {removeEmotionAndMotionTags(message)}
+                                  </p>
+                                </div>
                               </div>
-                            </div>
+                            ) : (
+                              // AIメッセージ（左寄せ、背景なし）
+                              <div className="space-y-2">
+                                <div className="text-gray-900">
+                                  <p className="whitespace-pre-wrap break-words leading-relaxed text-sm">
+                                    {removeEmotionAndMotionTags(message)}
+                                  </p>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         );
                       } else {
@@ -266,26 +265,25 @@ export const SessionView = ({
                     
                     return (
                       <div key={id} className="animate-in fade-in slide-in-from-bottom-2 relative z-10">
-                        <div className={cn(
-                          "rounded-lg p-3 shadow-sm",
-                          messageOrigin === 'local' 
-                            ? "bg-[#343541] ml-auto max-w-[80%]"
-                            : "bg-white border border-gray-200 mr-auto max-w-[80%]"
-                        )}>
-                          <div className={cn(
-                            "text-sm",
-                            messageOrigin === 'local' ? "text-white" : "text-gray-900"
-                          )}>{removeEmotionAndMotionTags(message)}</div>
-                          <div className={cn(
-                            "text-xs mt-1",
-                            messageOrigin === 'local' ? "text-gray-300" : "text-gray-500"
-                          )}>
-                            {new Date(timestamp).toLocaleTimeString(locale, {
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
+                        {messageOrigin === 'local' ? (
+                          // ユーザーメッセージ（右寄せ、黒背景）
+                          <div className="flex justify-end">
+                            <div className="inline-block px-5 py-3 bg-black text-white rounded-3xl max-w-[85%]">
+                              <p className="whitespace-pre-wrap break-words leading-relaxed text-sm">
+                                {removeEmotionAndMotionTags(message)}
+                              </p>
+                            </div>
                           </div>
-                        </div>
+                        ) : (
+                          // AIメッセージ（左寄せ、背景なし）
+                          <div className="space-y-2">
+                            <div className="text-gray-900">
+                              <p className="whitespace-pre-wrap break-words leading-relaxed text-sm">
+                                {removeEmotionAndMotionTags(message)}
+                              </p>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     );
                   } else {

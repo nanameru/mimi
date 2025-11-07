@@ -77,9 +77,9 @@ export function ArtifactContainer() {
             />
           )}
 
-          {/* 左側のチャットパネル（400px幅）はsession-viewで管理 */}
+          {/* 右側のチャットパネル（400px幅）はsession-viewで管理 */}
 
-          {/* 右側のアーティファクトパネル */}
+          {/* 左側のアーティファクトパネル */}
           <motion.div
             animate={
               isMobile
@@ -100,7 +100,7 @@ export function ArtifactContainer() {
                   }
                 : {
                     opacity: 1,
-                    x: 400,
+                    x: 0,
                     y: 0,
                     height: windowHeight,
                     width: windowWidth ? windowWidth - 400 : 'calc(100dvw-400px)',
@@ -114,7 +114,7 @@ export function ArtifactContainer() {
                     },
                   }
             }
-            className="fixed flex h-dvh flex-col overflow-y-scroll border-gray-200 bg-white md:border-l dark:border-gray-200 z-[60] shadow-lg"
+            className="fixed flex h-dvh flex-col overflow-y-scroll border-gray-200 bg-white md:border-r dark:border-gray-200 z-[60] shadow-lg"
             exit={{
               opacity: 0,
               scale: 0.5,
@@ -129,7 +129,7 @@ export function ArtifactContainer() {
               isMobile
                 ? {
                     opacity: 1,
-                    x: windowWidth ? windowWidth : 0,
+                    x: windowWidth ? -windowWidth : 0,
                     y: 0,
                     height: 400,
                     width: 400,
@@ -137,7 +137,7 @@ export function ArtifactContainer() {
                   }
                 : {
                     opacity: 1,
-                    x: windowWidth ? windowWidth : 0,
+                    x: windowWidth ? -windowWidth : 0,
                     y: 0,
                     height: 400,
                     width: 400,

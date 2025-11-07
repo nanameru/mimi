@@ -11,10 +11,13 @@ import { cn } from '@/lib/utils';
 import { AgentTile } from './agent-tile';
 import { AvatarTile } from './avatar-tile';
 import { VideoTile } from './video-tile';
+import { VoiceOrb } from './voice-orb';
+import { useAudioWaveform } from '@/hooks/useAudioWaveform';
 
 const MotionVideoTile = motion.create(VideoTile);
 const MotionAgentTile = motion.create(AgentTile);
 const MotionAvatarTile = motion.create(AvatarTile);
+const MotionVoiceOrb = motion.create(VoiceOrb);
 
 const animationProps = {
   initial: {
@@ -99,6 +102,9 @@ export function MediaTiles({ chatOpen, showLive2D = false }: MediaTilesProps) {
   } = useVoiceAssistant();
   const [screenShareTrack] = useTracks([Track.Source.ScreenShare]);
   const cameraTrack: TrackReference | undefined = useLocalTrackRef(Track.Source.Camera);
+  
+  // 実際の音声から波形データを取得
+  const waveform = useAudioWaveform(agentAudioTrack, 32);
 
   const isCameraEnabled = cameraTrack && !cameraTrack.publication.isMuted;
   const isScreenShareEnabled = screenShareTrack && !screenShareTrack.publication.isMuted;
@@ -137,8 +143,24 @@ export function MediaTiles({ chatOpen, showLive2D = false }: MediaTilesProps) {
             ])}
           >
             <AnimatePresence mode="popLayout">
-              {!isAvatar && (
-                // audio-only agent
+              {!isAvatar && !showLive2D && (
+                // VoiceOrb（音声のみ、Live2D非表示時）
+                <MotionVoiceOrb
+                  key="voiceorb"
+                  layoutId="voiceorb"
+                  {...animationProps}
+                  animate={agentAnimate}
+                  transition={agentLayoutTransition}
+                  isListening={agentState === 'listening'}
+                  isSpeaking={agentState === 'speaking'}
+                  audioLevel={0}
+                  waveform={waveform}
+                  size={chatOpen ? 'small' : 'large'}
+                  className={cn(chatOpen ? 'h-[90px]' : 'h-auto w-full')}
+                />
+              )}
+              {!isAvatar && showLive2D && (
+                // AgentTile（Live2D表示時はバー非表示）
                 <MotionAgentTile
                   key="agent"
                   layoutId="agent"
