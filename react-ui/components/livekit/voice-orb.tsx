@@ -6,7 +6,6 @@ interface VoiceOrbProps {
   audioLevel: number;
   waveform: number[];
   size?: 'large' | 'small';
-  onClick?: () => void;
 }
 
 export function VoiceOrb({ 
@@ -15,17 +14,13 @@ export function VoiceOrb({
   audioLevel, 
   waveform, 
   size = 'large',
-  onClick 
 }: VoiceOrbProps) {
   const dimensions = size === 'large' ? { orb: 320, outer: 380, aura: 500 } : { orb: 80, outer: 95, aura: 125 };
   const showEffects = size === 'large';
 
   return (
     <motion.div
-      className="relative flex items-center justify-center cursor-pointer"
-      onClick={onClick}
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
+      className="relative flex items-center justify-center"
     >
       {/* 外側のオーラ効果 */}
       {showEffects && (
