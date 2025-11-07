@@ -22,27 +22,6 @@ export function VoiceOrb({
     <motion.div
       className="relative flex items-center justify-center"
     >
-      {/* 外側のオーラ効果 */}
-      {showEffects && (
-        <motion.div
-          className="absolute rounded-full"
-          style={{
-            width: dimensions.aura,
-            height: dimensions.aura,
-            background: 'radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%)',
-          }}
-          animate={{
-            scale: isListening || isSpeaking ? [1, 1.15, 1] : 1,
-            opacity: isListening || isSpeaking ? [0.4, 0.7, 0.4] : 0.2
-          }}
-          transition={{
-            duration: 2,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        />
-      )}
-
       {/* ガラス効果のリング */}
       {showEffects && (
         <motion.div
@@ -208,41 +187,6 @@ export function VoiceOrb({
           )}
         </AnimatePresence>
       </motion.div>
-
-      {/* 外側の粒子効果 */}
-      {(isListening || isSpeaking) && showEffects && (
-        <div className="absolute" style={{ width: 384, height: 384 }}>
-          {[...Array(12)].map((_, i) => {
-            const angle = (i / 12) * Math.PI * 2;
-            const radius = 200;
-            const x = Math.cos(angle) * radius;
-            const y = Math.sin(angle) * radius;
-            
-            return (
-              <motion.div
-                key={i}
-                className="absolute w-2 h-2 rounded-full bg-blue-400/60"
-                style={{
-                  left: '50%',
-                  top: '50%',
-                }}
-                animate={{
-                  x: [0, x, 0],
-                  y: [0, y, 0],
-                  opacity: [0, 0.8, 0],
-                  scale: [0, 1, 0],
-                }}
-                transition={{
-                  duration: 3,
-                  repeat: Infinity,
-                  delay: i * 0.2,
-                  ease: "easeInOut"
-                }}
-              />
-            );
-          })}
-        </div>
-      )}
     </motion.div>
   );
 }

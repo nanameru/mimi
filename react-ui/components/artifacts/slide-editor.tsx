@@ -75,7 +75,7 @@ export function SlideEditor({ content }: SlideEditorProps) {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-    }
+        }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       overflow: hidden;
@@ -87,7 +87,7 @@ export function SlideEditor({ content }: SlideEditorProps) {
       flex-direction: column;
       justify-content: center;
       padding: 4rem;
-    }
+        }
   </style>
 </head>
 <body>
@@ -114,7 +114,7 @@ export function SlideEditor({ content }: SlideEditorProps) {
     if (currentSlideIndex > 0) {
       setDirection(-1);
       setCurrentSlideIndex(currentSlideIndex - 1);
-    }
+      }
   };
 
   const goToSlide = (index: number) => {
@@ -144,18 +144,18 @@ export function SlideEditor({ content }: SlideEditorProps) {
               exit={{ x: direction > 0 ? -1000 : 1000, opacity: 0 }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
               className="w-full h-full max-h-[85vh] aspect-[16/9] rounded-3xl shadow-2xl overflow-hidden bg-white"
-            >
-              <iframe
-                ref={iframeRef}
+      >
+        <iframe
+          ref={iframeRef}
                 title={`Slide ${currentSlideIndex + 1}`}
                 className="w-full h-full border-0"
-                sandbox="allow-same-origin allow-scripts"
+          sandbox="allow-same-origin allow-scripts"
               />
               
               {/* グラデーションオーバーレイ */}
               <div
                 className="absolute inset-0 pointer-events-none"
-                style={{
+          style={{
                   background: 'radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.05) 0%, transparent 50%)',
                 }}
               />
