@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import { PaperPlaneRightIcon, SpinnerIcon } from '@phosphor-icons/react/dist/ssr';
-import { Button } from '@/components/livekit/button';
 
 interface ChatInputProps {
   chatOpen: boolean;
@@ -45,10 +44,17 @@ export function ChatInput({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: 'easeOut' }}
-      className="flex w-full items-start overflow-hidden border-b border-gray-100 mb-3"
+      className="flex w-full items-start overflow-hidden mb-3"
     >
       <form onSubmit={handleSubmit} className="flex grow items-end gap-2 text-sm">
-        <div className="flex flex-1 items-center gap-2 rounded-full border border-gray-200 bg-white px-5 py-2.5 shadow-sm">
+        <div 
+          className="flex flex-1 items-center gap-2 rounded-2xl backdrop-blur-xl border transition-all duration-300 px-5 py-3"
+          style={{
+            background: 'rgba(255, 255, 255, 0.3)',
+            borderColor: 'rgba(255, 255, 255, 0.3)',
+            boxShadow: '0 5px 15px -3px rgba(0, 0, 0, 0.05)',
+          }}
+        >
           <input
             autoFocus
             ref={inputRef}
@@ -59,20 +65,45 @@ export function ChatInput({
             className="flex-1 bg-transparent text-gray-900 placeholder:text-gray-400 focus:outline-none"
           />
         </div>
-        <Button
-          size="icon"
+        <motion.button
           type="submit"
           disabled={isDisabled}
-          variant={isDisabled ? 'secondary' : 'primary'}
           title={isSending ? 'Sending...' : 'Send'}
-          className="flex-shrink-0 bg-black text-white border-black hover:bg-gray-800 focus:bg-gray-800"
+          className="flex items-center justify-center rounded-xl transition-all flex-shrink-0 backdrop-blur-xl size-9"
+          style={{
+            background: !isDisabled
+              ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.6), rgba(37, 99, 235, 0.6))'
+              : 'rgba(255, 255, 255, 0.3)',
+            border: !isDisabled 
+              ? '1px solid rgba(59, 130, 246, 0.3)' 
+              : '1px solid rgba(255, 255, 255, 0.3)',
+            boxShadow: !isDisabled
+              ? '0 4px 12px -2px rgba(59, 130, 246, 0.3)'
+              : 'none',
+            cursor: !isDisabled ? 'pointer' : 'not-allowed',
+          }}
+          whileHover={
+            !isDisabled
+              ? {
+                  scale: 1.1,
+                }
+              : {}
+          }
+          whileTap={!isDisabled ? { scale: 0.9 } : {}}
+          animate={{
+            opacity: !isDisabled ? 1 : 0.4,
+          }}
+          transition={{ type: 'spring', damping: 15, stiffness: 400 }}
         >
           {isSending ? (
-            <SpinnerIcon className="animate-spin" weight="bold" />
+            <SpinnerIcon className="w-4 h-4 animate-spin text-white" weight="bold" />
           ) : (
-            <PaperPlaneRightIcon weight="bold" />
+            <PaperPlaneRightIcon 
+              className={`w-4 h-4 ${!isDisabled ? 'text-white' : 'text-gray-400'}`} 
+              weight="bold" 
+            />
           )}
-        </Button>
+        </motion.button>
       </form>
     </motion.div>
   );

@@ -20,14 +20,14 @@ const toggleVariants = cva(
     variants: {
       variant: {
         default:
-          'bg-white/50 border border-white/30 text-gray-900 hover:bg-white/70 hover:scale-105 focus:bg-white/70 shadow-[0_5px_15px_-3px_rgba(0,0,0,0.05)]',
+          'bg-white/20 border border-white/25 text-gray-900 hover:bg-white/30 hover:scale-105 focus:bg-white/30 shadow-[0_5px_15px_-3px_rgba(0,0,0,0.05)] backdrop-blur-xl',
         primary:
           'text-gray-900 bg-white/50 border border-white/30 hover:bg-white/70 hover:scale-105 focus:bg-white/70 shadow-[0_5px_15px_-3px_rgba(0,0,0,0.05)] data-[state=off]:bg-rose-500/15 hover:data-[state=off]:bg-rose-500/20 data-[state=off]:text-rose-600 data-[state=off]:border-rose-500/30 data-[state=off]:shadow-[0_8px_32px_rgba(251,113,133,0.25)]',
         secondary:
-          'text-gray-900 bg-white/50 border border-white/30 hover:bg-white/70 hover:scale-105 focus:bg-white/70 shadow-[0_5px_15px_-3px_rgba(0,0,0,0.05)] data-[state=on]:bg-blue-500/15 hover:data-[state=on]:bg-blue-500/20 data-[state=on]:text-blue-600 data-[state=on]:border-blue-500/30 data-[state=on]:shadow-[0_8px_32px_rgba(59,130,246,0.25)]',
+          'text-gray-900 bg-white/20 border border-white/25 hover:bg-white/30 hover:scale-105 focus:bg-white/30 shadow-[0_5px_15px_-3px_rgba(0,0,0,0.05)] backdrop-blur-xl data-[state=on]:bg-blue-500/15 hover:data-[state=on]:bg-blue-500/20 data-[state=on]:text-blue-600 data-[state=on]:border-blue-500/30 data-[state=on]:shadow-[0_8px_32px_rgba(59,130,246,0.25)]',
         outline: [
-          'border border-white/30 bg-transparent text-gray-900 shadow-[0_5px_15px_-3px_rgba(0,0,0,0.05)]',
-          'hover:bg-white/50 hover:scale-105 focus:bg-white/50',
+          'border border-white/25 bg-transparent text-gray-900 shadow-[0_5px_15px_-3px_rgba(0,0,0,0.05)] backdrop-blur-xl',
+          'hover:bg-white/20 hover:scale-105 focus:bg-white/20',
         ],
       },
       size: {
