@@ -97,9 +97,14 @@ export function AgentControlBar({
     <div
       aria-label="Voice assistant controls"
       className={cn(
-        'flex flex-col rounded-2xl border border-gray-200 bg-white p-3 shadow-md',
+        'flex flex-col rounded-2xl backdrop-blur-xl p-3 border transition-all duration-300',
         className
       )}
+      style={{
+        background: 'rgba(255, 255, 255, 0.5)',
+        borderColor: 'rgba(255, 255, 255, 0.3)',
+        boxShadow: '0 10px 30px -10px rgba(0, 0, 0, 0.1)',
+      }}
       {...props}
     >
       {/* Chat Input */}
@@ -113,8 +118,8 @@ export function AgentControlBar({
 
       <div className="flex gap-1">
         <div className="flex grow gap-1">
-          {/* Toggle Microphone */}
-          {visibleControls.microphone && (
+          {/* Toggle Microphone - コメントアウト */}
+          {/* {visibleControls.microphone && (
             <TrackSelector
               kind="audioinput"
               aria-label="Toggle microphone"
@@ -126,10 +131,10 @@ export function AgentControlBar({
               onMediaDeviceError={handleMicrophoneDeviceSelectError}
               onActiveDeviceChange={handleAudioDeviceChange}
             />
-          )}
+          )} */}
 
-          {/* Toggle Camera */}
-          {visibleControls.camera && (
+          {/* Toggle Camera - コメントアウト */}
+          {/* {visibleControls.camera && (
             <TrackSelector
               kind="videoinput"
               aria-label="Toggle camera"
@@ -141,7 +146,7 @@ export function AgentControlBar({
               onMediaDeviceError={handleCameraDeviceSelectError}
               onActiveDeviceChange={handleVideoDeviceChange}
             />
-          )}
+          )} */}
 
           {/* Toggle Screen Share */}
           {visibleControls.screenShare && (
@@ -156,8 +161,8 @@ export function AgentControlBar({
             />
           )}
 
-          {/* Toggle Transcript */}
-          {visibleControls.chat && (
+          {/* Toggle Transcript - コメントアウト */}
+          {/* {visibleControls.chat && (
             <Toggle
               size="icon"
               variant="secondary"
@@ -167,7 +172,7 @@ export function AgentControlBar({
             >
               <ChatTextIcon weight="bold" />
             </Toggle>
-          )}
+          )} */}
 
           {/* Toggle Live2D */}
           {visibleControls.live2d && (
@@ -187,11 +192,11 @@ export function AgentControlBar({
             </Toggle>
           )}
 
-          {/* MCP Server Management */}
-          <div className="flex gap-1 border-l border-gray-200 pl-1">
+          {/* MCP Server Management - コメントアウト */}
+          {/* <div className="flex gap-1 border-l border-gray-200 pl-1">
             <AddMCPServerDialog />
             <ManageMCPServersDialog />
-          </div>
+          </div> */}
         </div>
 
         {/* Disconnect */}
