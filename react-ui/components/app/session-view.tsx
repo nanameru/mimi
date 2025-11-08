@@ -130,7 +130,7 @@ export const SessionView = ({
       {showLive2D && <Live2DBackground agentState={agentState} />}
 
       {/* アーティファクトコンテナ（全画面レイアウト） */}
-      {hasArtifact && <ArtifactContainer />}
+      {hasArtifact && <ArtifactContainer artifactChatOpen={artifactChatOpen} />}
 
       {/* チャット開閉ボタン（アーティファクト表示時のみ） */}
       {hasArtifact && !isMobile && (

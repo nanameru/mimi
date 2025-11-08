@@ -25,7 +25,11 @@ import type {
 import { Button } from '@/components/livekit/button';
 import { ExportButton } from './export-button';
 
-export function ArtifactContainer() {
+type ArtifactContainerProps = {
+  artifactChatOpen: boolean;
+};
+
+export function ArtifactContainer({ artifactChatOpen }: ArtifactContainerProps) {
   const { artifact, setArtifact, isVisible, setIsVisible, setUserClosed } = useArtifactChannel();
   const { width: windowWidth, height: windowHeight } = useWindowSize();
   const isMobile = windowWidth ? windowWidth < 768 : false;
@@ -103,7 +107,10 @@ export function ArtifactContainer() {
                     x: 0,
                     y: 0,
                     height: windowHeight,
-                    width: windowWidth ? windowWidth - 400 : 'calc(100dvw-400px)',
+                    // チャットが開いている場合は 400px 分減らす、閉じている場合は全画面
+                    width: windowWidth 
+                      ? (artifactChatOpen ? windowWidth - 400 : windowWidth)
+                      : (artifactChatOpen ? 'calc(100dvw - 400px)' : '100dvw'),
                     borderRadius: 0,
                     transition: {
                       delay: 0,
