@@ -195,8 +195,8 @@ export function AgentControlBar({
           </div> */}
         </div>
 
-        {/* Disconnect */}
-        {visibleControls.leave && (
+        {/* Disconnect - コメントアウト */}
+        {/* {visibleControls.leave && (
           <Button
             variant="destructive"
             onClick={handleDisconnect}
@@ -207,7 +207,7 @@ export function AgentControlBar({
             <span className="hidden md:inline">END CALL</span>
             <span className="inline md:hidden">END</span>
           </Button>
-        )}
+        )} */}
       </div>
     </div>
   );
