@@ -4,26 +4,6 @@ import { PaperPlaneRightIcon, SpinnerIcon } from '@phosphor-icons/react/dist/ssr
 import { MonitorArrowUpIcon, VideoCameraIcon } from '@phosphor-icons/react/dist/ssr';
 import { toast } from 'sonner';
 
-const MOTION_PROPS = {
-  variants: {
-    hidden: {
-      height: 0,
-      opacity: 0,
-      marginBottom: 0,
-    },
-    visible: {
-      height: 'auto',
-      opacity: 1,
-      marginBottom: 12,
-    },
-  },
-  initial: 'hidden',
-  transition: {
-    duration: 0.3,
-    ease: 'easeOut',
-  },
-};
-
 interface ChatInputProps {
   chatOpen: boolean;
   isAgentAvailable?: boolean;
@@ -105,20 +85,19 @@ export function ChatInput({
     }
   };
 
-  const isDisabled = isSending || !isAgentAvailable || message.trim().length === 0;
+  const isDisabled = isSending || message.trim().length === 0;
 
   useEffect(() => {
-    if (chatOpen && isAgentAvailable) return;
-    // when not disabled refocus on input
+    // Auto focus on mount
     inputRef.current?.focus();
-  }, [chatOpen, isAgentAvailable]);
+  }, []);
 
   return (
     <motion.div
-      inert={!chatOpen}
-      {...MOTION_PROPS}
-      animate={chatOpen ? 'visible' : 'hidden'}
-      className="flex w-full items-start overflow-hidden"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
+      className="flex w-full items-start overflow-visible mb-3"
     >
       <motion.form
         onSubmit={handleSubmit}
@@ -147,13 +126,12 @@ export function ChatInput({
             ref={inputRef}
             type="text"
             value={message}
-            disabled={!chatOpen}
             placeholder="なんでも聞いてみて。"
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={handleKeyDown}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
-            className="flex-1 bg-transparent text-gray-900 placeholder:text-gray-400 placeholder:text-sm focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex-1 bg-transparent text-gray-900 placeholder:text-gray-400 placeholder:text-sm focus:outline-none"
           />
 
           {/* コントロールボタン群 */}
