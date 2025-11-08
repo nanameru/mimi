@@ -23,29 +23,39 @@ export function ArtifactPreviewCard({
   const isStreaming = progress && progress.current < progress.total;
 
   return (
-    <div className="relative w-full z-50">
+    <div className="relative w-full z-50" data-artifact-preview-card="true">
       {/* Hitbox Layer - フルスクリーンアイコン（クリック可能） */}
       <div
-        className="absolute top-0 left-0 z-50 size-full rounded-2xl pointer-events-none"
+        className="absolute top-0 left-0 z-[100] size-full rounded-2xl pointer-events-none"
         role="presentation"
       >
-        <div className="flex w-full items-center justify-end p-4">
+        <div className="flex w-full items-center justify-end p-2">
           <button
+            type="button"
             onClick={(e) => {
-              console.log('[ArtifactPreviewCard] Button clicked!');
+              console.log('[ArtifactPreviewCard] ✅ Button clicked! Calling onClick...');
+              e.preventDefault();
               e.stopPropagation();
               onClick();
+              console.log('[ArtifactPreviewCard] ✅ onClick called successfully');
             }}
-            className="absolute top-[13px] right-[9px] rounded-md p-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 pointer-events-auto cursor-pointer transition-colors z-50"
+            onMouseDown={(e) => {
+              console.log('[ArtifactPreviewCard] 🖱️ Mouse down detected');
+            }}
+            onMouseUp={(e) => {
+              console.log('[ArtifactPreviewCard] 🖱️ Mouse up detected');
+            }}
+            className="pointer-events-auto cursor-pointer rounded-lg p-2.5 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-all z-[101] relative"
             aria-label="アーティファクトを開く"
+            style={{ touchAction: 'manipulation' }}
           >
             <svg
-              width="16"
-              height="16"
+              width="20"
+              height="20"
               viewBox="0 0 16 16"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
-              className="text-muted-foreground"
+              className="text-gray-600 dark:text-gray-400 pointer-events-none"
             >
               <path
                 d="M2 2L6 2L6 3L3 3L3 6L2 6L2 2Z"
