@@ -261,21 +261,8 @@ export const SessionView = ({
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
           style={{ width: isMobile ? '100%' : '400px' }}
         >
-          <div className="flex flex-col h-full">
-            {/* ヘッダー */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
-              <h2 className="text-sm font-semibold text-gray-900">チャット履歴</h2>
-              <button
-                onClick={() => handleChatOpenChange(false)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                aria-label="Close chat"
-              >
-                <X className="w-4 h-4 text-gray-600" />
-              </button>
-            </div>
-            
-            {/* メッセージエリア */}
-            <ScrollArea className="flex-1 px-4 py-4">
+          {/* メッセージエリア */}
+          <ScrollArea className="h-full px-4 pt-4 pb-4">
               <div className="space-y-3">
               {(() => {
                 const locale = navigator?.language ?? 'en-US';
@@ -342,8 +329,7 @@ export const SessionView = ({
                 });
               })()}
               </div>
-            </ScrollArea>
-          </div>
+          </ScrollArea>
         </motion.div>
       )}
 
