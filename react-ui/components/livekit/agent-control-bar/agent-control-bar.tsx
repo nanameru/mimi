@@ -157,18 +157,19 @@ export function AgentControlBar({
             />
           )}
 
-          {/* Toggle Transcript - コメントアウト */}
-          {/* {visibleControls.chat && (
+          {/* Toggle Transcript */}
+          {visibleControls.chat && (
             <Toggle
               size="icon"
               variant="secondary"
               aria-label="Toggle transcript"
               pressed={chatOpen}
               onPressedChange={handleToggleTranscript}
+              title={chatOpen ? 'Hide chat transcript' : 'Show chat transcript'}
             >
               <ChatTextIcon weight="bold" />
             </Toggle>
-          )} */}
+          )}
 
           {/* Toggle Live2D */}
           {visibleControls.live2d && (

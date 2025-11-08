@@ -252,20 +252,31 @@ export const SessionView = ({
         </motion.div>
       )}
 
-      {/* Chat Transcript - アーティファクトがない場合の通常表示 */}
+      {/* Chat Transcript - 右側パネルとして表示 */}
       {!hasArtifact && (
-      <div
-        className={cn(
-            'fixed inset-0 grid grid-cols-1 grid-rows-1 transition-all duration-300 ease-out',
-          !chatOpen && 'pointer-events-none'
-        )}
-      >
-        <Fade top className="absolute inset-x-4 top-0 h-40" />
-        <ScrollArea className="px-4 pt-40 pb-[150px] md:px-6 md:pb-[180px]">
-            <div className={cn(
-              "mx-auto max-w-2xl space-y-3 transition-all duration-300 ease-out",
-              chatOpen ? "opacity-100" : "opacity-0"
-            )}>
+        <motion.div
+          className="fixed top-0 right-0 h-dvh bg-white/95 backdrop-blur-xl border-l border-gray-200 shadow-2xl z-50"
+          initial={{ x: '100%' }}
+          animate={{ x: chatOpen ? 0 : '100%' }}
+          transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+          style={{ width: isMobile ? '100%' : '400px' }}
+        >
+          <div className="flex flex-col h-full">
+            {/* ヘッダー */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+              <h2 className="text-sm font-semibold text-gray-900">チャット履歴</h2>
+              <button
+                onClick={() => handleChatOpenChange(false)}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                aria-label="Close chat"
+              >
+                <X className="w-4 h-4 text-gray-600" />
+              </button>
+            </div>
+            
+            {/* メッセージエリア */}
+            <ScrollArea className="flex-1 px-4 py-4">
+              <div className="space-y-3">
               {(() => {
                 const locale = navigator?.language ?? 'en-US';
                 
@@ -330,9 +341,10 @@ export const SessionView = ({
                   }
                 });
               })()}
-            </div>
-        </ScrollArea>
-      </div>
+              </div>
+            </ScrollArea>
+          </div>
+        </motion.div>
       )}
 
       {/* ステータスインジケーター（アーティファクトがない時のみ表示） */}
