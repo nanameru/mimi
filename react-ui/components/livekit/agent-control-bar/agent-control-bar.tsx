@@ -113,6 +113,8 @@ export function AgentControlBar({
           chatOpen={chatOpen}
           isAgentAvailable={isAgentAvailable}
           onSend={handleSendMessage}
+          showAITuber={showLive2D}
+          onToggleAITuber={onLive2DToggle ? () => onLive2DToggle(!showLive2D) : undefined}
         />
       )}
 
