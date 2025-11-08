@@ -226,7 +226,7 @@ export const SessionView = ({
                         // 通知（プレビューカード）
                         const notification = item.data;
                         return (
-                          <div key={notification.timestamp} className="animate-in fade-in slide-in-from-bottom-2 mr-auto max-w-[80%] relative z-10">
+                          <div key={notification.timestamp} className="animate-in fade-in slide-in-from-bottom-2 mr-auto max-w-[80%] relative z-50">
                             <ArtifactPreviewCard
                               artifactType={notification.artifactType}
                               title={notification.title}
@@ -235,7 +235,7 @@ export const SessionView = ({
                               streamId={notification.streamId}
                               progress={notification.progress}
                               onClick={() => {
-                                console.log('[SessionView] Preview card clicked, showing artifact');
+                                console.log('[SessionView] Preview card clicked (artifact view), showing artifact');
                                 setIsVisible(true);
                                 setUserClosed(false);
                               }}
@@ -311,7 +311,7 @@ export const SessionView = ({
                     // 通知（プレビューカード）
                     const notification = item.data;
                     return (
-                      <div key={notification.timestamp} className="animate-in fade-in slide-in-from-bottom-2 mr-auto max-w-[80%] relative z-10">
+                      <div key={notification.timestamp} className="animate-in fade-in slide-in-from-bottom-2 mr-auto max-w-[80%] relative z-50">
                         <ArtifactPreviewCard
                           artifactType={notification.artifactType}
                           title={notification.title}

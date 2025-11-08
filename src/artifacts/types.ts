@@ -45,7 +45,7 @@ export type SheetArtifact = ArtifactData & {
 export type SingleSlide = {
   id: string;          // 'slide-1', 'slide-2', ...
   title: string;       // スライドのタイトル
-  content: string;     // 各スライドのHTML（960×540px固定）
+  content: string;     // 各スライドのHTML（960×540px固定 - 16:9横長）
   order: number;       // 表示順序
 };
 

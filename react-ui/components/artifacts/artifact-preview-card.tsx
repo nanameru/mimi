@@ -23,19 +23,20 @@ export function ArtifactPreviewCard({
   const isStreaming = progress && progress.current < progress.total;
 
   return (
-    <div className="relative w-full z-10">
+    <div className="relative w-full z-50">
       {/* Hitbox Layer - フルスクリーンアイコン（クリック可能） */}
       <div
-        className="absolute top-0 left-0 z-10 size-full rounded-2xl pointer-events-none"
+        className="absolute top-0 left-0 z-50 size-full rounded-2xl pointer-events-none"
         role="presentation"
       >
         <div className="flex w-full items-center justify-end p-4">
           <button
             onClick={(e) => {
+              console.log('[ArtifactPreviewCard] Button clicked!');
               e.stopPropagation();
               onClick();
             }}
-            className="absolute top-[13px] right-[9px] rounded-md p-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 pointer-events-auto cursor-pointer transition-colors"
+            className="absolute top-[13px] right-[9px] rounded-md p-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 pointer-events-auto cursor-pointer transition-colors z-50"
             aria-label="アーティファクトを開く"
           >
             <svg
