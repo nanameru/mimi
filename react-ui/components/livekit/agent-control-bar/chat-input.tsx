@@ -1,30 +1,22 @@
 import { useEffect, useRef, useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 import { PaperPlaneRightIcon, SpinnerIcon } from '@phosphor-icons/react/dist/ssr';
-import { MonitorArrowUpIcon, VideoCameraIcon } from '@phosphor-icons/react/dist/ssr';
-import { toast } from 'sonner';
 
 interface ChatInputProps {
   chatOpen: boolean;
   isAgentAvailable?: boolean;
   onSend?: (message: string) => void;
-  showAITuber?: boolean;
-  onToggleAITuber?: () => void;
 }
 
 export function ChatInput({
   chatOpen,
   isAgentAvailable = false,
   onSend = async () => {},
-  showAITuber = false,
-  onToggleAITuber,
 }: ChatInputProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isSending, setIsSending] = useState(false);
   const [message, setMessage] = useState<string>('');
   const [isFocused, setIsFocused] = useState(false);
-  const [isScreenSharing, setIsScreenSharing] = useState(false);
-  const [screenStream, setScreenStream] = useState<MediaStream | null>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -45,43 +37,6 @@ export function ChatInput({
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSubmit(e as any);
-    }
-  };
-
-  const startScreenShare = async () => {
-    try {
-      const mediaStream = await navigator.mediaDevices.getDisplayMedia({
-        video: { displaySurface: 'monitor' } as any,
-        audio: false,
-      });
-
-      setScreenStream(mediaStream);
-      setIsScreenSharing(true);
-      toast.success('画面共有を開始しました');
-
-      mediaStream.getVideoTracks()[0].addEventListener('ended', () => {
-        stopScreenShare();
-      });
-    } catch (error) {
-      console.error('画面共有エラー:', error);
-      toast.error('画面共有を開始できませんでした');
-    }
-  };
-
-  const stopScreenShare = () => {
-    if (screenStream) {
-      screenStream.getTracks().forEach((track) => track.stop());
-      setScreenStream(null);
-      setIsScreenSharing(false);
-      toast.info('画面共有を停止しました');
-    }
-  };
-
-  const toggleScreenShare = () => {
-    if (isScreenSharing) {
-      stopScreenShare();
-    } else {
-      startScreenShare();
     }
   };
 
@@ -133,83 +88,9 @@ export function ChatInput({
             onBlur={() => setIsFocused(false)}
             className="flex-1 bg-transparent text-gray-900 placeholder:text-gray-400 placeholder:text-sm focus:outline-none"
           />
-
-          {/* コントロールボタン群 */}
-          <div className="flex items-center gap-2">
-            {/* AITuber切り替えボタン */}
-            {onToggleAITuber && (
-              <motion.button
-                type="button"
-                onClick={onToggleAITuber}
-                className="flex items-center justify-center w-9 h-9 rounded-xl backdrop-blur-sm transition-all"
-                style={{
-                  background: showAITuber
-                    ? 'rgba(59, 130, 246, 0.15)'
-                    : 'rgba(255, 255, 255, 0.5)',
-                  border: showAITuber
-                    ? '1px solid rgba(59, 130, 246, 0.3)'
-                    : '1px solid rgba(255, 255, 255, 0.5)',
-                }}
-                whileHover={{
-                  scale: 1.1,
-                  background: showAITuber
-                    ? 'rgba(59, 130, 246, 0.2)'
-                    : 'rgba(255, 255, 255, 0.7)',
-                }}
-                whileTap={{ scale: 0.9 }}
-                title="AITuber"
-              >
-                <VideoCameraIcon
-                  className={`w-4 h-4 ${showAITuber ? 'text-blue-600' : 'text-gray-500'}`}
-                  weight="bold"
-                />
-              </motion.button>
-            )}
-
-            {/* 画面共有ボタン */}
-            <motion.button
-              type="button"
-              onClick={toggleScreenShare}
-              className="flex items-center justify-center w-9 h-9 rounded-xl backdrop-blur-sm transition-all relative"
-              style={{
-                background: isScreenSharing
-                  ? 'rgba(239, 68, 68, 0.1)'
-                  : 'rgba(255, 255, 255, 0.5)',
-                border: isScreenSharing
-                  ? '1px solid rgba(239, 68, 68, 0.3)'
-                  : '1px solid rgba(255, 255, 255, 0.5)',
-              }}
-              whileHover={{
-                scale: 1.1,
-                background: isScreenSharing
-                  ? 'rgba(239, 68, 68, 0.15)'
-                  : 'rgba(255, 255, 255, 0.7)',
-              }}
-              whileTap={{ scale: 0.9 }}
-              title={isScreenSharing ? '画面共有を停止' : '画面共有'}
-            >
-              <MonitorArrowUpIcon
-                className={`w-4 h-4 ${isScreenSharing ? 'text-red-600' : 'text-gray-500'}`}
-                weight="bold"
-              />
-
-              {/* 共有中インジケーター */}
-              {isScreenSharing && (
-                <motion.div
-                  className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-red-500"
-                  animate={{
-                    scale: [1, 1.3, 1],
-                    opacity: [1, 0.5, 1],
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Number.POSITIVE_INFINITY,
-                  }}
-                />
-              )}
-            </motion.button>
-          </div>
         </div>
+        
+        {/* 送信ボタン */}
         <motion.button
           type="submit"
           disabled={isDisabled}

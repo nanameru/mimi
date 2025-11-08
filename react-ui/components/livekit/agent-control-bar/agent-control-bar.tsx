@@ -109,13 +109,7 @@ export function AgentControlBar({
     >
       {/* Chat Input */}
       {visibleControls.chat && (
-        <ChatInput
-          chatOpen={chatOpen}
-          isAgentAvailable={isAgentAvailable}
-          onSend={handleSendMessage}
-          showAITuber={showLive2D}
-          onToggleAITuber={onLive2DToggle ? () => onLive2DToggle(!showLive2D) : undefined}
-        />
+        <ChatInput chatOpen={chatOpen} isAgentAvailable={isAgentAvailable} onSend={handleSendMessage} />
       )}
 
       <div className="flex gap-1">
