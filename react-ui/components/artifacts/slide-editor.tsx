@@ -22,7 +22,7 @@ export function SlideEditor({ content }: SlideEditorProps) {
   const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
   const iframeRefs = useRef<(HTMLIFrameElement | null)[]>([]);
   const containerRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const [containerWidths, setContainerWidths] = useState<number[]>([]);
+  const [containerSizes, setContainerSizes] = useState<{ width: number; height: number }[]>([]);
 
   // HTMLコンテンツからスライドを解析
   useEffect(() => {
@@ -86,7 +86,7 @@ export function SlideEditor({ content }: SlideEditorProps) {
     };
   }, [slides.length]);
 
-  // 各スライドコンテナの幅を監視
+  // 各スライドコンテナのサイズを監視
   useEffect(() => {
     const observers: ResizeObserver[] = [];
     
@@ -96,9 +96,10 @@ export function SlideEditor({ content }: SlideEditorProps) {
       const observer = new ResizeObserver((entries) => {
         for (const entry of entries) {
           const width = entry.contentRect.width;
-          setContainerWidths((prev) => {
+          const height = entry.contentRect.height;
+          setContainerSizes((prev) => {
             const updated = [...prev];
-            updated[index] = width;
+            updated[index] = { width, height };
             return updated;
           });
         }
@@ -175,9 +176,11 @@ export function SlideEditor({ content }: SlideEditorProps) {
         >
           <div className="flex flex-col items-center gap-0">
             {slides.map((slide, index) => {
-              // スケール計算（960pxを基準）
-              const containerWidth = containerWidths[index] || 960;
-              const scale = Math.min(containerWidth / 960, 1); // 最大1倍（拡大しない）
+              // スケール計算（960x540を基準に、コンテナいっぱいに表示）
+              const containerSize = containerSizes[index] || { width: 960, height: 540 };
+              const scaleX = containerSize.width / 960;
+              const scaleY = containerSize.height / 540;
+              const scale = Math.max(scaleX, scaleY); // 画面いっぱいに表示するため、大きい方を採用
               
               return (
                 <motion.div
@@ -198,7 +201,7 @@ export function SlideEditor({ content }: SlideEditorProps) {
                   >
                     {/* iframe スケーリングラッパー */}
                     <div
-                      className="w-full h-full flex items-center justify-center"
+                      className="w-full h-full"
                       style={{
                         overflow: 'hidden',
                       }}
@@ -208,7 +211,7 @@ export function SlideEditor({ content }: SlideEditorProps) {
                           width: '960px',
                           height: '540px',
                           transform: `scale(${scale})`,
-                          transformOrigin: 'center center',
+                          transformOrigin: 'top left',
                         }}
                       >
                         <iframe
