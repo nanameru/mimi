@@ -205,6 +205,63 @@ export function SlideEditor({ content }: SlideEditorProps) {
 
   return (
     <div className="h-full w-full bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/20 flex flex-row">
+      {/* 左側：スライド履歴サムネイルリスト */}
+      <div className="w-60 h-full overflow-y-auto bg-white/50 backdrop-blur-sm border-r border-gray-200 p-3">
+        <div className="flex flex-col gap-3">
+          {slides.map((slide, index) => (
+            <button
+              key={slide.id}
+              onClick={() => {
+                const slideElement = slideRefs.current[index];
+                if (slideElement) {
+                  slideElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+              }}
+              className={`relative w-full rounded-lg overflow-hidden border-2 transition-all duration-200 ${
+                currentSlideIndex === index
+                  ? 'border-blue-500 shadow-lg'
+                  : 'border-gray-200 hover:border-blue-300'
+              }`}
+              style={{ aspectRatio: '16 / 9' }}
+            >
+              {/* サムネイル iframe - 実際のスライド内容を表示 */}
+              <div className="absolute inset-0 bg-white" style={{ overflow: 'hidden' }}>
+                <iframe
+                  ref={(el) => {
+                    thumbnailIframeRefs.current[index] = el;
+                  }}
+                  title={`Thumbnail ${index + 1}`}
+                  className="border-0 pointer-events-none"
+                  style={{
+                    width: '960px',
+                    height: '540px',
+                    transform: 'scale(0.25)',
+                    transformOrigin: 'top left',
+                  }}
+                  sandbox="allow-same-origin allow-scripts"
+                />
+              </div>
+              
+              {/* スライド番号 */}
+              <div className="absolute top-2 left-2 z-10 px-2 py-1 rounded bg-white/90 backdrop-blur-sm text-xs font-medium text-gray-700 shadow-sm">
+                {index + 1}
+              </div>
+              
+              {/* アクティブインジケーター */}
+              {currentSlideIndex === index && (
+                <div className="absolute inset-0 flex items-center justify-center bg-blue-500/10 z-10">
+                  <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center shadow-lg">
+                    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                </div>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* メインスライドエリア */}
       <div className="flex-1 flex relative">
         {/* スライド表示 - 縦スクロール */}
@@ -274,63 +331,6 @@ export function SlideEditor({ content }: SlideEditorProps) {
               );
             })}
           </div>
-        </div>
-      </div>
-
-      {/* 右側：スライド履歴サムネイルリスト */}
-      <div className="w-60 h-full overflow-y-auto bg-white/50 backdrop-blur-sm border-l border-gray-200 p-3">
-        <div className="flex flex-col gap-3">
-          {slides.map((slide, index) => (
-            <button
-              key={slide.id}
-              onClick={() => {
-                const slideElement = slideRefs.current[index];
-                if (slideElement) {
-                  slideElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
-              }}
-              className={`relative w-full rounded-lg overflow-hidden border-2 transition-all duration-200 ${
-                currentSlideIndex === index
-                  ? 'border-blue-500 shadow-lg'
-                  : 'border-gray-200 hover:border-blue-300'
-              }`}
-              style={{ aspectRatio: '16 / 9' }}
-            >
-              {/* サムネイル iframe - 実際のスライド内容を表示 */}
-              <div className="absolute inset-0 bg-white" style={{ overflow: 'hidden' }}>
-                <iframe
-                  ref={(el) => {
-                    thumbnailIframeRefs.current[index] = el;
-                  }}
-                  title={`Thumbnail ${index + 1}`}
-                  className="border-0 pointer-events-none"
-                  style={{
-                    width: '960px',
-                    height: '540px',
-                    transform: 'scale(0.25)',
-                    transformOrigin: 'top left',
-                  }}
-                  sandbox="allow-same-origin allow-scripts"
-                />
-              </div>
-              
-              {/* スライド番号 */}
-              <div className="absolute top-2 left-2 z-10 px-2 py-1 rounded bg-white/90 backdrop-blur-sm text-xs font-medium text-gray-700 shadow-sm">
-                {index + 1}
-              </div>
-              
-              {/* アクティブインジケーター */}
-              {currentSlideIndex === index && (
-                <div className="absolute inset-0 flex items-center justify-center bg-blue-500/10 z-10">
-                  <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center shadow-lg">
-                    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                </div>
-              )}
-            </button>
-          ))}
         </div>
       </div>
     </div>
