@@ -151,8 +151,8 @@ export const SessionView = ({
         </motion.button>
       )}
 
-      {/* Chat Transcript - アーティファクト表示時は右側に400px幅で配置 */}
-      {hasArtifact && !isMobile && artifactChatOpen && (
+      {/* Chat Transcript - 統合サイドバー（通常モードとアーティファクトモード共通） */}
+      {!isMobile && (chatOpen || (hasArtifact && artifactChatOpen)) && (
         <motion.div
           animate={{
             opacity: 1,
@@ -175,10 +175,10 @@ export const SessionView = ({
           initial={{ opacity: 0, x: 400, scale: 1 }}
         >
           <div className="flex h-full flex-col pointer-events-auto">
-            {/* チャットメッセージエリア */}
-            <div className="relative flex-1 overflow-y-auto">
+            {/* チャットメッセージエリア - ScrollAreaを使用（通常モードの方式） */}
+            <ScrollArea className="flex-1 relative">
               <Fade top className="absolute inset-x-4 top-0 h-40 z-10" />
-              <div className="h-full px-4 pt-40 pb-[150px]">
+              <div className="px-4 pt-40 pb-4">
                 <div className="space-y-3 max-w-2xl">
                   {/* メッセージと通知を統合してタイムスタンプ順に表示 */}
                   {(() => {
@@ -235,7 +235,7 @@ export const SessionView = ({
                               streamId={notification.streamId}
                               progress={notification.progress}
                               onClick={() => {
-                                console.log('[SessionView] Preview card clicked (artifact view), showing artifact');
+                                console.log('[SessionView] Preview card clicked (unified sidebar), showing artifact');
                                 setIsVisible(true);
                                 setUserClosed(false);
                               }}
@@ -247,104 +247,23 @@ export const SessionView = ({
                   })()}
                 </div>
               </div>
+            </ScrollArea>
+            
+            {/* チャット入力欄 - 通常モードの方式（下部固定、border-tで区切り） */}
+            <div className="px-4 pb-4 pt-2 border-t border-gray-200">
+              <AgentControlBar
+                controls={controls}
+                onChatOpenChange={handleChatOpenChange}
+                showLive2D={showLive2D}
+                onLive2DToggle={setShowLive2D}
+                className="bg-transparent border-gray-200 shadow-none"
+                style={{
+                  background: 'transparent',
+                  borderColor: 'rgba(229, 231, 235, 1)',
+                  boxShadow: 'none',
+                }}
+              />
             </div>
-          </div>
-        </motion.div>
-      )}
-
-      {/* Chat Transcript - 右側パネルとして表示 */}
-      {!hasArtifact && (
-        <motion.div
-          className="fixed top-0 right-0 h-dvh bg-white/95 backdrop-blur-xl border-l border-gray-200 shadow-2xl z-50 flex flex-col"
-          initial={{ x: '100%' }}
-          animate={{ x: chatOpen ? 0 : '100%' }}
-          transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          style={{ width: isMobile ? '100%' : '400px' }}
-        >
-          {/* メッセージエリア */}
-          <ScrollArea className="flex-1 px-4 pt-4 pb-4">
-              <div className="space-y-3">
-              {(() => {
-                const locale = navigator?.language ?? 'en-US';
-                
-                // メッセージと通知を統合
-                const items: Array<{ type: 'message' | 'notification'; timestamp: number; data: any }> = [
-                  ...messages.map(msg => ({ type: 'message' as const, timestamp: msg.timestamp, data: msg })),
-                  ...notifications.map(notif => ({ type: 'notification' as const, timestamp: notif.timestamp, data: notif })),
-                ];
-                
-                // タイムスタンプ順にソート
-                items.sort((a, b) => a.timestamp - b.timestamp);
-                
-                return items.map((item) => {
-                  if (item.type === 'message') {
-                    const { id, timestamp, from, message, editTimestamp } = item.data;
-                    const messageOrigin = from?.isLocal ? 'local' : 'remote';
-                    const hasBeenEdited = !!editTimestamp;
-                    
-                    return (
-                      <div key={id} className="animate-in fade-in slide-in-from-bottom-2 relative z-10">
-                        {messageOrigin === 'local' ? (
-                          // ユーザーメッセージ（右寄せ、黒背景）
-                          <div className="flex justify-end">
-                            <div className="inline-block px-5 py-3 bg-black text-white rounded-3xl max-w-[85%]">
-                              <p className="whitespace-pre-wrap break-words leading-relaxed text-sm">
-                                {removeEmotionAndMotionTags(message)}
-                              </p>
-                            </div>
-                          </div>
-                        ) : (
-                          // AIメッセージ（左寄せ、背景なし）
-                          <div className="space-y-2">
-                            <div className="text-gray-900">
-                              <p className="whitespace-pre-wrap break-words leading-relaxed text-sm">
-                                {removeEmotionAndMotionTags(message)}
-                              </p>
-                          </div>
-                        </div>
-                        )}
-                      </div>
-                    );
-                  } else {
-                    // 通知（プレビューカード）
-                    const notification = item.data;
-                    return (
-                      <div key={notification.timestamp} className="animate-in fade-in slide-in-from-bottom-2 mr-auto max-w-[80%] relative z-50">
-                        <ArtifactPreviewCard
-                          artifactType={notification.artifactType}
-                          title={notification.title}
-                          preview={notification.preview}
-                          timestamp={notification.timestamp}
-                          streamId={notification.streamId}
-                          progress={notification.progress}
-                          onClick={() => {
-                            console.log('[SessionView] Preview card clicked (normal view), showing artifact');
-                            setIsVisible(true);
-                            setUserClosed(false);
-                          }}
-                        />
-                      </div>
-                    );
-                  }
-                });
-              })()}
-              </div>
-          </ScrollArea>
-          
-          {/* チャット入力欄 */}
-          <div className="px-4 pb-4 pt-2 border-t border-gray-200 bg-white">
-            <AgentControlBar
-              controls={controls}
-              onChatOpenChange={handleChatOpenChange}
-              showLive2D={showLive2D}
-              onLive2DToggle={setShowLive2D}
-              className="bg-transparent border-gray-200 shadow-none"
-              style={{
-                background: 'transparent',
-                borderColor: 'rgba(229, 231, 235, 1)',
-                boxShadow: 'none',
-              }}
-            />
           </div>
         </motion.div>
       )}
