@@ -139,9 +139,9 @@ export function SlideEditor({ content }: SlideEditorProps) {
             <motion.div
               key={currentSlideIndex}
               custom={direction}
-              initial={{ x: direction > 0 ? 1000 : -1000, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: direction > 0 ? -1000 : 1000, opacity: 0 }}
+              initial={{ y: direction > 0 ? 1000 : -1000, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: direction > 0 ? -1000 : 1000, opacity: 0 }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
               className="w-full aspect-[16/9] max-h-full rounded-3xl shadow-2xl overflow-hidden bg-white"
       >
