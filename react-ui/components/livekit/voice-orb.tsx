@@ -16,7 +16,7 @@ export function VoiceOrb({
   size = 'large',
 }: VoiceOrbProps) {
   const dimensions = size === 'large' ? { orb: 320, outer: 380, aura: 500 } : { orb: 80, outer: 95, aura: 125 };
-  const showEffects = size === 'large';
+  const showEffects = false; // 常にシンプルなデザインを使用（エフェクト無効）
 
   return (
     <motion.div
