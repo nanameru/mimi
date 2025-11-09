@@ -21,6 +21,7 @@ export function SlideEditor({ content }: SlideEditorProps) {
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
   const iframeRefs = useRef<(HTMLIFrameElement | null)[]>([]);
+  const thumbnailIframeRefs = useRef<(HTMLIFrameElement | null)[]>([]);
   const containerRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [containerSizes, setContainerSizes] = useState<{ width: number; height: number }[]>([]);
 
@@ -118,6 +119,46 @@ export function SlideEditor({ content }: SlideEditorProps) {
   useEffect(() => {
     slides.forEach((slide, index) => {
       const iframe = iframeRefs.current[index];
+      if (!iframe) return;
+      
+      const doc = iframe.contentDocument || iframe.contentWindow?.document;
+      if (!doc) return;
+      
+      const fullHTML = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      overflow: hidden;
+      width: 960px;
+      height: 540px;
+    }
+  </style>
+</head>
+<body>
+  ${slide.html}
+</body>
+</html>
+      `;
+      
+      doc.open();
+      doc.write(fullHTML);
+      doc.close();
+    });
+  }, [slides]);
+
+  // 各サムネイルiframeにスライドコンテンツを表示
+  useEffect(() => {
+    slides.forEach((slide, index) => {
+      const iframe = thumbnailIframeRefs.current[index];
       if (!iframe) return;
       
       const doc = iframe.contentDocument || iframe.contentWindow?.document;
@@ -255,18 +296,33 @@ export function SlideEditor({ content }: SlideEditorProps) {
               }`}
               style={{ aspectRatio: '16 / 9' }}
             >
-              {/* サムネイル背景 */}
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-purple-50" />
+              {/* サムネイル iframe - 実際のスライド内容を表示 */}
+              <div className="absolute inset-0 bg-white" style={{ overflow: 'hidden' }}>
+                <iframe
+                  ref={(el) => {
+                    thumbnailIframeRefs.current[index] = el;
+                  }}
+                  title={`Thumbnail ${index + 1}`}
+                  className="border-0 pointer-events-none"
+                  style={{
+                    width: '960px',
+                    height: '540px',
+                    transform: 'scale(0.25)',
+                    transformOrigin: 'top left',
+                  }}
+                  sandbox="allow-same-origin allow-scripts"
+                />
+              </div>
               
               {/* スライド番号 */}
-              <div className="absolute top-2 left-2 px-2 py-1 rounded bg-white/80 backdrop-blur-sm text-xs font-medium text-gray-700">
+              <div className="absolute top-2 left-2 z-10 px-2 py-1 rounded bg-white/90 backdrop-blur-sm text-xs font-medium text-gray-700 shadow-sm">
                 {index + 1}
               </div>
               
               {/* アクティブインジケーター */}
               {currentSlideIndex === index && (
-                <div className="absolute inset-0 flex items-center justify-center bg-blue-500/10">
-                  <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
+                <div className="absolute inset-0 flex items-center justify-center bg-blue-500/10 z-10">
+                  <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center shadow-lg">
                     <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
