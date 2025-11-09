@@ -5,7 +5,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -21,8 +21,8 @@ interface ParsedSlide {
 export function SlideEditor({ content }: SlideEditorProps) {
   const [slides, setSlides] = useState<ParsedSlide[]>([]);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
-  const [direction, setDirection] = useState(0);
-  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const iframeRefs = useRef<(HTMLIFrameElement | null)[]>([]);
 
   // HTMLコンテンツからスライドを解析
   useEffect(() => {
@@ -58,14 +58,44 @@ export function SlideEditor({ content }: SlideEditorProps) {
     }
   }, [content]);
 
-  // iframeに現在のスライドを表示
+  // IntersectionObserverで現在のスライドを検出
   useEffect(() => {
-    if (iframeRef.current && slides[currentSlideIndex]) {
-      const iframe = iframeRef.current;
-      const doc = iframe.contentDocument || iframe.contentWindow?.document;
+    const observers = slideRefs.current.map((ref, index) => {
+      if (!ref) return null;
       
-      if (doc) {
-        const fullHTML = `
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting && entry.intersectionRatio > 0.5) {
+              setCurrentSlideIndex(index);
+            }
+          });
+        },
+        {
+          threshold: [0, 0.5, 1],
+          rootMargin: '-20% 0px -20% 0px',
+        }
+      );
+      
+      observer.observe(ref);
+      return observer;
+    });
+
+    return () => {
+      observers.forEach((observer) => observer?.disconnect());
+    };
+  }, [slides.length]);
+
+  // 各iframeにスライドコンテンツを表示
+  useEffect(() => {
+    slides.forEach((slide, index) => {
+      const iframe = iframeRefs.current[index];
+      if (!iframe) return;
+      
+      const doc = iframe.contentDocument || iframe.contentWindow?.document;
+      if (!doc) return;
+      
+      const fullHTML = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -75,7 +105,7 @@ export function SlideEditor({ content }: SlideEditorProps) {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-        }
+    }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       overflow: hidden;
@@ -87,39 +117,46 @@ export function SlideEditor({ content }: SlideEditorProps) {
       flex-direction: column;
       justify-content: center;
       padding: 4rem;
-        }
+    }
   </style>
 </head>
 <body>
-  ${slides[currentSlideIndex].html}
+  ${slide.html}
 </body>
 </html>
-        `;
-        
-        doc.open();
-        doc.write(fullHTML);
-        doc.close();
-      }
-    }
-  }, [currentSlideIndex, slides]);
+      `;
+      
+      doc.open();
+      doc.write(fullHTML);
+      doc.close();
+    });
+  }, [slides]);
 
   const nextSlide = () => {
     if (currentSlideIndex < slides.length - 1) {
-      setDirection(1);
-      setCurrentSlideIndex(currentSlideIndex + 1);
+      const nextIndex = currentSlideIndex + 1;
+      slideRefs.current[nextIndex]?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
     }
   };
 
   const prevSlide = () => {
     if (currentSlideIndex > 0) {
-      setDirection(-1);
-      setCurrentSlideIndex(currentSlideIndex - 1);
-      }
+      const prevIndex = currentSlideIndex - 1;
+      slideRefs.current[prevIndex]?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+    }
   };
 
   const goToSlide = (index: number) => {
-    setDirection(index > currentSlideIndex ? 1 : -1);
-    setCurrentSlideIndex(index);
+    slideRefs.current[index]?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center',
+    });
   };
 
   if (slides.length === 0) {
@@ -134,33 +171,88 @@ export function SlideEditor({ content }: SlideEditorProps) {
     <div className="h-full w-full bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/20 flex flex-col">
       {/* メインスライドエリア */}
       <div className="flex-1 flex items-center justify-center px-8 md:px-12 relative pb-24">
-        <div className="relative w-full h-full flex items-center justify-center">
-          <AnimatePresence mode="wait" custom={direction}>
-            <motion.div
-              key={currentSlideIndex}
-              custom={direction}
-              initial={{ y: direction > 0 ? 1000 : -1000, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: direction > 0 ? -1000 : 1000, opacity: 0 }}
-              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className="w-full aspect-[16/9] max-h-full rounded-3xl shadow-2xl overflow-hidden bg-white"
-      >
-        <iframe
-          ref={iframeRef}
-                title={`Slide ${currentSlideIndex + 1}`}
-                className="w-full h-full border-0"
-          sandbox="allow-same-origin allow-scripts"
-              />
-              
-              {/* グラデーションオーバーレイ */}
-              <div
-                className="absolute inset-0 pointer-events-none"
+        {/* スライド表示 - 縦スクロール */}
+        <div 
+          className="relative w-full h-full overflow-y-auto overflow-x-hidden scroll-smooth snap-y snap-mandatory px-4"
           style={{
-                  background: 'radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.05) 0%, transparent 50%)',
+            scrollbarWidth: 'thin',
+            scrollbarColor: 'rgba(156, 163, 175, 0.3) transparent',
+          }}
+        >
+          <div className="flex flex-col items-center gap-8 py-8">
+            {slides.map((slide, index) => (
+              <motion.div
+                key={slide.id}
+                ref={(el) => {
+                  slideRefs.current[index] = el;
                 }}
-              />
-            </motion.div>
-          </AnimatePresence>
+                className="relative w-full max-w-5xl rounded-2xl overflow-hidden snap-center snap-always flex-shrink-0 group"
+                style={{
+                  aspectRatio: '16 / 9',
+                  height: 'calc(100vh - 280px)',
+                  maxHeight: '600px',
+                }}
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ 
+                  opacity: currentSlideIndex === index ? 1 : 0.6,
+                  y: 0,
+                  scale: currentSlideIndex === index ? 1 : 0.92,
+                }}
+                whileHover={{ 
+                  scale: currentSlideIndex === index ? 1.02 : 0.94,
+                }}
+                transition={{ 
+                  delay: index * 0.05,
+                  scale: { type: 'spring', damping: 25, stiffness: 300 },
+                  opacity: { duration: 0.3 }
+                }}
+              >
+                {/* 外側のグロー効果 */}
+                <div 
+                  className="absolute -inset-1 rounded-2xl opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500 bg-gradient-to-r from-blue-500 to-purple-500"
+                />
+                
+                {/* スライド本体 */}
+                <div
+                  className="relative w-full h-full rounded-2xl overflow-hidden bg-white"
+                  style={{
+                    boxShadow: currentSlideIndex === index 
+                      ? '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1)'
+                      : '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.05)',
+                  }}
+                >
+                  <iframe
+                    ref={(el) => {
+                      iframeRefs.current[index] = el;
+                    }}
+                    title={`Slide ${index + 1}`}
+                    className="w-full h-full border-0"
+                    sandbox="allow-same-origin allow-scripts"
+                  />
+                  
+                  {/* グラデーションオーバーレイ */}
+                  <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{
+                      background: 'radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.15) 0%, transparent 50%)',
+                    }}
+                  />
+                  
+                  {/* スライド番号インジケーター */}
+                  <motion.div 
+                    className="absolute bottom-8 right-8 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: currentSlideIndex === index ? 1 : 0.5 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <span className="text-gray-900 text-sm tracking-wide">
+                      {index + 1} / {slides.length}
+                    </span>
+                  </motion.div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </div>
 
