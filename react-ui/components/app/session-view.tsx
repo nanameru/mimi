@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { motion } from 'motion/react';
 import { MessageSquare, X } from 'lucide-react';
@@ -105,6 +105,14 @@ export const SessionView = ({
   
   // アーティファクトが表示されているかどうか（isVisibleも考慮）
   const hasArtifact = artifact && isVisible && !(artifact.kind === 'loading' && !artifact.message);
+
+  // 通常モードでチャットが開いている状態でアーティファクトが生成された場合、
+  // アーティファクトモードでもチャットを開いた状態にする
+  useEffect(() => {
+    if (hasArtifact && chatOpen) {
+      setArtifactChatOpen(true);
+    }
+  }, [hasArtifact, chatOpen]);
 
   // チャットボタンがクリックされた時のハンドラー
   const handleChatOpenChange = (open: boolean) => {
