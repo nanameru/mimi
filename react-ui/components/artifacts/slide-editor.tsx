@@ -134,7 +134,7 @@ export function SlideEditor({ content }: SlideEditorProps) {
     <div className="h-full w-full bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/20 flex flex-col">
       {/* メインスライドエリア */}
       <div className="flex-1 flex items-center justify-center px-8 md:px-12 relative pb-24">
-        <div className="relative w-full h-full max-w-7xl flex items-center justify-center">
+        <div className="relative w-full h-full flex items-center justify-center">
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
               key={currentSlideIndex}
