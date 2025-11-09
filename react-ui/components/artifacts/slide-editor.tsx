@@ -190,6 +190,7 @@ export function SlideEditor({ content }: SlideEditorProps) {
                   style={{
                     aspectRatio: '16 / 9',
                     maxWidth: '1200px',
+                    scrollSnapStop: 'always',
                   }}
                   initial={{ opacity: 0, y: 50 }}
                   animate={{ 
