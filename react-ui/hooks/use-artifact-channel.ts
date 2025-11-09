@@ -64,7 +64,18 @@ export function useArtifactChannel() {
         timestamp: artifactData.timestamp,
         contentLength: artifactData.content?.length || 0,
         message: artifactData.message,
+        streamId: artifactData.streamId,
       });
+
+      // artifactMapに保存（streamIdがある場合）
+      if (artifactData.streamId) {
+        setArtifactMap((prev) => {
+          const updated = new Map(prev);
+          updated.set(artifactData.streamId!, artifactData);
+          console.log(`[useArtifactChannel] 💾 Saved artifact to map with streamId: ${artifactData.streamId}`);
+          return updated;
+        });
+      }
 
       // ストリーミング対応: contentが含まれている場合、既存のcontentに追加または置き換え
       if (artifactData.content !== undefined) {
@@ -138,7 +149,7 @@ export function useArtifactChannel() {
     }
   });
 
-  return { artifact, setArtifact, isVisible, setIsVisible, setUserClosed, notifications };
+  return { artifact, setArtifact, isVisible, setIsVisible, setUserClosed, notifications, artifactMap };
 }
 
 // 後方互換性のため、直接artifactを返す関数も提供

@@ -99,7 +99,7 @@ export const SessionView = ({
   const [chatOpen, setChatOpen] = useState(false);
   const [artifactChatOpen, setArtifactChatOpen] = useState(false);
   const [showLive2D, setShowLive2D] = useState(false);
-  const { artifact, setArtifact, isVisible, setIsVisible, setUserClosed, notifications } = useArtifactChannel();
+  const { artifact, setArtifact, isVisible, setIsVisible, setUserClosed, notifications, artifactMap } = useArtifactChannel();
   const { width: windowWidth } = useWindowSize();
   const isMobile = windowWidth ? windowWidth < 768 : false;
   
@@ -255,6 +255,16 @@ export const SessionView = ({
                               progress={notification.progress}
                               onClick={() => {
                                 console.log('[SessionView] Preview card clicked (unified sidebar), showing artifact');
+                                
+                                // streamIdがある場合、artifactMapから対応するアーティファクトを取得
+                                if (notification.streamId && artifactMap.has(notification.streamId)) {
+                                  const storedArtifact = artifactMap.get(notification.streamId);
+                                  console.log('[SessionView] Found artifact in map:', storedArtifact);
+                                  setArtifact(storedArtifact!);
+                                } else {
+                                  console.log('[SessionView] No artifact found in map for streamId:', notification.streamId);
+                                }
+                                
                                 setIsVisible(true);
                                 setUserClosed(false);
                               }}
