@@ -28,9 +28,15 @@ import { ExportButton } from './export-button';
 
 type ArtifactContainerProps = {
   artifactChatOpen: boolean;
+  onChatToggle: () => void;
+  messageCount?: number;
 };
 
-export function ArtifactContainer({ artifactChatOpen }: ArtifactContainerProps) {
+export function ArtifactContainer({ 
+  artifactChatOpen, 
+  onChatToggle,
+  messageCount = 0 
+}: ArtifactContainerProps) {
   const { artifact, setArtifact, isVisible, setIsVisible, setUserClosed } = useArtifactChannel();
   const { width: windowWidth, height: windowHeight } = useWindowSize();
   const isMobile = windowWidth ? windowWidth < 768 : false;
@@ -161,24 +167,21 @@ export function ArtifactContainer({ artifactChatOpen }: ArtifactContainerProps) 
             
             {/* 右上のコントロール */}
             <div className="flex items-center gap-3">
-              {/* チャットボタン - TODO: メッセージ数をpropsで受け取る */}
+              {/* チャットボタン */}
               <motion.button
-                onClick={() => {
-                  // チャット開閉はsession-viewで管理
-                  console.log('[ArtifactContainer] Chat button clicked');
-                }}
+                onClick={onChatToggle}
                 className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-sm border border-gray-200 hover:bg-white transition-colors"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
                 <MessageSquare className="w-4 h-4 text-gray-600" />
-                {0 > 0 && (
+                {messageCount > 0 && (
                   <motion.span
                     className="w-5 h-5 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center"
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                   >
-                    {0}
+                    {messageCount}
                   </motion.span>
                 )}
               </motion.button>

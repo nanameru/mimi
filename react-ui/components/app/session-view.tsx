@@ -138,34 +138,34 @@ export const SessionView = ({
       {showLive2D && <Live2DBackground agentState={agentState} />}
 
       {/* アーティファクトコンテナ（全画面レイアウト） */}
-      {hasArtifact && <ArtifactContainer artifactChatOpen={artifactChatOpen} />}
+      {hasArtifact && (
+        <ArtifactContainer 
+          artifactChatOpen={artifactChatOpen} 
+          onChatToggle={() => setArtifactChatOpen(!artifactChatOpen)}
+          messageCount={messages.length}
+        />
+      )}
 
-      {/* チャット開閉ボタン（統合版：通常モードとアーティファクトモード共通） */}
-      {!isMobile && (
+      {/* チャット開閉ボタン（通常モード時のみ表示） */}
+      {!isMobile && !hasArtifact && (
         <motion.button
-          onClick={() => {
-            if (hasArtifact) {
-              setArtifactChatOpen(!artifactChatOpen);
-            } else {
-              handleChatOpenChange(!chatOpen);
-            }
-          }}
-          className="fixed top-8 right-8 z-[9999] w-12 h-12 rounded-full bg-white/80 backdrop-blur-sm border border-gray-200 flex items-center justify-center transition-colors hover:bg-white shadow-lg"
+          onClick={() => handleChatOpenChange(!chatOpen)}
+          className="fixed top-8 right-8 z-[9999] flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-sm border border-gray-200 hover:bg-white transition-colors"
           initial={{ opacity: 0, scale: 0 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0 }}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          title={
-            hasArtifact
-              ? (artifactChatOpen ? 'Hide chat sidebar' : 'Show chat sidebar')
-              : (chatOpen ? 'Hide chat sidebar' : 'Show chat sidebar')
-          }
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
         >
-          {(hasArtifact ? artifactChatOpen : chatOpen) ? (
-            <X className="w-5 h-5 text-gray-600" />
-          ) : (
-            <MessageSquare className="w-5 h-5 text-gray-600" />
+          <MessageSquare className="w-4 h-4 text-gray-600" />
+          {messages.length > 0 && (
+            <motion.span
+              className="w-5 h-5 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center"
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+            >
+              {messages.length}
+            </motion.span>
           )}
         </motion.button>
       )}
