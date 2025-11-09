@@ -233,7 +233,7 @@ export function SlideEditor({ content }: SlideEditorProps) {
   return (
     <div className="h-full w-full bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/20 flex flex-row">
       {/* 左側：スライド履歴サムネイルリスト */}
-      <div className="w-60 h-full overflow-y-auto bg-white/50 backdrop-blur-sm border-r border-gray-200 p-3">
+      <div className="w-80 h-full overflow-y-auto bg-white/50 backdrop-blur-sm border-r border-gray-200 p-3">
         <div className="flex flex-col gap-3">
           {slides.map((slide, index) => (
             <button
@@ -256,7 +256,7 @@ export function SlideEditor({ content }: SlideEditorProps) {
                 <div style={{ 
                   width: '960px', 
                   height: '540px',
-                  transform: 'scale(0.23)',  // Adjusted scale for w-60 container (≈216px usable width)
+                  transform: 'scale(0.31)',  // Adjusted scale for w-80 container (≈296px usable width)
                   transformOrigin: 'top left',
                 }}>
                   <iframe

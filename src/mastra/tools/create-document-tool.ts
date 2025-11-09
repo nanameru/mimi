@@ -2,6 +2,8 @@ import { createTool } from '@mastra/core/tools';
 import { z } from 'zod';
 import { streamText, streamObject } from 'ai';
 import { openai } from '@ai-sdk/openai';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import {
   sendTextArtifact,
   sendCodeArtifact,
@@ -393,6 +395,15 @@ Generate a single slide div with inline styles.
         // 最終版を送信
         await sendSlideArtifact(room, draftContent, false, streamId, slides, 0, slides.length);
         
+        // HTMLファイルとして保存
+        try {
+          const savedDir = await saveSlideHTMLFiles(slideHTMLs, draftContent, prompt, slides);
+          console.log(`[Create Document Tool] 💾 Slides saved to: ${savedDir}`);
+        } catch (error) {
+          console.error(`[Create Document Tool] ⚠️ Failed to save slides, but continuing...`, error);
+          // エラーが発生してもメイン処理は継続
+        }
+        
         // タスク完了を更新
         if (updateTaskProgress) {
           updateTaskProgress({
@@ -490,5 +501,126 @@ ${slidesHTML}
 </div>
 </body>
 </html>`;
+}
+
+/**
+ * スライドHTMLをファイルシステムに保存
+ * タイムスタンプベースのディレクトリに個別スライドと完全版を保存
+ */
+async function saveSlideHTMLFiles(
+  slideHTMLs: string[],
+  completeHTML: string,
+  prompt: string,
+  slides: SingleSlide[]
+): Promise<string> {
+  try {
+    // タイムスタンプ生成 (YYYY-MM-DD_HH-MM-SS)
+    const now = new Date();
+    const timestamp = now.toISOString()
+      .replace(/T/, '_')
+      .replace(/\..+/, '')
+      .replace(/:/g, '-')
+      .split('.')[0]; // ミリ秒を除去
+    
+    // タイトルを推測（プロンプトの最初の20文字 + サニタイズ）
+    const titleHint = prompt
+      .slice(0, 20)
+      .replace(/[^a-zA-Z0-9ぁ-んァ-ヶー一-龠]/g, '_')
+      .replace(/_+/g, '_')
+      .replace(/^_|_$/g, '')
+      .trim() || 'slide';
+    
+    // ディレクトリ名生成: YYYY-MM-DD_HH-MM-SS_タイトル
+    const dirName = `${timestamp}_${titleHint}`;
+    const saveDir = path.join(process.cwd(), 'generated-slides', dirName);
+    
+    // ディレクトリ作成
+    if (!fs.existsSync(saveDir)) {
+      fs.mkdirSync(saveDir, { recursive: true });
+    }
+    
+    // 個別スライドを保存
+    for (let i = 0; i < slideHTMLs.length; i++) {
+      const slideHTML = slideHTMLs[i];
+      const slide = slides[i];
+      
+      // 個別スライド用の完全なHTMLドキュメントを作成
+      const singleSlideHTML = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${slide?.title || `Slide ${i + 1}`}</title>
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  background: #f7f7f8;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+.slide-container {
+  width: 960px;
+  min-height: 540px;
+  position: relative;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+</style>
+</head>
+<body>
+${slideHTML}
+</body>
+</html>`;
+      
+      const filename = `slide-${i + 1}.html`;
+      const filepath = path.join(saveDir, filename);
+      fs.writeFileSync(filepath, singleSlideHTML, 'utf-8');
+      
+      console.log(`[Create Document Tool] 💾 Saved: ${filename}`);
+    }
+    
+    // 完全版HTMLを保存
+    const completeFilename = 'complete.html';
+    const completeFilepath = path.join(saveDir, completeFilename);
+    fs.writeFileSync(completeFilepath, completeHTML, 'utf-8');
+    
+    console.log(`[Create Document Tool] 💾 Saved: ${completeFilename} (all slides)`);
+    
+    // README.txtを作成（説明用）
+    const readmeContent = `スライド生成結果
+==================
+
+生成日時: ${now.toLocaleString('ja-JP')}
+プロンプト: ${prompt}
+スライド数: ${slideHTMLs.length}
+
+ファイル一覧:
+-------------
+${slideHTMLs.map((_, i) => `- slide-${i + 1}.html : ${slides[i]?.title || `スライド ${i + 1}`}`).join('\n')}
+- complete.html : 全スライドをまとめたHTML
+
+使い方:
+-------
+1. 個別スライド: slide-1.html, slide-2.html などをブラウザで開く
+2. 全スライド: complete.html をブラウザで開くと全スライドを縦スクロールで閲覧可能
+`;
+    
+    const readmeFilepath = path.join(saveDir, 'README.txt');
+    fs.writeFileSync(readmeFilepath, readmeContent, 'utf-8');
+    
+    console.log(`[Create Document Tool] 📁 All slides saved to: ${saveDir}`);
+    
+    return saveDir;
+  } catch (error) {
+    console.error(`[Create Document Tool] ⚠️ Failed to save slide HTML files:`, error);
+    throw error;
+  }
 }
 

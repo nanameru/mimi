@@ -206,5 +206,8 @@ ehthumbs.db
 # Debug audio files (should not be committed but accessible in Cursor)
 debug-audio/
 
+# Generated slides (auto-saved HTML files)
+generated-slides/
+
 # pnpm store
 .pnpm-store/
