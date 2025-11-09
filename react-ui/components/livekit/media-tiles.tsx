@@ -147,8 +147,7 @@ export function MediaTiles({ chatOpen, showLive2D = false, hasArtifact = false }
             ])}
           >
             <AnimatePresence mode="popLayout">
-              {/* VoiceOrb - 一旦コメントアウト */}
-              {/* {!isAvatar && !showLive2D && (
+              {!isAvatar && !showLive2D && (
                 // VoiceOrb（音声のみ、Live2D非表示時）
                 <MotionVoiceOrb
                   key="voiceorb"
@@ -163,7 +162,7 @@ export function MediaTiles({ chatOpen, showLive2D = false, hasArtifact = false }
                   size={isCompactMode ? 'small' : 'large'}
                   className={cn(isCompactMode ? 'h-[90px]' : 'h-auto w-full')}
                 />
-              )} */}
+              )}
               {!isAvatar && showLive2D && (
                 // AgentTile（Live2D表示時はバー非表示）
                 <MotionAgentTile
