@@ -112,7 +112,7 @@ export const SessionView = ({
     if (hasArtifact && chatOpen) {
       setArtifactChatOpen(true);
     }
-  }, [hasArtifact, chatOpen]);
+  }, [hasArtifact]); // chatOpenを依存配列から削除（初回のみ同期）
 
   // チャットボタンがクリックされた時のハンドラー
   const handleChatOpenChange = (open: boolean) => {
