@@ -384,6 +384,26 @@ export const SessionView = ({
       </div>
       )}
 
+      {/* サイドバートグルボタン（通常画面でも表示） */}
+      {!hasArtifact && (
+        <motion.button
+          onClick={() => handleChatOpenChange(!chatOpen)}
+          className="fixed top-8 right-8 z-[9999] w-12 h-12 rounded-full bg-white/80 backdrop-blur-sm border border-gray-200 flex items-center justify-center transition-colors hover:bg-white shadow-lg"
+          initial={{ opacity: 0, scale: 0 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0 }}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          title={chatOpen ? 'Hide chat sidebar' : 'Show chat sidebar'}
+        >
+          {chatOpen ? (
+            <X className="w-5 h-5 text-gray-600" />
+          ) : (
+            <MessageSquare className="w-5 h-5 text-gray-600" />
+          )}
+        </motion.button>
+      )}
+
       {/* Media Tiles */}
       <MediaTiles chatOpen={chatOpen} showLive2D={showLive2D} />
 
