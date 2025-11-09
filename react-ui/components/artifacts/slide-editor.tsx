@@ -186,7 +186,7 @@ export function SlideEditor({ content }: SlideEditorProps) {
                     slideRefs.current[index] = el;
                     containerRefs.current[index] = el;
                   }}
-                  className="relative w-full rounded-2xl overflow-visible snap-center snap-always flex-shrink-0 group"
+                  className="relative w-full rounded-2xl overflow-visible snap-center snap-always flex-shrink-0"
                   style={{
                     aspectRatio: '16 / 9',
                     maxWidth: '1200px',
@@ -201,11 +201,6 @@ export function SlideEditor({ content }: SlideEditorProps) {
                     opacity: { duration: 0.3 }
                   }}
                 >
-                  {/* 外側のグロー効果 */}
-                  <div 
-                    className="absolute -inset-1 rounded-2xl opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500 bg-gradient-to-r from-blue-500 to-purple-500"
-                  />
-                  
                   {/* スライド本体 */}
                   <div
                     className="relative w-full h-full rounded-2xl overflow-hidden bg-white"
