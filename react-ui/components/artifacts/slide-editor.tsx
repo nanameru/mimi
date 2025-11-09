@@ -143,7 +143,7 @@ export function SlideEditor({ content }: SlideEditorProps) {
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: direction > 0 ? -1000 : 1000, opacity: 0 }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className="aspect-[16/9] max-w-full max-h-full w-auto h-auto rounded-3xl shadow-2xl overflow-hidden bg-white"
+              className="w-full aspect-[16/9] max-h-full rounded-3xl shadow-2xl overflow-hidden bg-white"
       >
         <iframe
           ref={iframeRef}
