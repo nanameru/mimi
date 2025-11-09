@@ -8,6 +8,7 @@
 import { formatDistance } from 'date-fns';
 import { AnimatePresence, motion } from 'motion/react';
 import { useWindowSize } from 'usehooks-ts';
+import { MessageSquare, X } from 'lucide-react';
 import { useArtifactChannel } from '@/hooks/use-artifact-channel';
 import { WeatherCard } from './weather-card';
 import { TextEditor } from './text-editor';
@@ -155,9 +156,42 @@ export function ArtifactContainer({ artifactChatOpen }: ArtifactContainerProps) 
           {/* ヘッダー */}
           <div className="flex flex-row items-start justify-between p-2">
             <div className="flex flex-row items-start gap-4">
-              <Button
-                className="h-fit p-2 dark:hover:bg-zinc-700"
-                data-testid="artifact-close-button"
+              {/* 左側は空 */}
+            </div>
+            
+            {/* 右上のコントロール */}
+            <div className="flex items-center gap-3">
+              {/* チャットボタン - TODO: メッセージ数をpropsで受け取る */}
+              <motion.button
+                onClick={() => {
+                  // チャット開閉はsession-viewで管理
+                  console.log('[ArtifactContainer] Chat button clicked');
+                }}
+                className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-sm border border-gray-200 hover:bg-white transition-colors"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <MessageSquare className="w-4 h-4 text-gray-600" />
+                {0 > 0 && (
+                  <motion.span
+                    className="w-5 h-5 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center"
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                  >
+                    {0}
+                  </motion.span>
+                )}
+              </motion.button>
+              
+              {/* スライドカウント */}
+              {artifact.kind === 'slide' && (artifact as SlideArtifact).totalSlides && (
+                <div className="text-gray-600">
+                  {((artifact as SlideArtifact).currentSlideIndex || 0) + 1} / {(artifact as SlideArtifact).totalSlides}
+                </div>
+              )}
+              
+              {/* 閉じるボタン */}
+              <motion.button
                 onClick={() => {
                   console.log('[ArtifactContainer] Close button clicked');
                   // アーティファクトを完全に閉じる
@@ -165,46 +199,21 @@ export function ArtifactContainer({ artifactChatOpen }: ArtifactContainerProps) 
                   setUserClosed(true);
                   setArtifact(null);
                 }}
-                variant="outline"
+                className="w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm border border-gray-200 flex items-center justify-center hover:bg-white transition-colors"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
-                <svg
-                  className="h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    d="M6 18L18 6M6 6l12 12"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </Button>
-
-              <div className="flex flex-col">
-                <div className="font-medium text-gray-900">{artifactTitle}</div>
-                <div className="text-gray-500 text-sm">
-                  {artifact.kind === 'slide' && (artifact as SlideArtifact).totalSlides ? (
-                    <>
-                      {`スライド ${((artifact as SlideArtifact).currentSlideIndex || 0) + 1}/${(artifact as SlideArtifact).totalSlides} 生成中...`}
-                    </>
-                  ) : (
-                    `Updated ${formatDistance(artifactTimestamp, new Date(), {
-                      addSuffix: true,
-                    })}`
-                  )}
-                </div>
-              </div>
+                <X className="w-5 h-5 text-gray-600" />
+              </motion.button>
             </div>
             
-            {/* エクスポートボタン（スライドの場合のみ表示） */}
-            {artifact.kind === 'slide' && (
+            {/* エクスポートボタン（スライドの場合のみ表示） - コメントアウト */}
+            {/* {artifact.kind === 'slide' && (
               <ExportButton 
                 htmlContent={(artifact as SlideArtifact).content} 
                 disabled={!artifact.content || isStreaming}
               />
-            )}
+            )} */}
           </div>
 
           {/* コンテンツエリア */}
