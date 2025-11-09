@@ -186,11 +186,12 @@ export function SlideEditor({ content }: SlideEditorProps) {
                 ref={(el) => {
                   slideRefs.current[index] = el;
                 }}
-                className="relative w-full max-w-5xl rounded-2xl overflow-hidden snap-center snap-always flex-shrink-0 group"
+                className="relative max-w-5xl rounded-2xl overflow-hidden snap-center snap-always flex-shrink-0 group"
                 style={{
                   aspectRatio: '16 / 9',
                   height: 'calc(100vh - 280px)',
                   maxHeight: '600px',
+                  width: 'auto',
                 }}
                 initial={{ opacity: 0, y: 50 }}
                 animate={{ 
