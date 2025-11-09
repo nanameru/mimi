@@ -171,7 +171,7 @@ export const SessionView = ({
       )}
 
       {/* Chat Transcript - 統合サイドバー（通常モードとアーティファクトモード共通） */}
-      {!isMobile && (chatOpen || (hasArtifact && artifactChatOpen)) && (
+      {!isMobile && ((!hasArtifact && chatOpen) || (hasArtifact && artifactChatOpen)) && (
         <motion.div
           animate={{
             opacity: 1,
