@@ -163,7 +163,7 @@ export function SlideEditor({ content }: SlideEditorProps) {
   }
 
   return (
-    <div className="h-full w-full bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/20 flex flex-col">
+    <div className="h-full w-full bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/20 flex flex-row">
       {/* メインスライドエリア */}
       <div className="flex-1 flex relative">
         {/* スライド表示 - 縦スクロール */}
@@ -174,7 +174,7 @@ export function SlideEditor({ content }: SlideEditorProps) {
             scrollbarColor: 'rgba(156, 163, 175, 0.3) transparent',
           }}
         >
-          <div className="flex flex-col items-center gap-0">
+          <div className="flex flex-col items-center gap-4 py-4">
             {slides.map((slide, index) => {
               // スケール計算（960x540を基準に、コンテナいっぱいに表示）
               const containerSize = containerSizes[index] || { width: 960, height: 540 };
@@ -233,6 +233,48 @@ export function SlideEditor({ content }: SlideEditorProps) {
               );
             })}
           </div>
+        </div>
+      </div>
+
+      {/* 右側：スライド履歴サムネイルリスト */}
+      <div className="w-60 h-full overflow-y-auto bg-white/50 backdrop-blur-sm border-l border-gray-200 p-3">
+        <div className="flex flex-col gap-3">
+          {slides.map((slide, index) => (
+            <button
+              key={slide.id}
+              onClick={() => {
+                const slideElement = slideRefs.current[index];
+                if (slideElement) {
+                  slideElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+              }}
+              className={`relative w-full rounded-lg overflow-hidden border-2 transition-all duration-200 ${
+                currentSlideIndex === index
+                  ? 'border-blue-500 shadow-lg'
+                  : 'border-gray-200 hover:border-blue-300'
+              }`}
+              style={{ aspectRatio: '16 / 9' }}
+            >
+              {/* サムネイル背景 */}
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-purple-50" />
+              
+              {/* スライド番号 */}
+              <div className="absolute top-2 left-2 px-2 py-1 rounded bg-white/80 backdrop-blur-sm text-xs font-medium text-gray-700">
+                {index + 1}
+              </div>
+              
+              {/* アクティブインジケーター */}
+              {currentSlideIndex === index && (
+                <div className="absolute inset-0 flex items-center justify-center bg-blue-500/10">
+                  <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
+                    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                </div>
+              )}
+            </button>
+          ))}
         </div>
       </div>
     </div>
