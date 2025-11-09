@@ -6,8 +6,6 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 type SlideEditorProps = {
   content: string;
@@ -132,33 +130,6 @@ export function SlideEditor({ content }: SlideEditorProps) {
     });
   }, [slides]);
 
-  const nextSlide = () => {
-    if (currentSlideIndex < slides.length - 1) {
-      const nextIndex = currentSlideIndex + 1;
-      slideRefs.current[nextIndex]?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center',
-      });
-    }
-  };
-
-  const prevSlide = () => {
-    if (currentSlideIndex > 0) {
-      const prevIndex = currentSlideIndex - 1;
-      slideRefs.current[prevIndex]?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center',
-      });
-    }
-  };
-
-  const goToSlide = (index: number) => {
-    slideRefs.current[index]?.scrollIntoView({
-      behavior: 'smooth',
-      block: 'center',
-    });
-  };
-
   if (slides.length === 0) {
     return (
       <div className="h-full w-full flex items-center justify-center bg-[#f7f7f8]">
@@ -255,62 +226,6 @@ export function SlideEditor({ content }: SlideEditorProps) {
             ))}
           </div>
         </div>
-      </div>
-
-      {/* ナビゲーション - 常に表示 */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center justify-center gap-8 z-50">
-          {/* 前へボタン */}
-          <motion.button
-            onClick={prevSlide}
-            disabled={currentSlideIndex === 0}
-            className={cn(
-              "w-12 h-12 rounded-full bg-white/80 backdrop-blur-sm border border-gray-200 flex items-center justify-center transition-colors",
-              currentSlideIndex === 0 ? "opacity-30 cursor-not-allowed" : "hover:bg-white cursor-pointer"
-            )}
-            whileHover={{ scale: currentSlideIndex === 0 ? 1 : 1.1 }}
-            whileTap={{ scale: currentSlideIndex === 0 ? 1 : 0.9 }}
-          >
-            <ChevronLeft className="w-6 h-6 text-gray-600" />
-          </motion.button>
-
-          {/* ページインジケーター */}
-          <div className="flex items-center gap-2">
-            {slides.map((_, index) => (
-              <motion.button
-                key={index}
-                onClick={() => goToSlide(index)}
-                className="relative"
-                whileHover={{ scale: 1.2 }}
-                whileTap={{ scale: 0.8 }}
-              >
-                <motion.div
-                  className="rounded-full"
-                  animate={{
-                    width: index === currentSlideIndex ? 32 : 8,
-                    height: 8,
-                    backgroundColor: index === currentSlideIndex 
-                      ? 'rgb(59, 130, 246)' 
-                      : 'rgb(209, 213, 219)',
-                  }}
-                  transition={{ type: 'spring', damping: 20 }}
-                />
-              </motion.button>
-            ))}
-          </div>
-
-          {/* 次へボタン */}
-          <motion.button
-            onClick={nextSlide}
-            disabled={currentSlideIndex === slides.length - 1}
-            className={cn(
-              "w-12 h-12 rounded-full bg-white/80 backdrop-blur-sm border border-gray-200 flex items-center justify-center transition-colors",
-              currentSlideIndex === slides.length - 1 ? "opacity-30 cursor-not-allowed" : "hover:bg-white cursor-pointer"
-            )}
-            whileHover={{ scale: currentSlideIndex === slides.length - 1 ? 1 : 1.1 }}
-            whileTap={{ scale: currentSlideIndex === slides.length - 1 ? 1 : 0.9 }}
-          >
-            <ChevronRight className="w-6 h-6 text-gray-600" />
-          </motion.button>
       </div>
     </div>
   );
