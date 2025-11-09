@@ -252,21 +252,26 @@ export function SlideEditor({ content }: SlideEditorProps) {
               style={{ aspectRatio: '16 / 9' }}
             >
               {/* サムネイル iframe - 実際のスライド内容を表示 */}
-              <div className="absolute inset-0 bg-white" style={{ overflow: 'hidden' }}>
-                <iframe
-                  ref={(el) => {
-                    thumbnailIframeRefs.current[index] = el;
-                  }}
-                  title={`Thumbnail ${index + 1}`}
-                  className="border-0 pointer-events-none"
-                  style={{
-                    width: '960px',
-                    height: '540px',
-                    transform: 'scale(0.25)',
-                    transformOrigin: 'top left',
-                  }}
-                  sandbox="allow-same-origin allow-scripts"
-                />
+              <div className="absolute inset-0 bg-white overflow-hidden flex items-start justify-start">
+                <div style={{ 
+                  width: '960px', 
+                  height: '540px',
+                  transform: 'scale(0.23)',  // Adjusted scale for w-60 container (≈216px usable width)
+                  transformOrigin: 'top left',
+                }}>
+                  <iframe
+                    ref={(el) => {
+                      thumbnailIframeRefs.current[index] = el;
+                    }}
+                    title={`Thumbnail ${index + 1}`}
+                    className="border-0 pointer-events-none w-full h-full"
+                    style={{
+                      width: '960px',
+                      height: '540px',
+                    }}
+                    sandbox="allow-same-origin allow-scripts"
+                  />
+                </div>
               </div>
               
               {/* スライド番号 */}
