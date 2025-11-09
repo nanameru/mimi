@@ -24,6 +24,10 @@ export function SlideEditor({ content }: SlideEditorProps) {
   const thumbnailIframeRefs = useRef<(HTMLIFrameElement | null)[]>([]);
   const containerRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [containerSizes, setContainerSizes] = useState<{ width: number; height: number }[]>([]);
+  
+  // スライド位置の保持用
+  const previousSlideCount = useRef(0);
+  const savedSlideIndex = useRef(0);
 
   // HTMLコンテンツからスライドを解析
   useEffect(() => {
@@ -69,6 +73,7 @@ export function SlideEditor({ content }: SlideEditorProps) {
           entries.forEach((entry) => {
             if (entry.isIntersecting && entry.intersectionRatio > 0.5) {
               setCurrentSlideIndex(index);
+              savedSlideIndex.current = index; // 現在の位置を保存
             }
           });
         },
@@ -85,6 +90,28 @@ export function SlideEditor({ content }: SlideEditorProps) {
     return () => {
       observers.forEach((observer) => observer?.disconnect());
     };
+  }, [slides.length]);
+
+  // スライドが増えた時に、前の位置を復元
+  useEffect(() => {
+    // スライドが増えた場合（新しいスライドが追加された）
+    if (slides.length > previousSlideCount.current && previousSlideCount.current > 0) {
+      console.log(`[SlideEditor] 📍 Restoring position to slide ${savedSlideIndex.current + 1}/${slides.length}`);
+      
+      // 少し遅延させてDOMが安定してからスクロール
+      const timeoutId = setTimeout(() => {
+        const targetSlide = slideRefs.current[savedSlideIndex.current];
+        if (targetSlide) {
+          targetSlide.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          console.log(`[SlideEditor] ✅ Position restored to slide ${savedSlideIndex.current + 1}`);
+        }
+      }, 100);
+      
+      return () => clearTimeout(timeoutId);
+    }
+    
+    // 現在のスライド数を保存
+    previousSlideCount.current = slides.length;
   }, [slides.length]);
 
   // 各スライドコンテナのサイズを監視
