@@ -46,6 +46,7 @@ export function AgentControlBar({
   onChatOpenChange,
   showLive2D = false,
   onLive2DToggle,
+  style,
   ...props
 }: AgentControlBarProps & HTMLAttributes<HTMLDivElement>) {
   const { send } = useChat();
@@ -104,6 +105,7 @@ export function AgentControlBar({
         background: 'rgba(255, 255, 255, 0.2)',
         borderColor: 'rgba(255, 255, 255, 0.25)',
         boxShadow: '0 10px 30px -10px rgba(0, 0, 0, 0.08)',
+        ...style,
       }}
       {...props}
     >

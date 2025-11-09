@@ -255,14 +255,14 @@ export const SessionView = ({
       {/* Chat Transcript - 右側パネルとして表示 */}
       {!hasArtifact && (
         <motion.div
-          className="fixed top-0 right-0 h-dvh bg-white/95 backdrop-blur-xl border-l border-gray-200 shadow-2xl z-50"
+          className="fixed top-0 right-0 h-dvh bg-white/95 backdrop-blur-xl border-l border-gray-200 shadow-2xl z-50 flex flex-col"
           initial={{ x: '100%' }}
           animate={{ x: chatOpen ? 0 : '100%' }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
           style={{ width: isMobile ? '100%' : '400px' }}
         >
           {/* メッセージエリア */}
-          <ScrollArea className="h-full px-4 pt-4 pb-4">
+          <ScrollArea className="flex-1 px-4 pt-4 pb-4">
               <div className="space-y-3">
               {(() => {
                 const locale = navigator?.language ?? 'en-US';
@@ -330,6 +330,22 @@ export const SessionView = ({
               })()}
               </div>
           </ScrollArea>
+          
+          {/* チャット入力欄 */}
+          <div className="px-4 pb-4 pt-2 border-t border-gray-200 bg-white">
+            <AgentControlBar
+              controls={controls}
+              onChatOpenChange={handleChatOpenChange}
+              showLive2D={showLive2D}
+              onLive2DToggle={setShowLive2D}
+              className="bg-transparent border-gray-200 shadow-none"
+              style={{
+                background: 'transparent',
+                borderColor: 'rgba(229, 231, 235, 1)',
+                boxShadow: 'none',
+              }}
+            />
+          </div>
         </motion.div>
       )}
 
@@ -379,16 +395,6 @@ export const SessionView = ({
         {appConfig.isPreConnectBufferEnabled && (
           <PreConnectMessage messages={messages} className="pb-4" />
         )}
-        <div 
-          className="relative z-[9999] mx-auto max-w-2xl pb-3 md:pb-12 transition-all duration-300 ease-out"
-        >
-          <AgentControlBar
-            controls={controls}
-            onChatOpenChange={handleChatOpenChange}
-            showLive2D={showLive2D}
-            onLive2DToggle={setShowLive2D}
-          />
-        </div>
       </MotionBottom>
     </section>
   );
