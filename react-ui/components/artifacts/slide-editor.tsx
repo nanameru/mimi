@@ -164,7 +164,7 @@ export function SlideEditor({ content }: SlideEditorProps) {
   return (
     <div className="h-full w-full bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/20 flex flex-col">
       {/* メインスライドエリア */}
-      <div className="flex-1 flex items-center justify-center px-8 md:px-12 relative pb-24">
+      <div className="flex-1 flex items-center justify-center relative pb-24">
         {/* スライド表示 - 縦スクロール */}
         <div 
           className="relative w-full h-full overflow-y-auto overflow-x-hidden scroll-smooth snap-y snap-mandatory px-4"
@@ -173,7 +173,7 @@ export function SlideEditor({ content }: SlideEditorProps) {
             scrollbarColor: 'rgba(156, 163, 175, 0.3) transparent',
           }}
         >
-          <div className="flex flex-col items-center gap-8 py-8">
+          <div className="flex flex-col items-center gap-6 py-8">
             {slides.map((slide, index) => {
               // スケール計算（960pxを基準）
               const containerWidth = containerWidths[index] || 960;
