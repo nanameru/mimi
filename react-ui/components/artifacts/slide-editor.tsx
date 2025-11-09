@@ -164,16 +164,16 @@ export function SlideEditor({ content }: SlideEditorProps) {
   return (
     <div className="h-full w-full bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/20 flex flex-col">
       {/* メインスライドエリア */}
-      <div className="flex-1 flex items-center justify-center relative pb-24">
+      <div className="flex-1 flex relative">
         {/* スライド表示 - 縦スクロール */}
         <div 
-          className="relative w-full h-full overflow-y-auto overflow-x-hidden scroll-smooth snap-y snap-mandatory px-4"
+          className="relative w-full h-full overflow-y-auto overflow-x-hidden scroll-smooth snap-y snap-mandatory"
           style={{
             scrollbarWidth: 'thin',
             scrollbarColor: 'rgba(156, 163, 175, 0.3) transparent',
           }}
         >
-          <div className="flex flex-col items-center gap-6 py-8">
+          <div className="flex flex-col items-center gap-0">
             {slides.map((slide, index) => {
               // スケール計算（960pxを基準）
               const containerWidth = containerWidths[index] || 960;
@@ -186,30 +186,15 @@ export function SlideEditor({ content }: SlideEditorProps) {
                     slideRefs.current[index] = el;
                     containerRefs.current[index] = el;
                   }}
-                  className="relative w-full rounded-2xl overflow-visible snap-center snap-always flex-shrink-0"
+                  className="relative w-full overflow-visible snap-center snap-always flex-shrink-0"
                   style={{
                     aspectRatio: '16 / 9',
-                    maxWidth: '1200px',
                     scrollSnapStop: 'always',
-                  }}
-                  initial={{ opacity: 0, y: 50 }}
-                  animate={{ 
-                    opacity: currentSlideIndex === index ? 1 : 0.6,
-                    y: 0,
-                  }}
-                  transition={{ 
-                    delay: index * 0.05,
-                    opacity: { duration: 0.3 }
                   }}
                 >
                   {/* スライド本体 */}
                   <div
-                    className="relative w-full h-full rounded-2xl overflow-hidden bg-white"
-                    style={{
-                      boxShadow: currentSlideIndex === index 
-                        ? '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1)'
-                        : '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.05)',
-                    }}
+                    className="relative w-full h-full overflow-hidden bg-white"
                   >
                     {/* iframe スケーリングラッパー */}
                     <div
@@ -240,26 +225,6 @@ export function SlideEditor({ content }: SlideEditorProps) {
                         />
                       </div>
                     </div>
-                    
-                    {/* グラデーションオーバーレイ */}
-                    <div
-                      className="absolute inset-0 pointer-events-none"
-                      style={{
-                        background: 'radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.15) 0%, transparent 50%)',
-                      }}
-                    />
-                    
-                    {/* スライド番号インジケーター */}
-                    <motion.div 
-                      className="absolute bottom-8 right-8 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: currentSlideIndex === index ? 1 : 0.5 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <span className="text-gray-900 text-sm tracking-wide">
-                        {index + 1} / {slides.length}
-                      </span>
-                    </motion.div>
                   </div>
                 </motion.div>
               );
