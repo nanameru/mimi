@@ -41,10 +41,10 @@ export function SlideEditor({ content }: SlideEditorProps) {
     }
     cleanedContent = cleanedContent.replace(/```html/g, '').replace(/```/g, '').trim();
 
-    // スライドを分割（.slide クラスで分割）
+    // スライドを分割（.slide-container クラスで分割）
     const parser = new DOMParser();
     const doc = parser.parseFromString(cleanedContent, 'text/html');
-    const slideElements = doc.querySelectorAll('.slide');
+    const slideElements = doc.querySelectorAll('.slide-container');
 
     if (slideElements.length > 0) {
       const parsedSlides: ParsedSlide[] = Array.from(slideElements).map((slideEl, index) => ({
