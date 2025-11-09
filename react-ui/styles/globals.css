@@ -3,6 +3,9 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* include plugins */
+@plugin "@tailwindcss/typography";
+
 :root {
   --fg0: #000000;
   --fg1: #3b3b3b;
@@ -290,4 +293,9 @@
       background-position: 250% 0;
     }
   }
+}
+
+/* ProseMirror editor styles */
+.ProseMirror {
+  outline: none;
 }

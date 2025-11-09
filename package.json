@@ -23,6 +23,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.38.0",
+    "@tailwindcss/typography": "^0.5.19",
     "@trivago/prettier-plugin-sort-imports": "^5.2.2",
     "@types/express": "^5.0.5",
     "@types/node": "^22.18.11",
