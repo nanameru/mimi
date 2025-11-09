@@ -140,18 +140,29 @@ export const SessionView = ({
       {/* アーティファクトコンテナ（全画面レイアウト） */}
       {hasArtifact && <ArtifactContainer artifactChatOpen={artifactChatOpen} />}
 
-      {/* チャット開閉ボタン（アーティファクト表示時のみ） */}
-      {hasArtifact && !isMobile && (
+      {/* チャット開閉ボタン（統合版：通常モードとアーティファクトモード共通） */}
+      {!isMobile && (
         <motion.button
-          onClick={() => setArtifactChatOpen(!artifactChatOpen)}
-          className="fixed top-8 right-8 z-[70] w-12 h-12 rounded-full bg-white/80 backdrop-blur-sm border border-gray-200 flex items-center justify-center transition-colors hover:bg-white shadow-lg"
+          onClick={() => {
+            if (hasArtifact) {
+              setArtifactChatOpen(!artifactChatOpen);
+            } else {
+              handleChatOpenChange(!chatOpen);
+            }
+          }}
+          className="fixed top-8 right-8 z-[9999] w-12 h-12 rounded-full bg-white/80 backdrop-blur-sm border border-gray-200 flex items-center justify-center transition-colors hover:bg-white shadow-lg"
           initial={{ opacity: 0, scale: 0 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0 }}
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
+          title={
+            hasArtifact
+              ? (artifactChatOpen ? 'Hide chat sidebar' : 'Show chat sidebar')
+              : (chatOpen ? 'Hide chat sidebar' : 'Show chat sidebar')
+          }
         >
-          {artifactChatOpen ? (
+          {(hasArtifact ? artifactChatOpen : chatOpen) ? (
             <X className="w-5 h-5 text-gray-600" />
           ) : (
             <MessageSquare className="w-5 h-5 text-gray-600" />
@@ -309,26 +320,6 @@ export const SessionView = ({
             </span>
           </motion.div>
       </div>
-      )}
-
-      {/* サイドバートグルボタン（通常画面でも表示） */}
-      {!hasArtifact && (
-        <motion.button
-          onClick={() => handleChatOpenChange(!chatOpen)}
-          className="fixed top-8 right-8 z-[9999] w-12 h-12 rounded-full bg-white/80 backdrop-blur-sm border border-gray-200 flex items-center justify-center transition-colors hover:bg-white shadow-lg"
-          initial={{ opacity: 0, scale: 0 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0 }}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          title={chatOpen ? 'Hide chat sidebar' : 'Show chat sidebar'}
-        >
-          {chatOpen ? (
-            <X className="w-5 h-5 text-gray-600" />
-          ) : (
-            <MessageSquare className="w-5 h-5 text-gray-600" />
-          )}
-        </motion.button>
       )}
 
       {/* Media Tiles */}
