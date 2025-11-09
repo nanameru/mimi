@@ -333,7 +333,7 @@ export const SessionView = ({
       )}
 
       {/* Media Tiles */}
-      <MediaTiles chatOpen={chatOpen} showLive2D={showLive2D} />
+      <MediaTiles chatOpen={chatOpen} showLive2D={showLive2D} hasArtifact={hasArtifact} />
 
       {/* Bottom */}
       <MotionBottom

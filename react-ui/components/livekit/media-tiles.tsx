@@ -92,9 +92,10 @@ export function useLocalTrackRef(source: Track.Source) {
 interface MediaTilesProps {
   chatOpen: boolean;
   showLive2D?: boolean;
+  hasArtifact?: boolean;
 }
 
-export function MediaTiles({ chatOpen, showLive2D = false }: MediaTilesProps) {
+export function MediaTiles({ chatOpen, showLive2D = false, hasArtifact = false }: MediaTilesProps) {
   const {
     state: agentState,
     audioTrack: agentAudioTrack,
@@ -110,13 +111,16 @@ export function MediaTiles({ chatOpen, showLive2D = false }: MediaTilesProps) {
   const isScreenShareEnabled = screenShareTrack && !screenShareTrack.publication.isMuted;
   const hasSecondTile = isCameraEnabled || isScreenShareEnabled;
 
+  // チャットが開いているか、アーティファクトが表示されている場合は小さく表示
+  const isCompactMode = chatOpen || hasArtifact;
+  
   const transition = {
     ...animationProps.transition,
-    delay: chatOpen ? 0 : 0.15, // delay on close
+    delay: isCompactMode ? 0 : 0.15, // delay on close
   };
   const agentAnimate = {
     ...animationProps.animate,
-    scale: chatOpen ? 1 : 3,
+    scale: isCompactMode ? 1 : 3,
     transition,
   };
   const avatarAnimate = {
@@ -137,9 +141,9 @@ export function MediaTiles({ chatOpen, showLive2D = false }: MediaTilesProps) {
             className={cn([
               'grid',
               // 'bg-[hotpink]', // for debugging
-              !chatOpen && classNames.agentChatClosed,
-              chatOpen && hasSecondTile && classNames.agentChatOpenWithSecondTile,
-              chatOpen && !hasSecondTile && classNames.agentChatOpenWithoutSecondTile,
+              !isCompactMode && classNames.agentChatClosed,
+              isCompactMode && hasSecondTile && classNames.agentChatOpenWithSecondTile,
+              isCompactMode && !hasSecondTile && classNames.agentChatOpenWithoutSecondTile,
             ])}
           >
             <AnimatePresence mode="popLayout">
@@ -155,8 +159,8 @@ export function MediaTiles({ chatOpen, showLive2D = false }: MediaTilesProps) {
                   isSpeaking={agentState === 'speaking'}
                   audioLevel={0}
                   waveform={waveform}
-                  size={chatOpen ? 'small' : 'large'}
-                  className={cn(chatOpen ? 'h-[90px]' : 'h-auto w-full')}
+                  size={isCompactMode ? 'small' : 'large'}
+                  className={cn(isCompactMode ? 'h-[90px]' : 'h-auto w-full')}
                 />
               )}
               {!isAvatar && showLive2D && (
@@ -170,7 +174,7 @@ export function MediaTiles({ chatOpen, showLive2D = false }: MediaTilesProps) {
                   state={agentState}
                   audioTrack={agentAudioTrack}
                   hideBarVisualizer={showLive2D}
-                  className={cn(chatOpen ? 'h-[90px]' : 'h-auto w-full')}
+                  className={cn(isCompactMode ? 'h-[90px]' : 'h-auto w-full')}
                 />
               )}
               {isAvatar && (
@@ -183,7 +187,7 @@ export function MediaTiles({ chatOpen, showLive2D = false }: MediaTilesProps) {
                   transition={avatarLayoutTransition}
                   videoTrack={agentVideoTrack}
                   className={cn(
-                    chatOpen ? 'h-[90px] [&>video]:h-[90px] [&>video]:w-auto' : 'h-auto w-full'
+                    isCompactMode ? 'h-[90px] [&>video]:h-[90px] [&>video]:w-auto' : 'h-auto w-full'
                   )}
                 />
               )}
@@ -193,8 +197,8 @@ export function MediaTiles({ chatOpen, showLive2D = false }: MediaTilesProps) {
           <div
             className={cn([
               'grid',
-              chatOpen && classNames.secondTileChatOpen,
-              !chatOpen && classNames.secondTileChatClosed,
+              isCompactMode && classNames.secondTileChatOpen,
+              !isCompactMode && classNames.secondTileChatClosed,
             ])}
           >
             {/* camera */}
