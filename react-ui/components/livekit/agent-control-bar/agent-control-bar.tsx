@@ -159,8 +159,8 @@ export function AgentControlBar({
             />
           )}
 
-          {/* Toggle Transcript */}
-          {visibleControls.chat && (
+          {/* Toggle Transcript - 削除: 新しいチャットボタンを使用 */}
+          {/* {visibleControls.chat && (
             <Toggle
               size="icon"
               variant="secondary"
@@ -171,7 +171,7 @@ export function AgentControlBar({
             >
               <ChatTextIcon weight="bold" />
             </Toggle>
-          )}
+          )} */}
 
           {/* Toggle Live2D */}
           {visibleControls.live2d && (
