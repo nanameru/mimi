@@ -29,7 +29,7 @@ export function ArtifactPreviewCard({
         className="absolute top-0 left-0 z-[100] size-full rounded-2xl pointer-events-none"
         role="presentation"
       >
-        <div className="flex w-full items-center justify-end p-2">
+        <div className="flex w-full items-center justify-end p-2 pointer-events-none">
           <button
             type="button"
             onClick={(e) => {
