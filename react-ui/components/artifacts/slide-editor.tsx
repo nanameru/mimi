@@ -233,8 +233,14 @@ export function SlideEditor({ content }: SlideEditorProps) {
   return (
     <div className="h-full w-full bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/20 flex flex-row">
       {/* 左側：スライド履歴サムネイルリスト */}
-      <div className="w-80 h-full overflow-y-auto bg-white/50 backdrop-blur-sm border-r border-gray-200 p-3">
-        <div className="flex flex-col gap-3">
+      <div 
+        className="w-80 h-full overflow-y-auto bg-white shadow-lg border-r-2 border-gray-300 p-4"
+        style={{
+          scrollbarWidth: 'thin',
+          scrollbarColor: 'rgba(156, 163, 175, 0.5) rgba(243, 244, 246, 0.5)',
+        }}
+      >
+        <div className="flex flex-col gap-4">
           {slides.map((slide, index) => (
             <button
               key={slide.id}
@@ -246,8 +252,8 @@ export function SlideEditor({ content }: SlideEditorProps) {
               }}
               className={`relative w-full rounded-lg overflow-hidden border-2 transition-all duration-200 ${
                 currentSlideIndex === index
-                  ? 'border-blue-500 shadow-lg'
-                  : 'border-gray-200 hover:border-blue-300'
+                  ? 'border-blue-500 shadow-xl ring-2 ring-blue-200'
+                  : 'border-gray-300 hover:border-blue-400 hover:shadow-md'
               }`}
               style={{ aspectRatio: '16 / 9' }}
             >
@@ -275,7 +281,7 @@ export function SlideEditor({ content }: SlideEditorProps) {
               </div>
               
               {/* スライド番号 */}
-              <div className="absolute top-2 left-2 z-10 px-2 py-1 rounded bg-white/90 backdrop-blur-sm text-xs font-medium text-gray-700 shadow-sm">
+              <div className="absolute top-2 left-2 z-10 px-2.5 py-1 rounded-md bg-white/95 backdrop-blur-sm text-xs font-semibold text-gray-800 shadow-md border border-gray-200">
                 {index + 1}
               </div>
               

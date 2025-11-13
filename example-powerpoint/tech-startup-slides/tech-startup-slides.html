@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tech Startup - Slidesgo Template Recreation</title>
+<link href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+<style>
+@import url('https://fonts.cdnfonts.com/css/syne');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Albert Sans', sans-serif;
+  background: #f7f7f8;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 0;
+}
+
+/* ⚠️ CRITICAL: Each slide MUST be exactly 960px × 540px (16:9 landscape) */
+.slide-container {
+  width: 960px;
+  height: 540px;
+  position: relative;
+  background: #FFFFFF;
+  margin: 20px 0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.slide-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 52px;
+  color: #000000;
+  line-height: 1.2;
+}
+
+.slide-subtitle {
+  font-family: 'Albert Sans', sans-serif;
+  font-size: 16px;
+  color: #000000;
+  line-height: 1.6;
+}
+
+.company-name {
+  font-family: 'Syne', sans-serif;
+  font-size: 10px;
+  color: #000000;
+  position: absolute;
+  bottom: 30px;
+  left: 30px;
+}
+
+.slide-divider {
+  position: absolute;
+  bottom: 15px;
+  left: 140px;
+  width: calc(100% - 170px);
+  height: 1px;
+  background: #000000;
+}
+
+.content-text {
+  font-family: 'Albert Sans', sans-serif;
+  font-size: 12px;
+  color: #000000;
+  line-height: 1.6;
+}
+
+.table-container {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table-container td {
+  padding: 15px;
+  vertical-align: middle;
+  border-right: 1px solid #FFFFFF;
+  border-bottom: 1px solid #FFFFFF;
+}
+
+.table-container td:first-child {
+  border-left: none;
+}
+
+.table-container td:last-child {
+  border-right: none;
+}
+
+.table-header {
+  font-weight: 700;
+  font-size: 10px;
+  text-decoration: underline;
+  color: #2200CC;
+}
+
+.section-number {
+  font-family: 'Syne', sans-serif;
+  font-size: 120px;
+  font-weight: 700;
+  color: #000000;
+  line-height: 1;
+}
+
+.section-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 38px;
+  font-weight: 600;
+  color: #000000;
+  line-height: 1.2;
+}
+
+.italic-text {
+  font-style: italic;
+}
+
+/* Responsive image container */
+.image-container {
+  position: absolute;
+  overflow: hidden;
+}
+
+.image-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+</style>
+</head>
+<body>
+
+<!-- Slide 1: Title Slide -->
+<div class="slide-container">
+  <div style="padding: 60px 75px; height: 100%; display: flex; flex-direction: column; justify-content: center;">
+    <div style="margin-bottom: 280px;">
+      <h1 class="slide-title" style="margin-bottom: 20px;">Tech Startup</h1>
+      <p class="slide-subtitle" style="text-align: right; max-width: 320px; margin-left: auto;">
+        Here is where your<br>presentation begins
+      </p>
+    </div>
+  </div>
+  <div class="company-name">Company name</div>
+  <div class="slide-divider"></div>
+</div>
+
+<!-- Slide 2: Contents Template Instructions -->
+<div class="slide-container">
+  <div style="padding: 60px 75px; height: 100%; display: flex; flex-direction: column;">
+    <h2 style="font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 600; margin-bottom: 30px;">
+      Contents of this template
+    </h2>
+    
+    <p style="font-size: 12px; margin-bottom: 25px;">
+      You can delete this slide when you're done editing the presentation
+    </p>
+    
+    <table class="table-container">
+      <tr>
+        <td style="width: 25%; background: #F3F3F3;">
+          <span class="table-header">Fonts</span>
+        </td>
+        <td style="background: #F3F3F3;">
+          <span class="content-text">To view this template correctly in PowerPoint, download and install the fonts we used</span>
+        </td>
+      </tr>
+      <tr>
+        <td style="background: #F3F3F3;">
+          <span class="table-header">Used</span> and <span class="table-header">alternative resources</span>
+        </td>
+        <td style="background: #F3F3F3;">
+          <span class="content-text">An assortment of graphic resources that are suitable for use in this presentation</span>
+        </td>
+      </tr>
+      <tr>
+        <td style="background: #F3F3F3;">
+          <span class="table-header">Thanks slide</span>
+        </td>
+        <td style="background: #F3F3F3;">
+          <span class="content-text">You must keep it so that proper credits for our design are given</span>
+        </td>
+      </tr>
+      <tr>
+        <td style="background: #F3F3F3;">
+          <span class="table-header">Colors</span>
+        </td>
+        <td style="background: #F3F3F3;">
+          <span class="content-text">All the colors used in this presentation</span>
+        </td>
+      </tr>
+      <tr>
+        <td style="background: #F3F3F3;">
+          <span class="table-header">Icons</span> and <span class="table-header">infographic resources</span>
+        </td>
+        <td style="background: #F3F3F3;">
+          <span class="content-text">These can be used in the template, and their size and color can be edited</span>
+        </td>
+      </tr>
+      <tr>
+        <td style="background: #F3F3F3;">
+          <span style="font-weight: 700; font-size: 10px;">Editable presentation theme</span>
+        </td>
+        <td style="background: #F3F3F3;">
+          <span class="content-text">You can edit the master slides easily. For more info, click <span style="font-weight: 700; text-decoration: underline;">here</span></span>
+        </td>
+      </tr>
+    </table>
+    
+    <div style="margin-top: auto; display: flex; gap: 40px;">
+      <div>
+        <p style="font-weight: 700; font-size: 10px; margin-bottom: 5px;">For more info:</p>
+        <p style="font-weight: 700; font-size: 10px;">
+          <span style="text-decoration: underline;">SLIDESGO</span> | 
+          <span style="text-decoration: underline;">SLIDESGO AI TOOLS</span> | 
+          <span style="text-decoration: underline;">BLOG</span> | 
+          <span style="text-decoration: underline;">FAQs</span>
+        </p>
+      </div>
+      <div>
+        <p style="font-weight: 700; font-size: 10px; margin-bottom: 5px;">You can visit our sister projects:</p>
+        <p style="font-weight: 700; font-size: 10px;">
+          <span style="text-decoration: underline;">FREEPIK AI TOOLS</span> | 
+          <span style="text-decoration: underline;">FREEPIK LIBRARY RESOURCES</span>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 3: Table of Contents -->
+<div class="slide-container">
+  <div style="padding: 60px 75px; height: 100%; display: flex; flex-direction: column;">
+    <h2 class="slide-title" style="font-size: 26px; margin-bottom: 50px;">Table of contents</h2>
+    
+    <div style="display: grid; grid-template-columns: auto auto; gap: 25px; align-items: center;">
+      <div style="text-align: right; font-size: 16px; color: #000;">
+        (01)
+      </div>
+      <div style="font-family: 'Albert Sans', sans-serif; font-size: 16px; color: #000;">
+        Business plan
+      </div>
+      
+      <div style="text-align: right; font-size: 16px; color: #000;">
+        (02)
+      </div>
+      <div style="font-family: 'Albert Sans', sans-serif; font-size: 16px; color: #000;">
+        Company description
+      </div>
+      
+      <div style="text-align: right; font-size: 16px; color: #000;">
+        (03)
+      </div>
+      <div style="font-family: 'Albert Sans', sans-serif; font-size: 16px; color: #000;">
+        Market analysis
+      </div>
+      
+      <div style="text-align: right; font-size: 16px; color: #000;">
+        (04)
+      </div>
+      <div style="font-family: 'Albert Sans', sans-serif; font-size: 16px; color: #000;">
+        Products or services
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 4: Executive Summary -->
+<div class="slide-container">
+  <div style="height: 100%; position: relative;">
+    <!-- Left Image Section -->
+    <div style="position: absolute; left: 0; top: 155px; width: 450px; height: 385px; background: linear-gradient(135deg, #058DC7 0%, #24CBE5 100%);"></div>
+    
+    <!-- Content Section -->
+    <div style="padding: 60px 75px; position: relative; z-index: 1;">
+      <h2 style="font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 600; margin-bottom: 30px;">
+        Executive summary
+      </h2>
+      
+      <div style="margin-left: 475px; margin-top: 100px;">
+        <p class="content-text" style="font-size: 12px; margin-bottom: 12px;">
+          Our business plan outlines the strategy for <span class="italic-text">[company name]</span>, 
+          a <span class="italic-text">[legal structure]</span> that provides 
+          <span class="italic-text">[products/services]</span> to 
+          <span class="italic-text">[target market]</span>. Our mission is to 
+          <span class="italic-text">[mission statement/goal of the company]</span>
+        </p>
+        
+        <p class="content-text" style="font-size: 12px;">
+          The market analysis shows that there is a high demand for our products/services 
+          in the industry. We have identified key competitors and believe we can differentiate 
+          ourselves through our unique selling propositions (USPs)
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 5: Business Plan - Section Title -->
+<div class="slide-container">
+  <div style="padding: 60px 75px; height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
+    <div style="display: flex; flex-direction: column;">
+      <div class="section-number" style="margin-bottom: 40px;">01</div>
+    </div>
+    
+    <div style="text-align: right; margin-bottom: 40px;">
+      <h2 class="section-title">Business plan</h2>
+    </div>
+  </div>
+  
+  <div class="company-name">Company name</div>
+  <div class="slide-divider"></div>
+</div>
+
+<!-- Slide 6: Mission and Vision -->
+<div class="slide-container">
+  <div style="padding: 60px 75px; height: 100%; display: flex; flex-direction: column;">
+    <h2 style="font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 600; margin-bottom: 50px;">
+      Mission and vision
+    </h2>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 50px;">
+      <div>
+        <h3 style="font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 600; margin-bottom: 20px; color: #058DC7;">
+          Mission
+        </h3>
+        <p class="content-text" style="font-size: 12px;">
+          Our mission is to <span class="italic-text">[provide a brief description of your company's 
+          mission statement and what you aim to achieve]</span>. We strive to deliver exceptional 
+          value to our customers through innovative solutions and outstanding service.
+        </p>
+      </div>
+      
+      <div>
+        <h3 style="font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 600; margin-bottom: 20px; color: #50B432;">
+          Vision
+        </h3>
+        <p class="content-text" style="font-size: 12px;">
+          Our vision is to <span class="italic-text">[describe the long-term goals and aspirations 
+          of your company]</span>. We envision becoming a leading force in our industry, recognized 
+          for excellence and innovation.
+        </p>
+      </div>
+    </div>
+  </div>
+  
+  <div class="company-name">Company name</div>
+  <div class="slide-divider"></div>
+</div>
+
+<!-- Slide 7: Company Description Section -->
+<div class="slide-container">
+  <div style="padding: 60px 75px; height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
+    <div style="display: flex; flex-direction: column;">
+      <div class="section-number" style="margin-bottom: 40px;">02</div>
+    </div>
+    
+    <div style="text-align: right; margin-bottom: 40px;">
+      <h2 class="section-title">Company<br>description</h2>
+    </div>
+  </div>
+  
+  <div class="company-name">Company name</div>
+  <div class="slide-divider"></div>
+</div>
+
+<!-- Slide 8: About Us -->
+<div class="slide-container">
+  <div style="padding: 60px 75px; height: 100%; display: flex; flex-direction: column;">
+    <h2 style="font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 600; margin-bottom: 50px;">
+      About us
+    </h2>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 50px;">
+      <div>
+        <p class="content-text" style="font-size: 12px; margin-bottom: 20px;">
+          <span class="italic-text">[Company name]</span> is a 
+          <span class="italic-text">[legal structure]</span> that was founded in 
+          <span class="italic-text">[year]</span>. We specialize in providing 
+          <span class="italic-text">[products/services]</span> to 
+          <span class="italic-text">[target market]</span>.
+        </p>
+        
+        <p class="content-text" style="font-size: 12px;">
+          Our team consists of experienced professionals who are passionate about 
+          <span class="italic-text">[industry/field]</span> and committed to delivering 
+          exceptional results for our clients.
+        </p>
+      </div>
+      
+      <div>
+        <p class="content-text" style="font-size: 12px; margin-bottom: 20px;">
+          We operate from our headquarters located in 
+          <span class="italic-text">[city, state/country]</span>, and serve customers 
+          across <span class="italic-text">[geographic area]</span>.
+        </p>
+        
+        <p class="content-text" style="font-size: 12px;">
+          Our commitment to quality, innovation, and customer satisfaction sets us 
+          apart in the marketplace and drives our continued success.
+        </p>
+      </div>
+    </div>
+  </div>
+  
+  <div class="company-name">Company name</div>
+  <div class="slide-divider"></div>
+</div>
+
+<!-- Slide 9: Market Analysis Section -->
+<div class="slide-container">
+  <div style="padding: 60px 75px; height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
+    <div style="display: flex; flex-direction: column;">
+      <div class="section-number" style="margin-bottom: 40px;">03</div>
+    </div>
+    
+    <div style="text-align: right; margin-bottom: 40px;">
+      <h2 class="section-title">Market<br>analysis</h2>
+    </div>
+  </div>
+  
+  <div class="company-name">Company name</div>
+  <div class="slide-divider"></div>
+</div>
+
+<!-- Slide 10: Products or Services Section -->
+<div class="slide-container">
+  <div style="padding: 60px 75px; height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
+    <div style="display: flex; flex-direction: column;">
+      <div class="section-number" style="margin-bottom: 40px;">04</div>
+    </div>
+    
+    <div style="text-align: right; margin-bottom: 40px;">
+      <h2 class="section-title">Products or<br>services</h2>
+    </div>
+  </div>
+  
+  <div class="company-name">Company name</div>
+  <div class="slide-divider"></div>
+</div>
+
+<!-- Slide 11: Thank You -->
+<div class="slide-container">
+  <div style="padding: 60px 75px; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+    <h1 class="slide-title" style="font-size: 72px; margin-bottom: 30px;">Thanks</h1>
+    
+    <div style="margin-top: 50px;">
+      <p style="font-size: 14px; margin-bottom: 10px;">
+        Do you have any questions?
+      </p>
+      <p style="font-size: 18px; font-weight: 700;">
+        <span class="italic-text">youremail@freepik.com</span>
+      </p>
+      <p style="font-size: 14px; margin-top: 5px;">
+        +91 620 421 838
+      </p>
+    </div>
+    
+    <div style="margin-top: 40px;">
+      <p style="font-size: 10px; color: #666;">
+        Please keep this slide for attribution
+      </p>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
+

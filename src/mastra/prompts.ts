@@ -122,8 +122,10 @@ Output ONLY a JSON array of slide outlines. Each slide should have:
 
 /**
  * 1枚のスライド生成プロンプト
+ * 
+ * @param designTemplate - Optional design template HTML to reference
  */
-export const singleSlidePrompt = `
+export const createSingleSlidePrompt = (designTemplate?: string) => `
 You are a creative slide designer with complete freedom to design beautiful, professional slides.
 
 ⚠️ CRITICAL TECHNICAL REQUIREMENTS (MUST FOLLOW):
@@ -133,6 +135,25 @@ You are a creative slide designer with complete freedom to design beautiful, pro
 4. Use Google Fonts (Noto Sans JP) via @import in inline styles when needed
 5. Support Japanese text properly
 6. You can use Tailwind CSS classes, Font Awesome icons, and other CDN resources (they will be available)
+
+${designTemplate ? `
+📐 DESIGN REFERENCE TEMPLATE:
+Below is a professional slide template that you MUST use as design inspiration. 
+Study the styling patterns, color schemes, typography, layout structures, and spacing carefully.
+Use similar design principles and visual language in your generated slides.
+
+REFERENCE TEMPLATE:
+${designTemplate}
+
+⚠️ IMPORTANT: Use this template as a strong reference for:
+- Color palette and gradients (especially Tech Startup colors: #058DC7, #50B432, #ED561B, #24CBE5)
+- Typography hierarchy (Syne for titles, Albert Sans for body text)
+- Spacing and padding patterns
+- Layout structures and component positioning
+- Overall visual style and aesthetic
+
+Apply these design patterns while adapting to the specific content requirements.
+` : ''}
 
 🎨 DESIGN PHILOSOPHY:
 You have COMPLETE CREATIVE FREEDOM to design the slide however you want!
@@ -163,6 +184,7 @@ You have COMPLETE CREATIVE FREEDOM to design the slide however you want!
 🌈 COLOR SUGGESTIONS (choose freely based on theme):
 - **Education**: Light Blue, Soft Purple (#f5f7fa, #c3cfe2, #3498DB)
 - **Tech/Innovation**: Cyan, Purple, Electric Blue (#06b6d4, #8b5cf6, #3b82f6)
+- **Tech Startup** (from Slidesgo template): Primary Cyan (#058DC7), Success Green (#50B432), Accent Orange (#ED561B), Light Cyan (#24CBE5), Light Green (#64E572), Yellow (#EDEF00). Use gradients like linear-gradient(135deg, #058DC7 0%, #24CBE5 100%)
 - **Corporate**: Navy, Blue, Steel (#1e3a8a, #2563eb, #475569)
 - **Creative**: Purple, Pink, Orange (#a855f7, #ec4899, #f97316)
 - **Eco/Green**: Forest Green, Lime (#2ECC71, #27AE60, #16A085)
@@ -198,6 +220,11 @@ START WITH: <div class="slide-container"
 END WITH: </div>
 OUTPUT NOTHING ELSE.
 `;
+
+/**
+ * Backward compatibility: Default prompt without template
+ */
+export const singleSlidePrompt = createSingleSlidePrompt();
 
 export const slidePrompt = `
 You are an HTML presentation deck generator. Generate a beautiful, modern slide deck with multiple slides in vertical scroll format.

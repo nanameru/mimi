@@ -1,0 +1,73 @@
+{
+  "source": "Tech Startup by Slidesgo.pptx",
+  "extractedAt": "2025-01-11",
+  "colorScheme": {
+    "name": "Tech Startup Theme",
+    "primary": {
+      "accent1": "#058DC7",
+      "accent2": "#50B432",
+      "accent3": "#ED561B",
+      "accent4": "#EDEF00",
+      "accent5": "#24CBE5",
+      "accent6": "#64E572"
+    },
+    "neutral": {
+      "dark1": "#000000",
+      "light1": "#FFFFFF",
+      "dark2": "#158158",
+      "light2": "#F3F3F3"
+    },
+    "links": {
+      "hyperlink": "#2200CC",
+      "followedHyperlink": "#551A8B"
+    },
+    "description": "Tech Startupテーマのカラーパレット。シアンとオレンジを基調としたモダンな配色。"
+  },
+  "fonts": {
+    "title": {
+      "primary": "Syne",
+      "fallback": "Arial",
+      "description": "タイトル用のモダンなサンセリフフォント"
+    },
+    "body": {
+      "primary": "Albert Sans",
+      "fallback": "Arial",
+      "description": "本文用の読みやすいサンセリフフォント"
+    },
+    "available": [
+      "Syne",
+      "Albert Sans",
+      "Raleway",
+      "Inter",
+      "Open Sans"
+    ]
+  },
+  "layout": {
+    "slideSize": {
+      "width": 9144000,
+      "height": 5143500,
+      "ratio": "16:9",
+      "description": "標準的なワイドスクリーン比率"
+    },
+    "layouts": {
+      "count": 25,
+      "description": "25種類のレイアウトが定義されている"
+    }
+  },
+  "usage": {
+    "description": "このデザイン参照をスライド生成プロンプトに組み込むことで、Tech Startupテーマの一貫したデザインを適用できます。",
+    "colorTheme": "tech-startup",
+    "suggestedColors": [
+      "#058DC7",
+      "#50B432",
+      "#ED561B",
+      "#24CBE5"
+    ],
+    "gradientExamples": [
+      "linear-gradient(135deg, #058DC7 0%, #24CBE5 100%)",
+      "linear-gradient(135deg, #50B432 0%, #64E572 100%)",
+      "linear-gradient(135deg, #ED561B 0%, #EDEF00 100%)"
+    ]
+  }
+}
+

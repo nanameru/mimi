@@ -12,7 +12,7 @@ import {
   sendLoadingArtifact,
   sendArtifactNotification,
 } from '../../artifacts/index.js';
-import { codePrompt, sheetPrompt, textPrompt, slidePrompt, slideOutlinePrompt, singleSlidePrompt } from '../prompts.js';
+import { codePrompt, sheetPrompt, textPrompt, slidePrompt, slideOutlinePrompt, singleSlidePrompt, createSingleSlidePrompt } from '../prompts.js';
 import type { SingleSlide } from '../../artifacts/types.js';
 
 /**
@@ -279,7 +279,19 @@ export const createDocumentTool = createTool({
           ];
         }
         
-        // ステップ2: 各スライドを1枚ずつ生成
+        // ステップ2: デザインテンプレートを読み込み
+        console.log(`[Create Document Tool] 📐 Loading design template... (ID: ${toolExecutionId})`);
+        let designTemplate: string | undefined;
+        try {
+          const templatePath = path.join(process.cwd(), 'example-powerpoint', 'tech-startup-slides', 'tech-startup-slides.html');
+          designTemplate = await fs.promises.readFile(templatePath, 'utf-8');
+          console.log(`[Create Document Tool] ✅ Design template loaded: ${designTemplate.length} chars (ID: ${toolExecutionId})`);
+        } catch (error) {
+          console.warn(`[Create Document Tool] ⚠️ Design template not found, using default (ID: ${toolExecutionId})`);
+          designTemplate = undefined;
+        }
+        
+        // ステップ3: 各スライドを1枚ずつ生成
         const slides: SingleSlide[] = [];
         const slideHTMLs: string[] = [];
         
@@ -314,9 +326,14 @@ Replace ALL template colors (blue, navy, etc.) with appropriate colors from the 
 Generate a single slide div with inline styles.
 `;
           
+          // デザインテンプレートを参照したプロンプトを使用
+          const systemPrompt = designTemplate 
+            ? createSingleSlidePrompt(designTemplate)
+            : singleSlidePrompt;
+          
           const slideResponse = await streamText({
             model: openai('gpt-4o-mini'),
-            system: singleSlidePrompt,
+            system: systemPrompt,
             prompt: slidePromptText,
           });
           

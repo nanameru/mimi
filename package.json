@@ -14,6 +14,7 @@
     "test": "node --test --import tsx",
     "test:watch": "node --test --watch --import tsx",
     "dev": "tsx src/agent.ts dev",
+    "dev:stagewise": "pnpm dlx stagewise@latest -b",
     "download-files": "pnpm run build && node dist/agent.js download-files",
     "start": "node dist/agent.js start"
   },
