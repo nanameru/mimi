@@ -4,24 +4,11 @@
   "colorScheme": {
     "name": "Bakery Pain Perdu Theme",
     "primary": {
-      "accent1": "#4F81BD",
-      "accent2": "#C0504D",
-      "accent3": "#9BBB59",
-      "accent4": "#8064A2",
-      "accent5": "#4BACC6",
-      "accent6": "#F79646"
+      "yellow": "#FFF515",
+      "black": "#000000",
+      "white": "#FFFFFF"
     },
-    "neutral": {
-      "dark1": "#000000",
-      "light1": "#FFFFFF",
-      "dark2": "#1F497D",
-      "light2": "#EEECE1"
-    },
-    "links": {
-      "hyperlink": "#0000FF",
-      "followedHyperlink": "#800080"
-    },
-    "description": "ベーカリー パンペルデュのプレゼンテーションテーマ。ブルーとベージュを基調とした、温かみのある配色。"
+    "description": "ベーカリー パンペルデュのプレゼンテーションテーマ。鮮やかな黄色（#FFF515）と黒のコントラストが特徴的なモダンでインパクトのあるデザイン。円形要素を多用した幾何学的なレイアウト。"
   },
   "fonts": {
     "title": {
@@ -57,17 +44,13 @@
   },
   "usage": {
     "description": "このデザイン参照をスライド生成プロンプトに組み込むことで、ベーカリー パンペルデュテーマの一貫したデザインを適用できます。",
-    "colorTheme": "bakery-business-plan",
-    "suggestedColors": [
-      "#4F81BD",
-      "#C0504D",
-      "#9BBB59",
-      "#F79646"
-    ],
-    "gradientExamples": [
-      "linear-gradient(135deg, #4F81BD 0%, #4BACC6 100%)",
-      "linear-gradient(135deg, #9BBB59 0%, #C0504D 100%)",
-      "linear-gradient(135deg, #1F497D 0%, #4F81BD 100%)"
+    "colorTheme": "bakery-business-plan-yellow",
+    "mainColor": "#FFF515",
+    "designElements": [
+      "大きな円形・楕円形の黄色い図形要素",
+      "黒いテキストと黄色の強いコントラスト",
+      "幾何学的でモダンなレイアウト",
+      "余白を活かしたミニマルなデザイン"
     ]
   }
 }
