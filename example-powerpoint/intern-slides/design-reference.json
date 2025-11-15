@@ -1,0 +1,74 @@
+{
+  "source": "名称未設定のデザイン.pptx",
+  "extractedAt": "2025-01-15",
+  "colorScheme": {
+    "name": "Bakery Pain Perdu Theme",
+    "primary": {
+      "accent1": "#4F81BD",
+      "accent2": "#C0504D",
+      "accent3": "#9BBB59",
+      "accent4": "#8064A2",
+      "accent5": "#4BACC6",
+      "accent6": "#F79646"
+    },
+    "neutral": {
+      "dark1": "#000000",
+      "light1": "#FFFFFF",
+      "dark2": "#1F497D",
+      "light2": "#EEECE1"
+    },
+    "links": {
+      "hyperlink": "#0000FF",
+      "followedHyperlink": "#800080"
+    },
+    "description": "ベーカリー パンペルデュのプレゼンテーションテーマ。ブルーとベージュを基調とした、温かみのある配色。"
+  },
+  "fonts": {
+    "title": {
+      "primary": "Noto Sans JP",
+      "fallback": "Calibri, Arial, sans-serif",
+      "description": "タイトル用のゴシック体フォント"
+    },
+    "body": {
+      "primary": "Noto Sans JP",
+      "fallback": "Calibri, Arial, sans-serif",
+      "description": "本文用の読みやすいゴシック体フォント"
+    },
+    "english": {
+      "primary": "Calibri",
+      "fallback": "Arial, sans-serif",
+      "description": "英語テキスト用のサンセリフフォント"
+    },
+    "available": [
+      "Noto Sans JP",
+      "Calibri",
+      "Arial"
+    ]
+  },
+  "layout": {
+    "slideSize": {
+      "width": 9144000,
+      "height": 5143500,
+      "ratio": "16:9",
+      "pixelWidth": 960,
+      "pixelHeight": 540,
+      "description": "標準的なワイドスクリーン比率"
+    }
+  },
+  "usage": {
+    "description": "このデザイン参照をスライド生成プロンプトに組み込むことで、ベーカリー パンペルデュテーマの一貫したデザインを適用できます。",
+    "colorTheme": "bakery-business-plan",
+    "suggestedColors": [
+      "#4F81BD",
+      "#C0504D",
+      "#9BBB59",
+      "#F79646"
+    ],
+    "gradientExamples": [
+      "linear-gradient(135deg, #4F81BD 0%, #4BACC6 100%)",
+      "linear-gradient(135deg, #9BBB59 0%, #C0504D 100%)",
+      "linear-gradient(135deg, #1F497D 0%, #4F81BD 100%)"
+    ]
+  }
+}
+

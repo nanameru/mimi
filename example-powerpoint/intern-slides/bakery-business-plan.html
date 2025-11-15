@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>焼き菓子専門ECサイト 立ち上げ事業計画書 - Bakery Pain Perdu</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  background: #f7f7f8;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 0;
+}
+
+/* ⚠️ CRITICAL: Each slide MUST be exactly 960px × 540px (16:9 landscape) */
+.slide-container {
+  width: 960px;
+  height: 540px;
+  position: relative;
+  background: #FFFFFF;
+  margin: 20px 0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.slide-title {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-weight: 700;
+  color: #1F497D;
+  line-height: 1.4;
+}
+
+.slide-subtitle {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-weight: 400;
+  color: #333333;
+  line-height: 1.8;
+}
+
+.english-text {
+  font-family: 'Calibri', Arial, sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.brand-name {
+  font-family: 'Calibri', Arial, sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  color: #1F497D;
+  text-transform: uppercase;
+}
+
+.slide-number {
+  font-family: 'Calibri', Arial, sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #4F81BD;
+}
+
+.section-label {
+  font-family: 'Calibri', Arial, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: #666666;
+  text-transform: uppercase;
+}
+
+.content-text {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: #333333;
+  line-height: 1.8;
+}
+
+/* グラデーション背景 */
+.gradient-bg-blue {
+  background: linear-gradient(135deg, #4F81BD 0%, #4BACC6 100%);
+}
+
+.gradient-bg-green {
+  background: linear-gradient(135deg, #9BBB59 0%, #64AA4A 100%);
+}
+
+.gradient-bg-orange {
+  background: linear-gradient(135deg, #F79646 0%, #FFC107 100%);
+}
+
+/* カードスタイル */
+.card {
+  background: #FFFFFF;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 20px;
+}
+
+.card-icon-circle {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin-bottom: 12px;
+}
+
+/* フローチャート番号 */
+.flow-number {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #4F81BD;
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* 統計数値 */
+.stat-number {
+  font-size: 42px;
+  font-weight: 900;
+  color: #4F81BD;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #666666;
+  margin-top: 8px;
+}
+</style>
+</head>
+<body>
+
+<!-- Slide 1: タイトルスライド -->
+<div class="slide-container" style="background: linear-gradient(135deg, #1F497D 0%, #4F81BD 100%);">
+  <div style="padding: 70px 80px; height: 100%; display: flex; flex-direction: column; justify-content: center; position: relative;">
+    <div style="max-width: 650px;">
+      <h1 style="font-size: 42px; font-weight: 700; color: #FFFFFF; margin-bottom: 20px; line-height: 1.5;">
+        焼き菓子専門ECサイト<br>立ち上げ事業計画書
+      </h1>
+      <p style="font-size: 22px; font-weight: 400; color: #EEECE1; margin-bottom: 40px; letter-spacing: 0.05em;">
+        おいしさを、もっと遠くへ。
+      </p>
+      <p class="english-text" style="font-size: 12px; color: #4BACC6; margin-bottom: 80px;">
+        NEW PROJECT PLAN
+      </p>
+    </div>
+    
+    <div style="position: absolute; bottom: 50px; right: 80px;">
+      <p class="brand-name" style="color: #FFFFFF; font-size: 14px;">
+        BAKERY PAIN PERDU
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 2: ブランドについて -->
+<div class="slide-container">
+  <div style="padding: 60px 70px; height: 100%; display: flex; flex-direction: column;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 50px;">
+      <div>
+        <p class="section-label" style="margin-bottom: 8px;">ABOUT US</p>
+        <h2 class="slide-title" style="font-size: 32px;">ブランドについて</h2>
+      </div>
+      <div style="display: flex; align-items: center; gap: 15px;">
+        <p class="brand-name" style="font-size: 11px;">BAKERY PAIN PERDU</p>
+        <p class="slide-number">001</p>
+      </div>
+    </div>
+    
+    <div style="flex: 1; display: flex; align-items: center;">
+      <div style="max-width: 750px;">
+        <p class="content-text" style="font-size: 16px;">
+          高田市でパンと焼き菓子の店「ベーカリー パンペルデュ」を運営しています。国産小麦やきび砂糖など、身体にやさしい素材にこだわり、ひとつひとつ丁寧に焼き上げたお菓子を提供しています。このたび、より多くのお客様にお届けできるよう、ECサイトの立ち上げを計画いたしました。
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 3: 背景・現状の課題 -->
+<div class="slide-container">
+  <div style="padding: 60px 70px; height: 100%; display: flex; flex-direction: column;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 50px;">
+      <div>
+        <p class="section-label" style="margin-bottom: 8px;">BACKGROUND</p>
+        <h2 class="slide-title" style="font-size: 32px;">背景・現状の課題</h2>
+      </div>
+      <div style="display: flex; align-items: center; gap: 15px;">
+        <p class="brand-name" style="font-size: 11px;">BAKERY PAIN PERDU</p>
+        <p class="slide-number">002</p>
+      </div>
+    </div>
+    
+    <div style="flex: 1; display: flex; align-items: center;">
+      <div style="max-width: 750px;">
+        <p class="content-text" style="font-size: 16px;">
+          現在は店頭販売が中心ですが、遠方のお客様やギフト希望の声をいただく機会が増えてきました。こうしたニーズに応えるため、オンラインでの販売体制を整える必要性を感じています。
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 4: 事業の概要 -->
+<div class="slide-container">
+  <div style="padding: 60px 70px; height: 100%; display: flex; flex-direction: column;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px;">
+      <div>
+        <p class="section-label" style="margin-bottom: 8px;">OVERVIEW</p>
+        <h2 class="slide-title" style="font-size: 32px;">事業の概要</h2>
+      </div>
+      <div style="display: flex; align-items: center; gap: 15px;">
+        <p class="brand-name" style="font-size: 11px;">BAKERY PAIN PERDU</p>
+        <p class="slide-number">003</p>
+      </div>
+    </div>
+    
+    <div style="max-width: 700px; margin-bottom: 35px;">
+      <p class="content-text" style="font-size: 15px;">
+        店舗に来られない方にも、当店の焼き菓子を気軽に楽しんでいただけるようオンライン販売の仕組みを構築してまいります。
+      </p>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px;">
+      <div class="card" style="text-align: center; padding: 25px 20px;">
+        <div style="font-size: 36px; margin-bottom: 12px;">🍪</div>
+        <p class="content-text" style="font-size: 13px; font-weight: 500;">
+          常温配送可能な<br>焼き菓子を厳選
+        </p>
+      </div>
+      
+      <div class="card" style="text-align: center; padding: 25px 20px;">
+        <div style="font-size: 36px; margin-bottom: 12px;">📱</div>
+        <p class="content-text" style="font-size: 13px; font-weight: 500;">
+          スマートフォンでも<br>購入しやすい設計
+        </p>
+      </div>
+      
+      <div class="card" style="text-align: center; padding: 25px 20px;">
+        <div style="font-size: 36px; margin-bottom: 12px;">🎁</div>
+        <p class="content-text" style="font-size: 13px; font-weight: 500;">
+          自家製ギフトボックス<br>にも対応予定
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 5: ターゲットと市場ニーズ -->
+<div class="slide-container">
+  <div style="padding: 60px 70px; height: 100%; display: flex; flex-direction: column;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px;">
+      <div>
+        <p class="section-label" style="margin-bottom: 8px;">TARGET & MARKET</p>
+        <h2 class="slide-title" style="font-size: 32px;">ターゲットと市場ニーズ</h2>
+      </div>
+      <div style="display: flex; align-items: center; gap: 15px;">
+        <p class="brand-name" style="font-size: 11px;">BAKERY PAIN PERDU</p>
+        <p class="slide-number">004</p>
+      </div>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 40px;">
+      <div>
+        <div style="background: #F5F5F5; border-radius: 8px; padding: 30px; height: 100%;">
+          <p style="font-size: 13px; font-weight: 600; color: #666; margin-bottom: 20px;">
+            購入意向のある層（アンケート結果）
+          </p>
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="width: 12px; height: 12px; border-radius: 50%; background: #4F81BD;"></div>
+              <span style="font-size: 13px; color: #333;">20〜30代女性</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="width: 12px; height: 12px; border-radius: 50%; background: #9BBB59;"></div>
+              <span style="font-size: 13px; color: #333;">30〜40代女性</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="width: 12px; height: 12px; border-radius: 50%; background: #F79646;"></div>
+              <span style="font-size: 13px; color: #333;">ギフト需要</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div style="display: flex; align-items: center;">
+        <p class="content-text" style="font-size: 15px;">
+          当店の商品は、20〜40代の女性を中心に ご自宅用・ギフト用のニーズが高まっています。ECサイトの導入により、これまで 店舗に来られなかったお客様にもアプローチが可能になります。
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 6: 商品ラインナップ -->
+<div class="slide-container">
+  <div style="padding: 60px 70px; height: 100%; display: flex; flex-direction: column;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 35px;">
+      <div>
+        <p class="section-label" style="margin-bottom: 8px;">PRODUCT LINEUP</p>
+        <h2 class="slide-title" style="font-size: 32px;">商品ラインナップ</h2>
+      </div>
+      <div style="display: flex; align-items: center; gap: 15px;">
+        <p class="brand-name" style="font-size: 11px;">BAKERY PAIN PERDU</p>
+        <p class="slide-number">005</p>
+      </div>
+    </div>
+    
+    <div style="max-width: 750px; margin-bottom: 30px;">
+      <p class="content-text" style="font-size: 14px;">
+        厳選した素材の風味を生かした、常温配送に適した焼き菓子を中心に販売いたします。
+      </p>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+      <div class="card" style="padding: 25px 20px;">
+        <div style="width: 100%; height: 100px; background: linear-gradient(135deg, #FFF9C4 0%, #FFE082 100%); border-radius: 6px; margin-bottom: 15px;"></div>
+        <h3 style="font-size: 16px; font-weight: 700; color: #1F497D; margin-bottom: 8px;">レモンケーキ</h3>
+        <p class="content-text" style="font-size: 12px;">
+          爽やかな国産レモンを使用した、しっとりケーキ
+        </p>
+      </div>
+      
+      <div class="card" style="padding: 25px 20px;">
+        <div style="width: 100%; height: 100px; background: linear-gradient(135deg, #E8D5C4 0%, #D7B8A0 100%); border-radius: 6px; margin-bottom: 15px;"></div>
+        <h3 style="font-size: 16px; font-weight: 700; color: #1F497D; margin-bottom: 8px;">アールグレイクッキー</h3>
+        <p class="content-text" style="font-size: 12px;">
+          香り高い紅茶の葉を練りこんだサクサク食感
+        </p>
+      </div>
+      
+      <div class="card" style="padding: 25px 20px;">
+        <div style="width: 100%; height: 100px; background: linear-gradient(135deg, #D7C8B8 0%, #B8A895 100%); border-radius: 6px; margin-bottom: 15px;"></div>
+        <h3 style="font-size: 16px; font-weight: 700; color: #1F497D; margin-bottom: 8px;">全粒粉のビスコッティ</h3>
+        <p class="content-text" style="font-size: 12px;">
+          ナッツの食感とやさしい甘さが特徴
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 7: 販売と運用のしくみ -->
+<div class="slide-container">
+  <div style="padding: 60px 70px; height: 100%; display: flex; flex-direction: column;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 35px;">
+      <div>
+        <p class="section-label" style="margin-bottom: 8px;">SALES FLOW</p>
+        <h2 class="slide-title" style="font-size: 32px;">販売と運用のしくみ</h2>
+      </div>
+      <div style="display: flex; align-items: center; gap: 15px;">
+        <p class="brand-name" style="font-size: 11px;">BAKERY PAIN PERDU</p>
+        <p class="slide-number">006</p>
+      </div>
+    </div>
+    
+    <div style="max-width: 750px; margin-bottom: 30px;">
+      <p class="content-text" style="font-size: 14px;">
+        ECサイトでは、注文から発送までを小規模体制でもスムーズに対応できる仕組みを構築します。
+      </p>
+    </div>
+    
+    <div style="display: flex; gap: 30px; align-items: center;">
+      <div style="flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center;">
+        <div class="flow-number">1</div>
+        <div style="width: 2px; height: 30px; background: #E0E0E0; margin: 10px 0;"></div>
+        <p style="font-size: 13px; font-weight: 600; color: #1F497D; margin-bottom: 8px;">ご注文受付</p>
+        <p class="content-text" style="font-size: 12px;">
+          スマホ・PC対応の専用サイト
+        </p>
+      </div>
+      
+      <div style="flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center;">
+        <div class="flow-number">2</div>
+        <div style="width: 2px; height: 30px; background: #E0E0E0; margin: 10px 0;"></div>
+        <p style="font-size: 13px; font-weight: 600; color: #1F497D; margin-bottom: 8px;">製造・梱包</p>
+        <p class="content-text" style="font-size: 12px;">
+          ご注文後に丁寧に対応
+        </p>
+      </div>
+      
+      <div style="flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center;">
+        <div class="flow-number">3</div>
+        <div style="width: 2px; height: 30px; background: #E0E0E0; margin: 10px 0;"></div>
+        <p style="font-size: 13px; font-weight: 600; color: #1F497D; margin-bottom: 8px;">発送</p>
+        <p class="content-text" style="font-size: 12px;">
+          常温便にて全国へお届け
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 8: 予算と収益予測 -->
+<div class="slide-container">
+  <div style="padding: 60px 70px; height: 100%; display: flex; flex-direction: column;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 35px;">
+      <div>
+        <p class="section-label" style="margin-bottom: 8px;">BUDGET & FORECAST</p>
+        <h2 class="slide-title" style="font-size: 32px;">予算と収益予測</h2>
+      </div>
+      <div style="display: flex; align-items: center; gap: 15px;">
+        <p class="brand-name" style="font-size: 11px;">BAKERY PAIN PERDU</p>
+        <p class="slide-number">007</p>
+      </div>
+    </div>
+    
+    <div style="max-width: 750px; margin-bottom: 30px;">
+      <p class="content-text" style="font-size: 14px;">
+        ECサイト立ち上げにかかる初期費用として、下記の内容を想定しています。費用対効果を重視し、持続可能な運営を目指します。
+      </p>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+      <div style="background: #F5F5F5; border-radius: 8px; padding: 30px;">
+        <p style="font-size: 13px; font-weight: 600; color: #666; margin-bottom: 20px;">
+          初期費用の内訳（合計100万円）
+        </p>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="display: flex; justify-content: space-between;">
+            <span style="font-size: 12px; color: #333;">サイト制作</span>
+            <span style="font-size: 12px; font-weight: 600; color: #4F81BD;">50万円</span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="font-size: 12px; color: #333;">梱包資材</span>
+            <span style="font-size: 12px; font-weight: 600; color: #4F81BD;">20万円</span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="font-size: 12px; color: #333;">広告宣伝費</span>
+            <span style="font-size: 12px; font-weight: 600; color: #4F81BD;">30万円</span>
+          </div>
+        </div>
+      </div>
+      
+      <div style="display: flex; flex-direction: column; gap: 25px;">
+        <div class="card" style="text-align: center; padding: 25px;">
+          <p class="stat-label" style="margin-bottom: 10px;">月間売上目標</p>
+          <p class="stat-number">25万円</p>
+        </div>
+        
+        <div class="card" style="text-align: center; padding: 25px;">
+          <p class="stat-label" style="margin-bottom: 10px;">年間販売数目標</p>
+          <p class="stat-number" style="font-size: 36px;">約2,500個</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 9: 今後の展望と目標 -->
+<div class="slide-container">
+  <div style="padding: 60px 70px; height: 100%; display: flex; flex-direction: column;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 35px;">
+      <div>
+        <p class="section-label" style="margin-bottom: 8px;">VISION</p>
+        <h2 class="slide-title" style="font-size: 32px;">今後の展望と目標</h2>
+      </div>
+      <div style="display: flex; align-items: center; gap: 15px;">
+        <p class="brand-name" style="font-size: 11px;">BAKERY PAIN PERDU</p>
+        <p class="slide-number">008</p>
+      </div>
+    </div>
+    
+    <div style="max-width: 750px; margin-bottom: 30px;">
+      <p class="content-text" style="font-size: 15px;">
+        ECサイトを通じて、これまで出会えなかったお客様ともつながり、"贈りたくなる焼き菓子"としてブランドを育てていきたいと考えています。今後は季節限定商品や法人向けギフトにも取り組み、小さな工房から、あたたかなお菓子を全国に届けてまいります。
+      </p>
+    </div>
+    
+    <div style="background: #F5F5F5; border-radius: 8px; padding: 30px;">
+      <p style="font-size: 13px; font-weight: 600; color: #666; margin-bottom: 18px;">
+        〈 成長に向けた取り組み 〉
+      </p>
+      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="width: 8px; height: 8px; border-radius: 50%; background: #4F81BD;"></div>
+          <span class="content-text" style="font-size: 13px;">季節ごとの新商品展開</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="width: 8px; height: 8px; border-radius: 50%; background: #4F81BD;"></div>
+          <span class="content-text" style="font-size: 13px;">定期購入・ギフト需要への対応</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="width: 8px; height: 8px; border-radius: 50%; background: #4F81BD;"></div>
+          <span class="content-text" style="font-size: 13px;">法人向けギフトサービスの展開</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="width: 8px; height: 8px; border-radius: 50%; background: #4F81BD;"></div>
+          <span class="content-text" style="font-size: 13px;">地元イベント・POPUPへの参加</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 10: ご協力のお願い -->
+<div class="slide-container" style="background: linear-gradient(135deg, #EEECE1 0%, #FFFFFF 100%);">
+  <div style="padding: 60px 70px; height: 100%; display: flex; flex-direction: column;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px;">
+      <div>
+        <p class="section-label" style="margin-bottom: 8px;">THANK YOU</p>
+        <h2 class="slide-title" style="font-size: 32px;">ご協力のお願い</h2>
+      </div>
+      <div style="display: flex; align-items: center; gap: 15px;">
+        <p class="brand-name" style="font-size: 11px;">BAKERY PAIN PERDU</p>
+        <p class="slide-number">009</p>
+      </div>
+    </div>
+    
+    <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
+      <div style="max-width: 750px; margin-bottom: 40px;">
+        <p class="content-text" style="font-size: 15px;">
+          「ベーカリー パンペルデュ」の焼き菓子をもっと多くのお客様にお届けするため、本事業の実現に向けて、誠実に取り組んでまいります。小さな工房からの挑戦ではありますが、素材や製法へのこだわりを大切にしながら、あたたかさの伝わるお菓子づくりを続けていきたいと考えております。皆さまからの応援とご協力を、どうぞよろしくお願いいたします。
+        </p>
+      </div>
+      
+      <div style="background: #FFFFFF; border-radius: 8px; padding: 30px; box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);">
+        <p class="brand-name" style="font-size: 13px; margin-bottom: 15px; color: #1F497D;">
+          BAKERY PAIN PERDU
+        </p>
+        <p class="section-label" style="margin-bottom: 12px; font-size: 10px;">
+          CONTACT
+        </p>
+        <div class="content-text" style="font-size: 12px; line-height: 1.8;">
+          <p>ベーカリー パンペルデュ</p>
+          <p>〒123-4567 高田市大通り1丁目2-3 高田スクエアガーデン20階</p>
+          <p>mail: hello@subarashiisaito.co.jp</p>
+          <p>Instagram: @subarashiisaito</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
+
